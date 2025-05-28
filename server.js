@@ -470,15 +470,15 @@ app.post('/item/:item_id/buy', authenticateToken, async (req, res) => {
         // Create a supabase client with service role key to bypass RLS
         const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
         if (!serviceRoleKey) {
-            console.error('Service role key not configured');
-            return res.status(500).json({ success: false, message: 'Service role key not configured' });
+            console.error('Server Error: SUPABASE_SERVICE_ROLE_KEY not configured in environment.');
+            return res.status(500).json({ success: false, message: 'Server configuration error: Service role key missing.' });
         }
         const serviceSupabaseClient = createClient(supabaseUrl, serviceRoleKey);
 
-        // Log the itemId received for debugging
-        console.log('Debug: itemId received in buy endpoint:', itemId);
+        console.log('Debug: Buy endpoint - itemId:', itemId, 'buyerId:', buyerId);
 
         // Verify buyer has a transaction with status 'requested' or 'cart' for this item
+        console.log('Debug: Fetching transactions for buyer and item...');
         const { data: transactions, error: transError } = await serviceSupabaseClient
             .from('transactions')
             .select('*')
@@ -489,19 +489,18 @@ app.post('/item/:item_id/buy', authenticateToken, async (req, res) => {
 
         if (transError) {
             console.error('Error fetching transactions:', transError);
-            return res.status(400).json({ success: false, message: transError.message });
+            return res.status(400).json({ success: false, message: `Database error fetching transactions: ${transError.message}` });
         }
 
-        console.log('Transactions found:', transactions);
+        console.log('Debug: Transactions found:', transactions);
 
         if (!transactions || transactions.length === 0) {
-            console.error('No valid transaction found for buyer and item');
-            return res.status(403).json({ success: false, message: 'No valid transaction found for buyer and item' });
+            console.error('Error: No valid transaction found for buyer and item.');
+            return res.status(403).json({ success: false, message: 'No valid transaction found for buyer and item.' });
         }
 
         // Get the seller's user_id for the item
-        console.log('Debug: itemId received in buy endpoint:', itemId);
-
+        console.log('Debug: Fetching item data for itemId:', itemId);
         const { data: itemDataArray, error: itemError } = await serviceSupabaseClient
             .from('item')
             .select('stud_id')
@@ -511,14 +510,14 @@ app.post('/item/:item_id/buy', authenticateToken, async (req, res) => {
 
         if (itemError || !itemDataArray || itemDataArray.length === 0) {
             console.error('Error fetching item data:', itemError);
-            return res.status(400).json({ success: false, message: 'Item not found' });
+            return res.status(400).json({ success: false, message: `Database error fetching item data: ${itemError ? itemError.message : 'Item not found'}` });
         }
 
         const itemData = itemDataArray[0];
-
-        console.log('Item data:', itemData);
+        console.log('Debug: Item data:', itemData);
 
         // Update the item status to "reserved"
+        console.log('Debug: Updating item status to "reserved" for itemId:', itemId);
         const { data, error } = await serviceSupabaseClient
             .from('item')
             .update({ item_status: 'reserved' })
@@ -526,15 +525,15 @@ app.post('/item/:item_id/buy', authenticateToken, async (req, res) => {
 
         if (error) {
             console.error('Error updating item status:', error);
-            return res.status(400).json({ success: false, message: error.message });
+            return res.status(400).json({ success: false, message: `Database error updating item status: ${error.message}` });
         }
 
-        console.log('Item status updated successfully');
+        console.log('Debug: Item status updated successfully to reserved.');
 
         res.json({ success: true, message: 'Item status updated to reserved', data });
     } catch (err) {
-        console.error('Server error in buy confirmation:', err);
-        res.status(500).json({ success: false, message: err.message });
+        console.error('Critical Server Error in /item/:item_id/buy endpoint:', err.message, err.stack);
+        res.status(500).json({ success: false, message: `An unexpected server error occurred: ${err.message}` });
     }
 });
 
