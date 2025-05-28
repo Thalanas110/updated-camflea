@@ -871,7 +871,7 @@ if (buyButton) {
                     // New code: update item status to "reserved" via server API
                     try {
                         // Use full URL with supabaseUrl to avoid relative path issues
-                        const apiUrl = `${window.location.origin}/item/${itemId}/buy`;
+                        const apiUrl = `${window.location.origin}/api/item/${itemId}/buy`;
                         const response = await fetch(apiUrl, {
                             method: 'POST',
                             headers: {
