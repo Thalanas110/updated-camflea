@@ -45,9 +45,6 @@ async function authenticateToken(req, res, next) {
     }
 }
 
-// Serve frontend files
-app.use(express.static(path.join(__dirname, 'public')));
-
 // API endpoint to get notifications for authenticated user
 app.get('/notifications', authenticateToken, async (req, res) => {
     try {

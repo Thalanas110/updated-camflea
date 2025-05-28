@@ -1,0 +1,27 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "server.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/notifications(.*)",
+      "dest": "server.js"
+    },
+    {
+      "src": "/item/(.*)",
+      "dest": "server.js"
+    },
+    {
+      "src": "/test",
+      "dest": "server.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/public/$1"
+    }
+  ]
+}
