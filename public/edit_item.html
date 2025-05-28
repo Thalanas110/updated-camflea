@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Item</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        .image-preview {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .image-preview img {
+            width: 100px;
+            height: auto;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <main class="max-w-4xl mx-auto p-6 bg-white mt-6 shadow-md rounded-md">
+        <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="status">Item Status</label>
+            <select class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="status" required>
+                <option value="">Select Status</option>
+                <option value="available">Available</option>
+                <option value="unavailable">Unavailable</option>
+                <option value="sold">Sold</option>
+                <option value="reserved">Reserved</option>
+            </select>
+        </div>
+        <form id="edit-item-form">
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="title">Title</label>
+                <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="title" type="text" placeholder="Add title here." required>
+                <p class="text-gray-600 text-xs italic">Use words people would search for when looking for your item.</p>
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="meeting_place">Meeting Place</label>
+                <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="meeting_place" type="text" placeholder="Provide meeting place here." required>
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2">Item Specifics</label>
+                <p class="text-gray-600 text-xs mb-2">Buyers need these details to find your item.</p>
+
+                <div class="mb-2">
+                    <label class="block text-gray-700 text-sm mb-2" for="condition">Item Condition</label>
+                    <select class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="condition" required>
+                        <option value="">Select Condition</option>
+                        <option value="gently used">Gently Used</option>
+                        <option value="brand new">Brand New</option>
+                        <option value="heavily used">Heavily Used</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-gray-700 text-sm mb-2" for="item_type">Item Type</label>
+                    <select class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="item_type" required>
+                        <option value="">Select Item Type</option>
+                        <option value="books & school supplies">Books & School Supplies</option>
+                        <option value="clothes & accessories">Clothes & Accessories</option>
+                        <option value="gadgets & electronics">Gadgets & Electronics</option>
+                        <option value="instruments & recreations">Instruments & Recreations</option>
+                        <option value="crafted & collectibles">Crafted & Collectibles</option>
+                        <option value="sports & fitness">Sports & Fitness</option>
+                    </select>
+                </div>
+
+                
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="description">Photos & Video</label>
+                <p class="text-gray-600 text-xs italic mb-2">You can add photos and a 1-minute video. Buyers want to see all details and angles.</p>
+                
+                <div class="border-2 border-dashed border-gray-400 rounded-lg p-6 text-center">
+                    <p class="text-gray-600 mb-2">Drag and drop files</p>
+                    <input type="file" id="file-upload" accept="image/*,video/mp4" multiple class="hidden" />
+                    <label for="file-upload" class="bg-gray-200 text-gray-700 py-2 px-4 rounded cursor-pointer">Upload from Computer</label>
+                    <div class="image-preview" id="image-preview"></div>
+                </div>
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="description">Item Description</label>
+                <textarea class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="description" rows="5" placeholder="Add detailed description here." required></textarea>
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="price">Pricing</label>
+                <p class="text-gray-600 text-xs italic mb-2">Set the price of your item.</p>
+
+                <div class="mb-2">
+                    <label class="inline-flex items-center mr-4">
+                        <input
+                            type="radio"
+                            name="price_type"
+                            value="single"
+                            checked
+                            class="form-radio"
+                        />
+                        <span class="ml-2">Single Price</span>
+                    </label>
+                    <label class="inline-flex items-center mr-4">
+                        <input
+                            type="radio"
+                            name="price_type"
+                            value="range"
+                            class="form-radio"
+                        />
+                        <span class="ml-2">Price Range</span>
+                    </label>
+                    <label class="inline-flex items-center">
+                        <input
+                            type="radio"
+                            name="price_type"
+                            value="hidden"
+                            class="form-radio"
+                        />
+                        <span class="ml-2">Hidden Price</span>
+                    </label>
+                </div>
+
+                <div id="single-price-container" class="mb-2">
+                    <input
+                        class="shadow appearance-none border rounded w-1/3 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        id="price"
+                        type="number"
+                        placeholder="PHP"
+                        required
+                    />
+                </div>
+
+                <div id="range-price-container" class="mb-2 hidden">
+                    <input
+                        class="shadow appearance-none border rounded w-1/4 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline mr-2"
+                        id="price_min"
+                        type="number"
+                        placeholder="Min Price PHP"
+                    />
+                    <input
+                        class="shadow appearance-none border rounded w-1/4 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        id="price_max"
+                        type="number"
+                        placeholder="Max Price PHP"
+                    />
+                </div>
+
+                <div id="error-message" style="
+                        position: fixed;
+                        top: 20px;
+                        left: 50%;
+                        transform: translateX(-50%);
+                        z-index: 1000;
+                        background-color: #e74c3c;
+                        color: white;
+                        padding: 12px 24px;
+                        border-radius: 5px;
+                        font-weight: bold;
+                        display: none;
+                        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+                        max-width: 90%;
+                        text-align: center;
+                        ">
+                </div>
+
+            </div>
+            <div class="flex justify-between">
+                <button type="button" class="bg-[#084F6A] text-white py-2 px-16 rounded" id="cancel-button">Cancel</button>
+                <button type="submit" class="bg-[#084F6A] text-white py-2 px-16 rounded">Update</button>
+            </div>
+        </form>
+    </main>
+
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+    
+        const supabaseUrl = 'https://wuhgqjeijmxsgvnykttj.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind1aGdxamVpam14c2d2bnlrdHRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI4MjkzMDQsImV4cCI6MjA1ODQwNTMwNH0._lZy7CE2A8HM1hatjGYrMR8QAUi8nk4L_EuV7Fojhwg';
+        const supabase = createClient(supabaseUrl, supabaseKey);
+    
+        let existingPhotos = []; // Array to store existing photos
+        // Fetch existing item data from the database and populate the form
+        document.addEventListener('DOMContentLoaded', async function () {
+            const urlParams = new URLSearchParams(window.location.search);
+            const itemId = urlParams.get('item_id');
+    
+            if (!itemId) {
+                alert('No item selected for editing.');
+                window.location.href = 'ViewProfile.html';
+                return;
+            }
+    
+            // Fetch the item's details from Supabase
+            const { data: item, error } = await supabase
+    .from('item')
+    .select('item_name, meeting_place, item_condition, item_type, item_status, item_description, item_price, item_price_type, item_price_min, item_price_max, photos')
+    .eq('item_id', itemId)
+    .single();
+
+            if (error) {
+                console.error('Error fetching item details:', error);
+                alert('Failed to load item details. Please try again.');
+                return;
+            }
+    
+  // Populate the form with the item's details
+  document.getElementById('title').value = item.item_name;
+  document.getElementById('meeting_place').value = item.meeting_place;
+  document.getElementById('description').value = item.item_description;
+
+  // Set price fields and price type radio buttons based on item_price_type
+  if (item.item_price_type === 'single') {
+    document.querySelector('input[name="price_type"][value="single"]').checked = true;
+    document.getElementById('price').value = item.item_price || '';
+  } else if (item.item_price_type === 'range') {
+    document.querySelector('input[name="price_type"][value="range"]').checked = true;
+    document.getElementById('price_min').value = item.item_price_min || '';
+    document.getElementById('price_max').value = item.item_price_max || '';
+  } else if (item.item_price_type === 'hidden') {
+    document.querySelector('input[name="price_type"][value="hidden"]').checked = true;
+    document.getElementById('price').value = '';
+    document.getElementById('price_min').value = '';
+    document.getElementById('price_max').value = '';
+  } else {
+    // Default to single price if no type found
+    document.querySelector('input[name="price_type"][value="single"]').checked = true;
+    document.getElementById('price').value = item.item_price || '';
+  }
+
+  // Call togglePriceInputs to show/hide price input fields accordingly
+  togglePriceInputs();
+
+  document.getElementById('condition').value = item.item_condition;
+  document.getElementById('item_type').value = item.item_type;
+  document.getElementById('status').value = item.item_status;
+
+
+  // Set the selected value for the Item Condition dropdown
+  const conditionDropdown = document.getElementById('condition');
+  Array.from(conditionDropdown.options).forEach(option => {
+      if (option.value === item.item_condition) {
+          option.selected = true;
+      }
+  });
+  existingPhotos = item.photos || [];
+  const previewContainer = document.getElementById('image-preview');
+  existingPhotos.forEach((photo, index) => {
+      const imgContainer = document.createElement('div');
+      imgContainer.className = 'relative inline-block';
+
+      const img = document.createElement('img');
+      img.src = photo;
+      img.className = 'w-24 h-24 object-cover rounded border border-gray-300';
+
+      const deleteButton = document.createElement('button');
+      deleteButton.className = 'absolute top-0 right-0 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center';
+      deleteButton.innerHTML = '&times;';
+      deleteButton.onclick = () => {
+          existingPhotos = existingPhotos.filter(photo => photo !== img.src);
+
+          imgContainer.remove(); // Remove the photo from the preview
+      };
+
+      imgContainer.appendChild(img);
+      imgContainer.appendChild(deleteButton);
+      previewContainer.appendChild(imgContainer);
+  });
+
+  document.getElementById('file-upload').addEventListener('change', async function (event) {
+      const files = event.target.files;
+      const previewContainer = document.getElementById('image-preview');
+
+      for (const file of files) {
+          const fileName = `${Date.now()}-${file.name}`;
+          const { data, error } = await supabase.storage
+              .from('item-photos') // Ensure this matches the bucket name in post_item.html
+              .upload(fileName, file);
+
+          if (error) {
+              console.error('Error uploading file:', error); // Log the error object
+              alert(`Failed to upload file: ${file.name}. Please try again.`);
+              continue;
+          }
+
+          // Get the public URL of the uploaded file
+          const { data: publicUrlData, error: urlError } = supabase.storage
+              .from('item-photos')
+              .getPublicUrl(fileName);
+
+          if (urlError) {
+              console.error('Error getting public URL:', urlError);
+              alert(`Failed to get public URL for file: ${file.name}.`);
+              continue;
+          }
+
+          const photoUrl = publicUrlData.publicUrl;
+          console.log('Uploaded photo URL:', photoUrl); // Debugging: Log the public URL
+
+          existingPhotos.push(photoUrl);
+          // Add the uploaded photo to the preview
+          const imgContainer = document.createElement('div');
+          imgContainer.className = 'relative inline-block';
+
+          const img = document.createElement('img');
+          img.src = photoUrl;
+          img.className = 'w-24 h-24 object-cover rounded border border-gray-300';
+
+          const deleteButton = document.createElement('button');
+          deleteButton.className = 'absolute top-0 right-0 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center';
+          deleteButton.innerHTML = '&times;';
+          deleteButton.onclick = () => {
+              existingPhotos = existingPhotos.filter(photo => photo !== photoUrl); // Remove the photo from the array
+              imgContainer.remove(); // Remove the photo from the preview
+          };
+
+          imgContainer.appendChild(img);
+          imgContainer.appendChild(deleteButton);
+          previewContainer.appendChild(imgContainer);
+      }
+  });
+  // Set the selected value for the Item Type dropdown
+  const typeDropdown = document.getElementById('item_type');
+  Array.from(typeDropdown.options).forEach(option => {
+      if (option.value === item.item_type) {
+          option.selected = true;
+      }
+  });
+
+  // Set the selected value for the Item Status dropdown
+  const statusDropdown = document.getElementById('status');
+  if (item.item_status) {
+      Array.from(statusDropdown.options).forEach(option => {
+          console.log('Option value:', option.value); // Debugging: Log each option value
+          if (option.value.trim().toLowerCase() === item.item_status.trim().toLowerCase()) {
+              option.selected = true;
+          }
+      });
+  } else {
+      console.warn('item_status is undefined');
+  }
+
+});
+
+document.getElementById('edit-item-form').addEventListener('submit', async function (event) {
+    event.preventDefault();
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const itemId = urlParams.get('item_id');
+
+    if (!itemId) {
+        alert('No item selected for editing.');
+        return;
+    }
+
+    const priceType = document.querySelector('input[name="price_type"]:checked').value;
+    let itemPrice = null;
+    let itemPriceMin = null;
+    let itemPriceMax = null;
+
+    if (priceType === 'single') {
+        itemPrice = parseFloat(document.getElementById('price').value);
+    } else if (priceType === 'range') {
+        itemPriceMin = parseFloat(document.getElementById('price_min').value);
+        itemPriceMax = parseFloat(document.getElementById('price_max').value);
+    } else if (priceType === 'hidden') {
+        // No price needed
+    }
+
+    const updatedItem = {
+        item_name: document.getElementById('title').value,
+        meeting_place: document.getElementById('meeting_place').value,
+        item_condition: document.getElementById('condition').value,
+        item_type: document.getElementById('item_type').value,
+        item_status: document.getElementById('status').value, // Include the status
+        item_description: document.getElementById('description').value,
+        item_price_type: priceType,
+        item_price: itemPrice,
+        item_price_min: itemPriceMin,
+        item_price_max: itemPriceMax,
+        photos: existingPhotos,
+    };
+
+const { error } = await supabase
+    .from('item')
+    .update(updatedItem)
+    .eq('item_id', itemId);
+
+if (error) {
+    console.error('Error updating item:', error);
+    showBanner('❌ Failed to update item. Please try again.', 'error');
+    return;
+}
+
+showBanner('✅ Item updated successfully!', 'success');
+
+// Wait 1 second, then redirect to ViewProfile.html with cache-busting
+setTimeout(() => {
+    const url = new URL('ViewProfile.html', (window.top || window).location.origin);
+    url.searchParams.set('t', Date.now());
+    (window.top || window).location.href = url.toString();
+}, 1000); // 1 second = 1000 ms
+
+
+    }
+);
+
+function showBanner(message, type = "error") {
+    const errorMessage = document.getElementById("error-message");
+
+    errorMessage.style.display = "block";
+    errorMessage.textContent = message;
+
+    if (type === "success") {
+        errorMessage.style.backgroundColor = "#2ecc71"; // green
+    } else {
+        errorMessage.style.backgroundColor = "#e74c3c"; // red
+    }
+
+    setTimeout(() => {
+        errorMessage.style.display = "none";
+    }, 3000);
+}
+
+
+    // Add event listener for cancel button to redirect the top-level window to full ViewProfile page
+    document.getElementById('cancel-button').addEventListener('click', function() {
+        if (window.top) {
+            window.top.location.href = 'ViewProfile.html';
+        } else {
+            window.location.href = 'ViewProfile.html';
+        }
+    });
+
+// Prevent form submission on Enter key in input fields to avoid photo disappearance and premature update
+document.getElementById('edit-item-form').addEventListener('keydown', function(event) {
+    if (event.key === 'Enter') {
+        const target = event.target;
+        // Allow Enter only if the target is a textarea (for description)
+        if (target.tagName.toLowerCase() !== 'textarea') {
+            event.preventDefault();
+        }
+    }
+});
+// Toggle price input fields based on price type selection
+function togglePriceInputs() {
+    const priceType = document.querySelector('input[name="price_type"]:checked').value;
+    const singlePriceContainer = document.getElementById('single-price-container');
+    const rangePriceContainer = document.getElementById('range-price-container');
+
+    if (priceType === 'single') {
+        singlePriceContainer.classList.remove('hidden');
+        rangePriceContainer.classList.add('hidden');
+        document.getElementById('price').required = true;
+        document.getElementById('price_min').required = false;
+        document.getElementById('price_max').required = false;
+    } else if (priceType === 'range') {
+        singlePriceContainer.classList.add('hidden');
+        rangePriceContainer.classList.remove('hidden');
+        document.getElementById('price').required = false;
+        document.getElementById('price_min').required = true;
+        document.getElementById('price_max').required = true;
+    } else if (priceType === 'hidden') {
+        singlePriceContainer.classList.add('hidden');
+        rangePriceContainer.classList.add('hidden');
+        document.getElementById('price').required = false;
+        document.getElementById('price_min').required = false;
+        document.getElementById('price_max').required = false;
+    }
+}
+
+// Add event listeners to price type radio buttons
+document.querySelectorAll('input[name="price_type"]').forEach((elem) => {
+    elem.addEventListener('change', togglePriceInputs);
+});
+
+// Initialize price inputs visibility on page load
+togglePriceInputs();
+
+</script>
+</body>
+</html>

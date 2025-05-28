@@ -1,0 +1,1684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Profile Page</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
+    <style>
+        /* Bio display styling */
+        #bioDisplay {
+            width: 100%;
+            min-height: 40px;
+            padding: 8px;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            word-break: break-word;
+            background-color: #D9D9D9;
+            color: #084F6A;
+        }
+        
+        /* Placeholder style for empty bio */
+        #bioDisplay:empty::before {
+            content: "Place your Bio here...";
+            color: #808080;
+        }
+        
+        /* Container for relative positioning */
+        .bio-container {
+            position: relative;
+            min-height: 40px;
+            height: 105px; /* Set a fixed height for the bio container */
+            background-color: #D9D9D9;
+            border-radius: 5px;
+            padding: 8px;
+            overflow: hidden; /* Prevent children from overflowing */
+        }
+        
+        /* Make it obvious when editing */
+        .editing #bioDisplay {
+            opacity: 0.7;
+        }
+
+        /* The surrounding gray container */
+        .bio-outer-container {
+            background-color: #D9D9D9;
+            border-radius: 5px;
+        }
+        
+        /* Invisible textarea for editing */
+        #bioEdit {
+            width: 100%;
+            min-height: 40px;
+            max-height: 100%; /* Constrain to the container's height */
+            height: 100%;     /* Always fit the container */
+            padding: 8px;
+            border-radius: 5px;
+            word-break: break-word;
+            white-space: pre-wrap;
+            resize: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            z-index: -1;
+            background-color: #D9D9D9;
+            border: none;
+            outline: none;
+            color: #084F6A;
+            overflow-y: auto; /* Enable vertical scrolling */
+            box-sizing: border-box;
+        }
+        
+        /* Placeholder for textarea */
+        #bioEdit::placeholder {
+            color: #808080;
+        }
+
+        @media (max-width: 1024px) {
+            .max-w-6xl.flex.space-x-6 {
+                flex-direction: column !important;
+                gap: 1.5rem !important;
+            }
+            .max-w-6xl.flex.space-x-6 > div {
+                width: 100% !important;
+            }
+        }
+
+        .items-section-row {
+            display: flex !important;
+            flex-direction: row !important;
+            gap: 1.5rem !important;
+        }
+        .items-section-row > div {
+            width: 33.3333% !important;
+        }
+        @media (max-width: 1024px) {
+            .items-section-row {
+                flex-direction: column !important;
+                gap: 1.5rem !important;
+            }
+            .items-section-row > div {
+                width: 100% !important;
+            }
+        }
+
+        /* Make item containers display their cards horizontally with scrolling */
+        #currentlySellingItemsContainer,
+        #userItemsContainer,
+        #soldItemsContainer {
+            display: flex;
+            flex-direction: row;
+            gap: 1.5rem;
+            overflow-x: auto;
+            padding-bottom: 8px;
+        }
+        /* Keep the container width at 260px as requested */
+        #currentlySellingItemsContainer > div,
+        #userItemsContainer > div,
+        #soldItemsContainer > div {
+            min-width: 260px;
+            max-width: 260px;
+            flex: 0 0 auto;
+        }
+
+        /* Item card design based on the provided image */
+        .item-card {
+            background: #fff;
+            padding: 10px; /* Adjusted padding based on visual */
+            border: 1px solid #ccc; /* Adjusted border based on visual */
+            border-radius: 8px; /* Adjusted border radius based on visual */
+            width: 100%; /* Make card take full width of its container (260px) */
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* Adjusted box shadow based on visual */
+            position: relative;
+            font-size: 0.9rem;
+            height: 100%; /* Allow card to expand to container height if needed */
+            box-sizing: border-box; /* Include padding and border in the element's total width and height */
+        }
+
+        .item-card img {
+            width: 100%;
+            height: 150px; /* Adjusted image height based on visual */
+            object-fit: cover;
+            border-radius: 4px; /* Adjusted border radius based on visual */
+            margin-bottom: 8px; /* Adjusted margin based on visual */
+        }
+
+        .item-card h3 {
+            margin: 0;
+            font-size: 1rem; /* Adjusted font size based on visual */
+            font-weight: normal; /* Adjusted font weight based on visual */
+            color: #333; /* Adjusted color based on visual */
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            flex-shrink: 0;
+            margin-bottom: 5px; /* Adjusted margin based on visual */
+        }
+
+        /* Container for Price and Time */
+        .item-card .price-time {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px; /* Adjusted margin based on visual */
+        }
+
+        .item-card .price {
+            font-size: 1.1rem; /* Adjusted font size based on visual */
+            font-weight: bold; /* Adjusted font weight based on visual */
+            color: #084F6A; /* Adjusted color based on visual */
+            flex-shrink: 0;
+        }
+
+        .item-card .time-ago {
+            font-size: 0.7rem; /* Adjusted font size based on visual */
+            color: gray; /* Adjusted color based on visual */
+            flex-shrink: 0;
+        }
+
+        /* Styling for the Condition element to look like a button */
+        .item-card .condition {
+            display: inline-block;
+            background-color: #e0e0e0; /* Adjusted background color based on visual */
+            padding: 3px 6px; /* Adjusted padding based on visual */
+            border-radius: 4px; /* Adjusted border radius based on visual */
+            font-size: 0.8rem; /* Adjusted font size based on visual */
+            color: #333; /* Adjusted color based on visual */
+            margin-bottom: 5px; /* Adjusted margin based on visual */
+            text-align: center;
+            align-self: flex-start;
+            flex-shrink: 0;
+            border: 1px solid #ccc; /* Added border based on visual */
+        }
+
+        /* Container for Rating and Status */
+        .item-card .rating-status {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: auto; /* Push rating/status and location to the bottom */
+            margin-bottom: 5px; /* Adjusted margin based on visual */
+        }
+
+        .item-card .rating {
+            font-size: 0.8rem; /* Adjusted font size based on visual */
+            color: #555; /* Adjusted color based on visual */
+            flex-shrink: 0;
+            display: flex; /* Align icon and text */
+            align-items: center;
+        }
+
+        .item-card .rating i {
+             color: #FFD700; /* Star color */
+             margin-right: 4px;
+        }
+
+        .item-card .status {
+            font-size: 0.8rem; /* Adjusted font size based on visual */
+            font-weight: bold; /* Adjusted font weight based on visual */
+            color: green; /* Default color, will be overridden by inline style */
+            flex-shrink: 0;
+        }
+
+        /* Container for School Location */
+        .item-card .school-location {
+            display: flex;
+            align-items: center;
+            font-size: 0.8rem; /* Adjusted font size based on visual */
+            color: #555; /* Adjusted color based on visual */
+            flex-shrink: 0;
+            margin-bottom: 0; /* No bottom margin based on visual */
+        }
+
+        .item-card .school-location i {
+            margin-right: 4px;
+            color: #084F6A; /* Adjusted color based on visual */
+        }
+    </style>
+<script>
+ // Save bio to localStorage (simulating database) function saveBioToDatabase(bioText) { localStorage.setItem('userBio', bioText); }
+
+
+function enableEditing() {
+    const container = document.querySelector('.bio-container');
+    const display = document.getElementById('bioDisplay');
+    const editor = document.getElementById('bioEdit');
+    const saveButton = document.getElementById('saveBioButton');
+
+    container.classList.add('editing');
+    editor.value = display.textContent;
+    editor.style.height = display.offsetHeight + 'px';
+    editor.style.zIndex = '10';
+    editor.style.opacity = '1';
+    editor.focus();
+    saveButton.classList.remove('hidden'); // Show the Save button
+
+    editor.setSelectionRange(0, editor.value.length);
+    updateCounter(); // Update character count immediately when editing starts
+}
+
+function saveBio() {
+    const container = document.querySelector('.bio-container');
+    const display = document.getElementById('bioDisplay');
+    const editor = document.getElementById('bioEdit');
+    const saveButton = document.getElementById('saveBioButton');
+
+    const newBio = editor.value.substring(0, 500);
+    console.log('Saving bio:', newBio); // Debugging: Log the bio being saved
+    display.textContent = newBio;
+    editor.style.zIndex = '-1';
+    editor.style.opacity = '0';
+    container.classList.remove('editing');
+    saveButton.classList.add('hidden'); // Hide the Save button
+
+    window.saveBioToDatabase(newBio); // Save the bio to Supabase
+    updateCounter(); // Update the character counter
+}
+
+function updateCounter() {
+    const editor = document.getElementById('bioEdit');
+    const display = document.getElementById('bioDisplay');
+    const counter = document.getElementById('charCounter');
+    const computedStyle = window.getComputedStyle(editor);
+    const opacity = parseFloat(computedStyle.opacity);
+    const zIndex = parseInt(computedStyle.zIndex, 10);
+    // If textarea is visible (editing), use its value length, else use displayed bio length
+    if (opacity > 0 && zIndex >= 0) {
+        counter.textContent = `${editor.value.length}/500`;
+    } else {
+        counter.textContent = `${display.textContent.length}/500`;
+    }
+}
+
+function displayProfile() {
+    const firstName = localStorage.getItem('userFirstName') || 'User';
+    const lastName = localStorage.getItem('userLastName') || 'Name';
+    const school = localStorage.getItem('userSchool') || 'School Name';
+    const bio = localStorage.getItem('userBio') || ''; // Retrieve the bio
+
+    console.log('Loading profile:', { firstName, lastName, school, bio }); // Debugging: Log the profile data
+    document.getElementById('userName').innerText = `${firstName} ${lastName}`;
+    document.getElementById('userSchool').innerText = school;
+    document.getElementById('bioDisplay').textContent = bio; // Display the bio
+}
+
+window.addEventListener('load', async function () {
+    // Disable navigation links initially
+    const navHome = document.getElementById('navHome');
+    const navPostItem = document.getElementById('navPostItem');
+    if (navHome) {
+        navHome.classList.add('pointer-events-none', 'opacity-50');
+    }
+    if (navPostItem) {
+        navPostItem.classList.add('pointer-events-none', 'opacity-50');
+    }
+
+    displayProfile();
+    updateCounter();
+
+    // Await profile and posted items fetch to complete before enabling navigation
+    await fetchUserProfile();
+    await fetchUserPostedItems();
+
+    // Hide loading overlay after data is loaded
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    if (loadingOverlay) {
+        loadingOverlay.style.display = 'none';
+    }
+
+    // Enable navigation links after loading completes
+    if (navHome) {
+        navHome.classList.remove('pointer-events-none', 'opacity-50');
+    }
+    if (navPostItem) {
+        navPostItem.classList.remove('pointer-events-none', 'opacity-50');
+    }
+
+    const editor = document.getElementById('bioEdit');
+    if (editor) {
+        editor.addEventListener('input', function () {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+            updateCounter(); // Update character counter live while typing
+        });
+
+        editor.addEventListener('blur', function () {
+            console.log('Editor lost focus, saving bio'); // Debugging: Log when blur event is triggered
+            const newBio = editor.value.substring(0, 500);
+            saveBioToDatabase(newBio);
+            saveBio();
+        });
+
+        editor.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                console.log('Enter key pressed, saving bio'); // Debugging: Log when Enter key is pressed
+                saveBio();
+            }
+        });
+    }
+});
+
+    function timeAgo(createdAt) {
+    const now = new Date();
+    const createdDate = new Date(createdAt);
+    const diffInSeconds = Math.floor((now - createdDate) / 1000);
+
+    if (diffInSeconds < 60) {
+        return `${diffInSeconds} second${diffInSeconds === 1 ? '' : 's'} ago`;
+    }
+
+    const diffInMinutes = Math.floor(diffInSeconds / 60);
+    if (diffInMinutes < 60) {
+        return `${diffInMinutes} minute${diffInMinutes === 1 ? '' : 's'} ago`;
+    }
+
+    const diffInHours = Math.floor(diffInMinutes / 60);
+    if (diffInHours < 24) {
+        return `${diffInHours} hour${diffInHours === 1 ? '' : 's'} ago`;
+    }
+
+    const diffInDays = Math.floor(diffInHours / 24);
+    if (diffInDays < 7) {
+        return `${diffInDays} day${diffInDays === 1 ? '' : 's'} ago`;
+    }
+
+    const diffInWeeks = Math.floor(diffInDays / 7);
+    if (diffInWeeks < 4) {
+        return `${diffInWeeks} week${diffInWeeks === 1 ? '' : 's'} ago`;
+    }
+
+    const diffInMonths = Math.floor(diffInDays / 30);
+    return `${diffInMonths} month${diffInMonths === 1 ? '' : 's'} ago`;
+}
+</script>
+</head> 
+<nav class="bg-[#084F6A] p-6 flex justify-between items-center"> 
+    <div class="flex items-center space-x-6">
+        <a id="navHome" class="text-white text-sm pointer-events-none opacity-50" href="index.html">Home</a>
+    </div> 
+    <div class="flex flex-col items-center space-y-2"> <img alt="Logo" class="h-16 w-35" src="Homepage_images/LOGO_WHITE.png"/> </div> <div class="flex items-center space-x-6"> 
+        <a class="text-white text-sm" href="Login_page.html">Logout</a> </div> </nav>
+<!-- Profile Section -->
+<div class="max-w-6xl mx-auto p-6 flex">
+
+    
+    <div class="bg-[#084F6A] p-3 rounded-lg shadow-lg flex items-center w-1/3 h-48 relative text-white">
+        <label for="profilePictureInput" class="cursor-pointer">
+            <img
+                id="profilePicture"
+                alt="Profile Picture"
+                class="h-24 w-24 rounded-full mr-4 ml-8"
+                src="Homepage_images/circle-user.png"
+            />
+        </label>
+        <input
+            id="profilePictureInput"
+            type="file"
+            accept="image/*"
+            class="hidden"
+            onchange="uploadProfilePicture(event)"
+        />
+        <div class="ml-0 mt-2">
+            <h2 id="userName" class="text-xl font-semibold">User Name</h2>
+            <p id="userSchool" style="display: flex; align-items: center; gap: 6px;">School Name</p>
+            <!-- Removed duplicate logo appending script to avoid size conflicts -->
+            <div class="flex items-center space-x-2 mt-2">
+                <i class="fas fa-star text-yellow-500"></i>
+                <span>0.0 (0)</span>
+            </div>
+        </div>
+        <a class="text-white text-sm absolute bottom-4 right-2" href="Reset_password.html">Reset password</a>
+    </div>
+    <div class="flex-1 ml-6">
+        <!-- Bio Section -->
+        <div class="p-6 rounded-lg shadow-lg bio-outer-container">
+            <div class="bio-container">
+                <div id="bioDisplay"></div>
+                <textarea id="bioEdit" placeholder="Place your Bio here..."></textarea>
+            </div>
+            <div class="flex justify-between items-center mt-4">
+                <span id="charCounter" class="text-sm text-gray-600">0/500</span>
+                <div class="flex space-x-4">
+                    <button class="text-[#084F6A] font-medium" onclick="enableEditing()">Edit Bio</button>
+                    <button id="saveBioButton" class="text-[#084F6A] font-medium hidden" onclick="saveBio()">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Items Posted Section -->
+<div class="max-w-6xl mx-auto p-6 space-y-6">
+    <div class="w-full p-3">
+        <h3 class="text-xl font-semibold bg-[#084F6A] text-white p-2 rounded-lg text-center">Currently Selling Items</h3>
+        <div id="currentlySellingItemsContainer" class="bg-white p-6 rounded-lg shadow-lg">
+            <p id="noCurrentlySellingItemsMessage" class="text-gray-500">You have no currently selling items...</p>
+        </div>
+    </div>
+    <div class="w-full p-3">
+        <h3 class="text-xl font-semibold bg-[#084F6A] text-white p-2 rounded-lg text-center">Items Posted</h3>
+        <div id="userItemsContainer" class="bg-white p-6 rounded-lg shadow-lg">
+            <p id="noItemsMessage" class="text-gray-500">You haven't posted any items yet...</p>
+        </div>
+    </div>
+    <div class="w-full p-3">
+        <h3 class="text-xl font-semibold bg-[#084F6A] text-white p-2 rounded-lg text-center">Sold Items</h3>
+        <div id="soldItemsContainer" class="bg-white p-6 rounded-lg shadow-lg">
+            <p id="noSoldItemsMessage" class="text-gray-500">You have no sold items yet...</p>
+        </div>
+    </div>
+</div>
+<div class="max-w-6xl mx-auto p-6">
+    <h3 class="text-xl font-semibold bg-[#084F6A] text-white p-2 rounded-lg text-center">Buyer's Feedback</h3>
+    <div class="bg-white p-6 rounded-lg shadow-lg">
+        <ul id="feedbackList">
+            <li class="empty-message text-gray-500">No feedback received yet.</li>
+        </ul>
+    </div>
+</div>
+
+<script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+    const supabaseUrl = 'https://wuhgqjeijmxsgvnykttj.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind1aGdxamVpam14c2d2bnlrdHRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI4MjkzMDQsImV4cCI6MjA1ODQwNTMwNH0._lZy7CE2A8HM1hatjGYrMR8QAUi8nk4L_EuV7Fojhwg';
+    const supabase = createClient(supabaseUrl, supabaseKey);
+    window.supabase = supabase; // Attach supabase client to window for global access
+
+    async function saveBioToDatabase(bioText) {
+    const studId = localStorage.getItem('stud_id'); // Get the logged-in user's ID
+    if (!studId) {
+        alert('User not logged in. Redirecting to login page.');
+        window.location.href = 'Login_page.html';
+        return;
+    }
+
+    console.log('Saving bio to Supabase:', bioText); // Debugging: Log the bio being saved
+
+    // Update the stud_bio field in the student table
+    const { error } = await supabase
+        .from('student')
+        .update({ stud_bio: bioText })
+        .eq('stud_id', studId);
+
+    if (error) {
+        console.error('Error updating bio in Supabase:', error);
+        alert('Failed to save bio. Please try again.');
+        return;
+    }
+
+    console.log('Bio successfully saved to Supabase.');
+}
+
+// Attach the function to the global window object
+window.saveBioToDatabase = saveBioToDatabase;
+
+window.deleteItemIdToConfirm = null;
+
+window.deleteItem = function(itemId) {
+    window.deleteItemIdToConfirm = itemId;
+    const modal = document.getElementById('deleteConfirmModal');
+    if (modal) {
+        modal.style.display = 'flex';
+    }
+}
+
+async function confirmDelete() {
+    const itemId = window.deleteItemIdToConfirm;
+    if (!itemId) return;
+
+    try {
+        const { error } = await window.supabase
+            .from('item')
+            .delete()
+            .eq('item_id', itemId);
+
+        if (error) {
+            console.error('Error deleting item:', error);
+            alert('Failed to delete item: ' + error.message);
+        } else {
+            await fetchUserPostedItems(); // Await reloading the items list
+            showBanner('Item deleted successfully!');
+        }
+    } catch (err) {
+        console.error('Unexpected error deleting item:', err);
+        alert('Failed to delete item due to unexpected error.');
+    } finally {
+        window.closeDeleteModal();
+    }
+}
+
+function closeDeleteModal() {
+    const modal = document.getElementById('deleteConfirmModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+    window.deleteItemIdToConfirm = null;
+}
+
+async function fetchUserPostedItems() {
+    const studId = localStorage.getItem('stud_id'); // Get the logged-in user's ID
+    if (!studId) {
+        alert('User not logged in. Redirecting to login page.');
+        window.location.href = 'Login_page.html';
+        return;
+    }
+
+    console.log('fetchUserPostedItems called');
+
+    // Fetch user's posted items from Supabase
+    const { data: items, error } = await supabase
+        .from('item')
+        .select('item_id, item_name, item_price, item_price_type, item_price_min, item_price_max, item_condition, item_type, item_status, photos, created_at')
+        .eq('stud_id', studId);
+
+    if (error) {
+        console.error('Error fetching user items:', error);
+        // Instead of alert, try to reload after a delay to recover from transient errors
+        setTimeout(() => {
+            fetchUserPostedItems();
+        }, 3000);
+        return;
+    }
+
+    const sellingContainer = document.getElementById('currentlySellingItemsContainer');
+    const postedContainer = document.getElementById('userItemsContainer');
+    const soldContainer = document.getElementById('soldItemsContainer');
+
+    // Clear the containers
+    sellingContainer.innerHTML = '';
+    postedContainer.innerHTML = '';
+    soldContainer.innerHTML = '';
+
+    console.log('Cleared currentlySellingItemsContainer, userItemsContainer, and soldItemsContainer');
+
+    // Create or re-query noCurrentlySellingItemsMessage element
+    let noSellingMessage = document.getElementById('noCurrentlySellingItemsMessage');
+    if (!noSellingMessage) {
+        noSellingMessage = document.createElement('p');
+        noSellingMessage.id = 'noCurrentlySellingItemsMessage';
+        noSellingMessage.className = 'text-gray-500';
+        noSellingMessage.textContent = "You have no currently selling items...";
+        sellingContainer.appendChild(noSellingMessage);
+    }
+
+    // Create or re-query noItemsMessage element
+    let noItemsMessage = document.getElementById('noItemsMessage');
+    if (!noItemsMessage) {
+        noItemsMessage = document.createElement('p');
+        noItemsMessage.id = 'noItemsMessage';
+        noItemsMessage.className = 'text-gray-500';
+        noItemsMessage.textContent = "You haven't posted any items yet...";
+        postedContainer.appendChild(noItemsMessage);
+    }
+
+    // Create or re-query noSoldItemsMessage element
+    let noSoldMessage = document.getElementById('noSoldItemsMessage');
+    if (!noSoldMessage) {
+        noSoldMessage = document.createElement('p');
+        noSoldMessage.id = 'noSoldItemsMessage';
+        noSoldMessage.className = 'text-gray-500';
+        noSoldMessage.textContent = "You have no sold items yet...";
+        soldContainer.appendChild(noSoldMessage);
+    }
+
+    // Separate items by status
+    const reservedItems = items.filter(item => item.item_status === 'reserved');
+    const otherItems = items.filter(item => item.item_status === 'available');
+    const soldItems = items.filter(item => item.item_status === 'sold');
+
+    // Fetch buyer info for reserved items
+    const buyerIds = reservedItems.map(item => item.item_id);
+    // Fetch transactions for these items to get buyer_id and status
+    const { data: transactions, error: transError } = await supabase
+        .from('transactions')
+        .select('item_uuid, buyer_id, status')
+        .in('item_uuid', buyerIds);
+
+    if (transError) {
+        console.error('Error fetching transactions:', transError);
+    }
+
+    // Map item_id to buyer_id
+    const itemIdToBuyerId = {};
+    if (transactions) {
+        transactions.forEach(tran => {
+            itemIdToBuyerId[tran.item_uuid] = tran.buyer_id;
+        });
+    }
+
+    // Fetch buyer names for buyer_ids
+    const buyerIdsSet = new Set(Object.values(itemIdToBuyerId));
+    const buyerIdsArray = Array.from(buyerIdsSet);
+
+    let buyers = [];
+    if (buyerIdsArray.length > 0) {
+        const { data: buyerData, error: buyerError } = await supabase
+            .from('student')
+            .select('stud_id, stud_fname, stud_lname')
+            .in('stud_id', buyerIdsArray);
+
+        if (buyerError) {
+            console.error('Error fetching buyer info:', buyerError);
+        } else {
+            buyers = buyerData;
+        }
+    }
+
+    // Map buyer_id to buyer name
+    const buyerIdToName = {};
+    buyers.forEach(buyer => {
+        buyerIdToName[buyer.stud_id] = `${buyer.stud_fname} ${buyer.stud_lname}`;
+    });
+
+    // Render reserved items in currently selling section
+    if (reservedItems.length === 0) {
+        noSellingMessage.style.display = 'block';
+    } else {
+        noSellingMessage.style.display = 'none';
+            // Create a map from item_id to transaction status for reserved items
+            const itemIdToTransactionStatus = {};
+            if (transactions) {
+                transactions.forEach(tran => {
+                    itemIdToTransactionStatus[tran.item_uuid] = tran.status;
+                });
+            }
+
+            reservedItems.forEach(item => {
+                const photoUrl = item.photos?.[0] || 'https://via.placeholder.com/250x200?text=No+Image';
+                const timePosted = timeAgo(item.created_at);
+
+                let priceDisplay = '';
+                if (item.item_price_type === 'single') {
+                    priceDisplay = `₱${item.item_price}`;
+                } else if (item.item_price_type === 'range') {
+                    priceDisplay = `₱${item.item_price_min} - ₱${item.item_price_max}`;
+                } else if (item.item_price_type === 'hidden') {
+                    priceDisplay = 'Price hidden';
+                } else {
+                    priceDisplay = 'Price not available';
+                }
+
+                const itemCard = document.createElement('div');
+                itemCard.className = 'item-card';
+
+                // Determine button state based on transaction status
+                const transactionStatus = itemIdToTransactionStatus[item.item_id];
+                let markAsSentButtonHTML = '';
+                if (transactionStatus === 'sent' || transactionStatus === 'completed') {
+                    markAsSentButtonHTML = `<button class="bg-gray-500 text-white py-1 px-4 rounded cursor-not-allowed" disabled>Marked as Sent</button>`;
+                } else {
+                    markAsSentButtonHTML = `<button class="bg-green-600 text-white py-1 px-4 rounded" onclick="event.stopPropagation(); markAsSent('${item.item_id}')">Mark as Sent</button>`;
+                }
+
+                itemCard.innerHTML = `
+                    <img src="${photoUrl}" alt="${item.item_name}">
+                    <h3>${item.item_name}</h3>
+                    <div class="price-time">
+                        <span class="price">${priceDisplay}</span>
+                        <span class="time-ago">${timePosted}</span>
+                    </div>
+                    <div class="condition">${item.item_condition}</div>
+                    <div class="rating-status">
+                        <span class="rating"><i class="fas fa-star"></i> 0.0 (0)</span>
+                        <span class="status" style="color: ${item.item_status === 'available' ? 'green' : item.item_status === 'reserved' ? 'orange' : 'gray'};">${item.item_status.charAt(0).toUpperCase() + item.item_status.slice(1)}</span>
+                    </div>
+                     <div class="school-location">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>Gordon College</span>
+                    </div>
+                    <div style="margin-top: 8px;">
+                        <div style="display: flex; gap: 8px;">
+                            ${markAsSentButtonHTML}
+                            <button class="bg-yellow-500 text-white py-1 px-4 rounded" onclick="event.stopPropagation(); cancelTransaction('${item.item_id}')">Cancel</button>
+                        </div>
+                        <div style="margin-top: 8px; color: #555; font-size: 15px;">waiting for the buyer's confirmation</div>
+                    </div>
+                `;
+
+
+            itemCard.addEventListener('click', () => {
+                let modal = document.getElementById('detailedPostModal');
+                let iframe = document.getElementById('detailedPostIframe');
+                if (!modal) {
+                    modal = document.createElement('div');
+                    modal.id = 'detailedPostModal';
+                    modal.style.cssText = 'display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background-color: rgba(0,0,0,0.7); z-index: 2000; justify-content: center; align-items: center;';
+                    modal.innerHTML = `
+                        <div style="position: relative; width: 90%; max-width: 900px; height: 90%; background: white; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); display: flex; flex-direction: column;">
+                            <button id="closeDetailedPostModal" style="position: absolute; top: 10px; right: 10px; background: #084F6A; color: white; border: none; border-radius: 5px; padding: 8px 12px; font-size: 16px; cursor: pointer; z-index: 2100;">Close</button>
+                            <iframe id="detailedPostIframe" src="" style="flex-grow: 1; border: none; border-radius: 0 0 10px 10px;"></iframe>
+                        </div>
+                    `;
+                    document.body.appendChild(modal);
+                    iframe = document.getElementById('detailedPostIframe');
+                    modal = document.getElementById('detailedPostModal');
+                    document.getElementById('closeDetailedPostModal').addEventListener('click', () => {
+                        iframe.src = '';
+                        modal.style.display = 'none';
+                    });
+                }
+                iframe.src = `Detailed_post.html?item_id=${item.item_id}&embedded=1`;
+                modal.style.display = 'flex';
+            });
+
+            sellingContainer.appendChild(itemCard);
+        });
+    }
+
+    // Render other items in items posted section
+    if (otherItems.length === 0) {
+        noItemsMessage.style.display = 'block';
+    } else {
+        noItemsMessage.style.display = 'none';
+        otherItems.forEach(item => {
+            const photoUrl = item.photos?.[0] || 'https://via.placeholder.com/250x200?text=No+Image';
+            const timePosted = timeAgo(item.created_at);
+
+            let priceDisplay = '';
+            if (item.item_price_type === 'single') {
+                priceDisplay = `₱${item.item_price}`;
+            } else if (item.item_price_type === 'range') {
+                priceDisplay = `₱${item.item_price_min} - ₱${item.item_price_max}`;
+            } else if (item.item_price_type === 'hidden') {
+                priceDisplay = 'Price hidden';
+            } else {
+                priceDisplay = 'Price not available';
+            }
+
+            const itemCard = document.createElement('div');
+            itemCard.className = 'item-card';
+
+            itemCard.innerHTML = `
+                <img src="${photoUrl}" alt="${item.item_name}">
+                <h3>${item.item_name}</h3>
+                <div class="price-time">
+                    <span class="price">${priceDisplay}</span>
+                    <span class="time-ago">${timePosted}</span>
+                </div>
+                <div class="condition">${item.item_condition}</div>
+                <div class="rating-status">
+                     <span class="rating"><i class="fas fa-star"></i> 0.0 (0)</span>
+                    <span class="status" style="color: ${item.item_status === 'available' ? 'green' : item.item_status === 'reserved' ? 'orange' : 'gray'};">${item.item_status.charAt(0).toUpperCase() + item.item_status.slice(1)}</span>
+                </div>
+                 <div class="school-location">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>Gordon College</span>
+                </div>
+                <div class="flex space-x-2 mt-2">
+                    <button class="bg-[#084F6A] text-white py-1 px-4 rounded" onclick="event.stopPropagation(); editItem('${item.item_id}')">Edit</button>
+                    <button class="bg-red-600 text-white py-1 px-4 rounded" onclick="event.stopPropagation(); deleteItem('${item.item_id}')">Delete</button>
+                </div>
+            `;
+
+            itemCard.addEventListener('click', () => {
+                let modal = document.getElementById('detailedPostModal');
+                let iframe = document.getElementById('detailedPostIframe');
+                if (!modal) {
+                    modal = document.createElement('div');
+                    modal.id = 'detailedPostModal';
+                    modal.style.cssText = 'display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background-color: rgba(0,0,0,0.7); z-index: 2000; justify-content: center; align-items: center;';
+                    modal.innerHTML = `
+                        <div style="position: relative; width: 90%; max-width: 900px; height: 90%; background: white; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); display: flex; flex-direction: column;">
+                            <button id="closeDetailedPostModal" style="position: absolute; top: 10px; right: 10px; background: #084F6A; color: white; border: none; border-radius: 5px; padding: 8px 12px; font-size: 16px; cursor: pointer; z-index: 2100;">Close</button>
+                            <iframe id="detailedPostIframe" src="" style="flex-grow: 1; border: none; border-radius: 0 0 10px 10px;"></iframe>
+                        </div>
+                    `;
+                    document.body.appendChild(modal);
+                    iframe = document.getElementById('detailedPostIframe');
+                    modal = document.getElementById('detailedPostModal');
+                    document.getElementById('closeDetailedPostModal').addEventListener('click', () => {
+                        iframe.src = '';
+                        modal.style.display = 'none';
+                    });
+                }
+                iframe.src = `Detailed_post.html?item_id=${item.item_id}&embedded=1`;
+                modal.style.display = 'flex';
+            });
+
+            postedContainer.appendChild(itemCard);
+        });
+    }
+
+    // Render sold items in sold items section
+    if (soldItems.length === 0) {
+        noSoldMessage.style.display = 'block';
+    } else {
+        noSoldMessage.style.display = 'none';
+        soldItems.forEach(item => {
+            const photoUrl = item.photos?.[0] || 'https://via.placeholder.com/250x200?text=No+Image';
+            const timePosted = timeAgo(item.created_at);
+
+            let priceDisplay = '';
+            if (item.item_price_type === 'single') {
+                priceDisplay = `₱${item.item_price}`;
+            } else if (item.item_price_type === 'range') {
+                priceDisplay = `₱${item.item_price_min} - ₱${item.item_price_max}`;
+            } else if (item.item_price_type === 'hidden') {
+                priceDisplay = 'Price hidden';
+            } else {
+                priceDisplay = 'Price not available';
+            }
+
+            const itemCard = document.createElement('div');
+            itemCard.className = 'item-card';
+
+            itemCard.innerHTML = `
+                <img src="${photoUrl}" alt="${item.item_name}">
+                <h3>${item.item_name}</h3>
+                <div class="price-time">
+                    <span class="price">${priceDisplay}</span>
+                    <span class="time-ago">${timePosted}</span>
+                </div>
+                <div class="condition">${item.item_condition}</div>
+                <div class="rating-status">
+                     <span class="rating"><i class="fas fa-star"></i> 0.0 (0)</span>
+                    <span class="status" style="color: ${item.item_status === 'available' ? 'green' : item.item_status === 'reserved' ? 'orange' : 'gray'};">${item.item_status.charAt(0).toUpperCase() + item.item_status.slice(1)}</span>
+                </div>
+                 <div class="school-location">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>Gordon College</span>
+                </div>
+            `;
+
+            itemCard.addEventListener('click', () => {
+                let modal = document.getElementById('detailedPostModal');
+                let iframe = document.getElementById('detailedPostIframe');
+                if (!modal) {
+                    modal = document.createElement('div');
+                    modal.id = 'detailedPostModal';
+                    modal.style.cssText = 'display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background-color: rgba(0,0,0,0.7); z-index: 2000; justify-content: center; align-items: center;';
+                    modal.innerHTML = `
+                        <div style="position: relative; width: 90%; max-width: 900px; height: 90%; background: white; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); display: flex; flex-direction: column;">
+                            <button id="closeDetailedPostModal" style="position: absolute; top: 10px; right: 10px; background: #084F6A; color: white; border: none; border-radius: 5px; padding: 8px 12px; font-size: 16px; cursor: pointer; z-index: 2100;">Close</button>
+                            <iframe id="detailedPostIframe" src="" style="flex-grow: 1; border: none; border-radius: 0 0 10px 10px;"></iframe>
+                        </div>
+                    `;
+                    document.body.appendChild(modal);
+                    iframe = document.getElementById('detailedPostIframe');
+                    modal = document.getElementById('detailedPostModal');
+                    document.getElementById('closeDetailedPostModal').addEventListener('click', () => {
+                        iframe.src = '';
+                        modal.style.display = 'none';
+                    });
+                }
+                iframe.src = `Detailed_post.html?item_id=${item.item_id}&embedded=1`;
+                modal.style.display = 'flex';
+            });
+
+            soldContainer.appendChild(itemCard);
+        });
+    }
+}
+
+    const studId = localStorage.getItem('stud_id');
+
+    // Store subscription references to unsubscribe if needed
+    if (!window.itemSubscription) {
+        window.itemSubscription = null;
+    }
+    if (!window.itemStatusUpdateSubscription) {
+        window.itemStatusUpdateSubscription = null;
+    }
+
+    // Debounce function to limit how often a function can be called
+    function debounce(func, wait) {
+        let timeout;
+        return function(...args) {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => func.apply(this, args), wait);
+        };
+    }
+
+    // Create a debounced version of fetchUserPostedItems with 300ms delay
+    const debouncedFetchUserPostedItems = debounce(fetchUserPostedItems, 300);
+
+    if (studId) {
+        if (window.itemSubscription) {
+            console.log('Unsubscribing previous itemSubscription');
+            window.itemSubscription.unsubscribe();
+        }
+        console.log('Creating new itemSubscription');
+        window.itemSubscription = supabase
+            .channel(`public:item:stud_id=eq.${studId}`)
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'item', filter: `stud_id=eq.${studId}` }, payload => {
+                console.log(`Item ${payload.event} event for user:`, payload);
+                debouncedFetchUserPostedItems();
+            })
+            .subscribe();
+    }
+
+    // Add real-time subscription to update UI when item status changes
+    if (studId) {
+        if (window.itemStatusUpdateSubscription) {
+            console.log('Unsubscribing previous itemStatusUpdateSubscription');
+            window.itemStatusUpdateSubscription.unsubscribe();
+        }
+        console.log('Creating new itemStatusUpdateSubscription');
+        window.itemStatusUpdateSubscription = supabase
+            .channel(`public:item_status_update:stud_id=eq.${studId}`)
+            .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'item', filter: `stud_id=eq.${studId}` }, payload => {
+                console.log('Real-time item update received:', payload);
+                debouncedFetchUserPostedItems();
+            })
+            .subscribe();
+    }
+
+/* Removed redundant editItem function that redirects to edit_item.html */
+// Redirect to edit_item.html with the item's ID as a query parameter
+// function editItem(itemId) {
+//         window.location.href = `edit_item.html?item_id=${itemId}`;
+//     }
+
+    // Attach the function to the global window object
+    window.fetchUserPostedItems = fetchUserPostedItems;
+    window.editItem = editItem;
+
+    window.cancelTransaction = async function cancelTransaction(itemId) {
+    if (!itemId) return;
+    const studId = localStorage.getItem('stud_id');
+    if (!studId) {
+        alert('User not logged in. Redirecting to login page.');
+        window.location.href = 'Login_page.html';
+        return;
+    }
+    try {
+        // Find the buyer_id for the item with status 'requested'
+        const { data: transactions, error: fetchTransError } = await supabase
+            .from('transactions')
+            .select('buyer_id')
+            .eq('item_uuid', itemId)
+            .in('status', ['requested'])
+            .limit(1);
+
+        if (fetchTransError) {
+            console.error('Error fetching transaction buyer:', fetchTransError);
+            alert('Failed to cancel transaction: ' + fetchTransError.message);
+            return;
+        }
+
+        if (!transactions || transactions.length === 0) {
+            alert('No active transaction found for this item.');
+            return;
+        }
+
+        const buyerId = transactions[0].buyer_id;
+
+        // Fetch item name for notification content
+        const { data: itemData, error: itemFetchError } = await supabase
+            .from('item')
+            .select('item_name')
+            .eq('item_id', itemId)
+            .single();
+
+        if (itemFetchError) {
+            console.error('Error fetching item name:', itemFetchError);
+        }
+
+        const itemName = itemData ? itemData.item_name : 'your item';
+
+        // Insert notification to buyer that seller cancelled
+        const notificationContent = `I am no longer interested on selling ${itemName}`;
+        // Get current authenticated user UUID
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        if (userError || !user) {
+            console.error('User not authenticated', userError);
+            return;
+        }
+        const userUuid = user.id;
+
+        // Map buyerId (stud_id) to buyer UUID by querying student table for user_id
+        const { data: buyerStudent, error: buyerStudentError } = await supabase
+            .from('student')
+            .select('user_id')
+            .eq('stud_id', buyerId)
+            .single();
+
+        let buyerUuid = null;
+        if (buyerStudentError || !buyerStudent) {
+            console.error('Error mapping buyer stud_id to user_id:', buyerStudentError);
+            return; // Stop if UUID not found
+        } else {
+            buyerUuid = buyerStudent.user_id;
+        }
+
+        // Insert notification with sender_uuid and receiver_uuid
+        const { error: notifError } = await supabase
+            .from('notifications')
+            .insert({
+                sender_uuid: userUuid,
+                receiver_uuid: buyerUuid,
+                sender_id: studId,
+                receiver_id: buyerId,
+                type: 'cancel_trans',
+                content: notificationContent,
+                created_at: new Date().toISOString()
+            });
+
+        if (notifError) {
+            console.error('Error inserting notification:', notifError);
+        }
+
+        // Update the transactions table to set status to 'cancelled' for this item and buyer
+        const { error: transError } = await supabase
+            .from('transactions')
+            .update({ status: 'cancelled' })
+            .eq('item_uuid', itemId)
+            .eq('buyer_id', buyerId);
+
+        if (transError) {
+            console.error('Error updating transaction status:', transError);
+            alert('Failed to cancel transaction: ' + transError.message);
+            return;
+        }
+
+        // Update the item table to set item_status to 'available'
+        const { error: itemError } = await supabase
+            .from('item')
+            .update({ item_status: 'available' })
+            .eq('item_id', itemId);
+
+        if (itemError) {
+            console.error('Error updating item status:', itemError);
+            alert('Failed to update item status: ' + itemError.message);
+            return;
+        }
+
+        alert('Transaction cancelled successfully.');
+        await debouncedFetchUserPostedItems(); // Refresh the items list using debounced function
+    } catch (err) {
+        console.error('Unexpected error cancelling transaction:', err);
+        alert('Failed to cancel transaction due to unexpected error.');
+    }
+}
+
+window.markAsSent = async function markAsSent(itemId) {
+    if (!itemId) return;
+    const studId = localStorage.getItem('stud_id');
+    if (!studId) {
+        alert('User not logged in. Redirecting to login page.');
+        window.location.href = 'Login_page.html';
+        return;
+    }
+    try {
+        // Find the buyer_id and current status for the item with status 'requested', 'received', or 'sent'
+        const { data: transactions, error: fetchTransError } = await supabase
+            .from('transactions')
+            .select('buyer_id, status')
+            .eq('item_uuid', itemId)
+            .in('status', ['requested', 'received', 'sent'])
+            .limit(1);
+
+        if (fetchTransError) {
+            console.error('Error fetching transaction buyer:', fetchTransError);
+            alert('Failed to mark as sent: ' + fetchTransError.message);
+            return;
+        }
+
+        if (!transactions || transactions.length === 0) {
+            alert('No active transaction found for this item.');
+            return;
+        }
+
+        const buyerId = transactions[0].buyer_id;
+        const currentStatus = transactions[0].status;
+
+        // Fetch item name for notification content
+        const { data: itemData, error: itemFetchError } = await supabase
+            .from('item')
+            .select('item_name')
+            .eq('item_id', itemId)
+            .single();
+
+        if (itemFetchError) {
+            console.error('Error fetching item name:', itemFetchError);
+        }
+
+        const itemName = itemData ? itemData.item_name : 'your item';
+
+        // Get current authenticated user UUID
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        if (userError || !user) {
+            console.error('User not authenticated', userError);
+            return;
+        }
+        const userUuid = user.id;
+
+        // Map buyerId (stud_id) to buyer UUID by querying student table for user_id
+        const { data: buyerStudent, error: buyerStudentError } = await supabase
+            .from('student')
+            .select('user_id')
+            .eq('stud_id', buyerId)
+            .single();
+
+        let buyerUuid = null;
+        if (buyerStudentError || !buyerStudent) {
+            console.error('Error mapping buyer stud_id to user_id:', buyerStudentError);
+            return; // Stop if UUID not found
+        } else {
+            buyerUuid = buyerStudent.user_id;
+        }
+
+        // Determine new status and notification logic
+        let newStatus;
+        let sendNotification = false;
+        let notificationContent = '';
+
+        if (currentStatus === 'requested') {
+            newStatus = 'sent';
+            sendNotification = true;
+            notificationContent = `The item ${itemName} has been marked as sent by the seller.`;
+        } else if (currentStatus === 'received') {
+            newStatus = 'completed';
+            sendNotification = false;
+            notificationContent = `The item ${itemName} transaction has been completed by the seller.`;
+        } else {
+            // For other statuses, do nothing or alert
+            alert('Invalid transaction status for marking as sent.');
+            return;
+        }
+
+        if (sendNotification) {
+            const { error: notifError } = await supabase
+                .from('notifications')
+                .insert({
+                    sender_uuid: userUuid,
+                    receiver_uuid: buyerUuid,
+                    sender_id: studId,
+                    receiver_id: buyerId,
+                    type: newStatus === 'completed' ? 'mark_completed' : 'mark_sent',
+                    content: notificationContent,
+                    item_id: itemId,
+                    created_at: new Date().toISOString()
+                });
+
+            if (notifError) {
+                console.error('Error inserting notification:', notifError);
+            }
+        }
+
+        // Update the transactions table to set status to newStatus for this item and buyer
+        const { error: transError } = await supabase
+            .from('transactions')
+            .update({ status: newStatus })
+            .eq('item_uuid', itemId)
+            .eq('buyer_id', buyerId);
+
+        if (transError) {
+            console.error('Error updating transaction status:', transError);
+            alert('Failed to mark as sent: ' + transError.message);
+            return;
+        }
+
+        // If transaction completed, update item status to sold
+        if (newStatus === 'completed') {
+            const { error: itemUpdateError } = await supabase
+                .from('item')
+                .update({ item_status: 'sold' })
+                .eq('item_id', itemId);
+
+            if (itemUpdateError) {
+                console.error('Error updating item status to sold:', itemUpdateError);
+                alert('Failed to update item status to sold.');
+                return;
+            }
+        }
+
+        alert(newStatus === 'completed' ? 'Transaction marked as completed successfully.' : 'Item marked as sent successfully.');
+
+        // Remove the inline button UI update code from markAsSent function
+        // Instead, refresh the items list to update UI based on transaction status
+        await fetchUserPostedItems();
+    } catch (err) {
+        console.error('Unexpected error marking as sent:', err);
+        alert('Failed to mark as sent due to unexpected error.');
+    }
+}
+
+
+    // Call fetchUserProfile and fetchUserPostedItems on page load
+    // Removed duplicate window.onload to avoid overwriting previous handlers
+    
+    async function uploadProfilePicture(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const studId = localStorage.getItem('stud_id');
+        if (!studId) {
+            alert('User not logged in. Redirecting to login page.');
+            window.location.href = 'Login_page.html';
+            return;
+        }
+
+        const filePath = `profile-${studId}-${Date.now()}`;
+        const { data, error } = await supabase.storage
+            .from('profile-photos')
+            .upload(filePath, file);
+
+        if (error) {
+            console.error('Error uploading profile picture:', error);
+            alert('Failed to upload profile picture. Please try again.');
+            return;
+        }
+
+        const publicURL = `https://wuhgqjeijmxsgvnykttj.supabase.co/storage/v1/object/public/profile-photos/${filePath}`;
+
+        // Update the profile picture URL in the database
+        const { error: updateError } = await supabase
+            .from('student')
+            .update({ stud_picture: publicURL })
+            .eq('stud_id', studId);
+
+        if (updateError) {
+            console.error('Error updating profile picture URL:', updateError);
+            alert('Failed to save profile picture. Please try again.');
+            return;
+        }
+
+        // Update the profile picture on the page
+        document.getElementById('profilePicture').src = publicURL;
+        alert('Profile picture updated successfully!');
+    }
+
+    // Attach the function to the global window object
+    window.uploadProfilePicture = uploadProfilePicture;
+
+    async function fetchUserProfile() {
+        const studId = localStorage.getItem('stud_id'); // Get the logged-in user's ID
+        if (!studId) {
+            alert('User not logged in. Redirecting to login page.');
+            window.location.href = 'Login_page.html';
+            return;
+        }
+
+        // Fetch user data from Supabase
+        const { data: user, error } = await supabase
+            .from('student')
+            .select('stud_fname, stud_lname, stud_school, stud_bio, stud_picture')
+            .eq('stud_id', studId)
+            .single();
+
+        if (error) {
+            console.error('Error fetching user profile:', error);
+            alert('Failed to load profile. Please try again.');
+            return;
+        }
+
+        // Populate the profile fields
+        document.getElementById('userName').innerText = `${user.stud_fname} ${user.stud_lname}`;
+        document.getElementById('userSchool').innerText = user.stud_school;
+        document.getElementById('bioDisplay').textContent = user.stud_bio || 'Place your Bio here...';
+
+        // Display the profile picture
+        const profilePicture = document.getElementById('profilePicture');
+        profilePicture.src = user.stud_picture || 'Homepage_images/circle-user.png';
+
+        updateCounter();
+
+        // Append school logo after setting school name
+        const userSchoolElem = document.getElementById('userSchool');
+        if (userSchoolElem) {
+            const schoolName = userSchoolElem.textContent.trim().toLowerCase();
+            let logoImg = null;
+            if (schoolName === 'gordon college') {
+                logoImg = document.createElement('img');
+                logoImg.src = 'Profie_images/gc_new_logo_2018-Copy-1.png';
+                logoImg.alt = 'Gordon College Logo';
+            } else if (schoolName === 'columban college') {
+                logoImg = document.createElement('img');
+                logoImg.src = 'Profie_images/7e6bca-ColumbanCollegeLogo.png';
+                logoImg.alt = 'Columban College Logo';
+            }
+            if (logoImg) {
+                logoImg.style.height = '3em';
+                logoImg.style.width = 'auto';
+                logoImg.style.display = 'inline-block';
+                logoImg.style.verticalAlign = 'middle';
+                // Remove any existing appended logo images to prevent duplicates
+                const existingLogo = userSchoolElem.querySelector('img');
+                if (existingLogo) {
+                    userSchoolElem.removeChild(existingLogo);
+                }
+                userSchoolElem.appendChild(logoImg);
+            }
+        }
+    }
+    window.fetchUserProfile = fetchUserProfile;
+
+    // Add new function to fetch and render feedback for the user
+    async function fetchFeedback() {
+        const studId = localStorage.getItem('stud_id');
+        if (!studId) {
+            console.error('User not logged in');
+            return [];
+        }
+        const { data, error } = await supabase
+            .from('feedback')
+            .select(`
+                feedback_id,
+                item:item_id (
+                    item_name
+                ),
+                stars,
+                comment,
+                created_at,
+                buyer:buyer_id (
+                    stud_fname,
+                    stud_lname
+                )
+            `)
+            .eq('seller_id', studId)
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            console.error('Error fetching feedback:', error);
+            return [];
+        }
+        return data;
+    }
+
+    async function renderFeedback() {
+        const feedbackList = document.getElementById('feedbackList');
+        feedbackList.innerHTML = '';
+
+        const feedbacks = await fetchFeedback();
+
+        // Calculate average stars
+        let totalStars = 0;
+        let count = 0;
+        if (feedbacks && feedbacks.length > 0) {
+            feedbacks.forEach(fb => {
+                totalStars += fb.stars;
+                count++;
+            });
+        }
+        const avgStars = count > 0 ? (totalStars / count) : 0;
+
+        // Update average star rating display in profile section
+        const ratingSpan = document.querySelector('.flex.items-center.space-x-2.mt-2 span');
+        if (ratingSpan) {
+            ratingSpan.textContent = `${avgStars.toFixed(1)} (${count})`;
+        }
+
+        if (!feedbacks || feedbacks.length === 0) {
+            const emptyMsg = document.createElement('li');
+            emptyMsg.className = 'empty-message text-gray-500';
+            emptyMsg.textContent = 'No feedback received yet...';
+            feedbackList.appendChild(emptyMsg);
+            return;
+        }
+
+        feedbacks.forEach(fb => {
+            const li = document.createElement('li');
+            li.style.borderBottom = '1px solid #eee';
+            li.style.padding = '8px 5px';
+
+            const starsSpan = document.createElement('span');
+            starsSpan.style.color = '#FFD700';
+            starsSpan.style.fontSize = '18px';
+            starsSpan.style.marginRight = '10px';
+            starsSpan.textContent = '★'.repeat(fb.stars) + '☆'.repeat(5 - fb.stars);
+
+            const buyerSpan = document.createElement('span');
+            buyerSpan.style.fontWeight = 'bold';
+            buyerSpan.textContent = `${fb.buyer.stud_fname} ${fb.buyer.stud_lname}`;
+
+            const itemSpan = document.createElement('span');
+            itemSpan.style.fontStyle = 'italic';
+            itemSpan.style.marginLeft = '10px';
+            itemSpan.textContent = `on "${fb.item ? fb.item.item_name : 'Unknown item'}"`;
+
+            const commentP = document.createElement('p');
+            commentP.textContent = fb.comment || '';
+            commentP.style.margin = '5px 0 0 0';
+
+            li.appendChild(starsSpan);
+            li.appendChild(buyerSpan);
+            li.appendChild(itemSpan);
+            li.appendChild(commentP);
+
+            feedbackList.appendChild(li);
+        });
+    }
+
+    // Call renderFeedback on page load
+    renderFeedback();
+</script>
+  <!-- Modal for Edit Item -->
+  <div id="editItemModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background-color: rgba(0,0,0,0.7); z-index: 2100; justify-content: center; align-items: center;">
+    <div style="position: relative; width: 90%; max-width: 900px; height: 90%; background: white; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); display: flex; flex-direction: column;">
+      <button id="closeEditItemModal" style="position: absolute; top: 10px; right: 10px; background: #084F6A; color: white; border: none; border-radius: 5px; padding: 8px 12px; font-size: 16px; cursor: pointer; z-index: 2200;">Close</button>
+      <iframe id="editItemIframe" src="" style="flex-grow: 1; border: none; border-radius: 0 0 10px 10px;"></iframe>
+    </div>
+  </div>
+
+<script>
+  // Modify editItem function to open modal and load edit_item.html in iframe
+  function editItem(itemId) {
+    const modal = document.getElementById('editItemModal');
+    const iframe = document.getElementById('editItemIframe');
+    iframe.src = `edit_item.html?item_id=${itemId}`;
+    modal.style.display = 'flex';
+  }
+
+  // Close modal and clear iframe src
+  document.getElementById('closeEditItemModal').addEventListener('click', () => {
+    const modal = document.getElementById('editItemModal');
+    const iframe = document.getElementById('editItemIframe');
+    iframe.src = '';
+    modal.style.display = 'none';
+  });
+
+  // Close modal if user clicks outside the modal content
+  window.addEventListener('click', (event) => {
+    const modal = document.getElementById('editItemModal');
+    if (event.target === modal) {
+      const iframe = document.getElementById('editItemIframe');
+      iframe.src = '';
+      modal.style.display = 'none';
+    }
+  });
+</script>
+<!-- Delete Confirmation Modal -->
+<div id="deleteConfirmModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background-color: rgba(0,0,0,0.7); z-index: 3000; justify-content: center; align-items: center;">
+    <div style="background: white; padding: 20px; border-radius: 10px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
+        <p style="font-size: 18px; margin-bottom: 20px;">Are you sure you want to delete this post?</p>
+        <div style="display: flex; justify-content: space-around;">
+            <button id="confirmDeleteBtn" style="background-color: #dc2626; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;">Delete</button>
+            <button id="cancelDeleteBtn" style="background-color: #6b7280; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Define confirmDelete and closeDeleteModal as window properties before adding event listeners
+    async function confirmDelete() {
+        const itemId = window.deleteItemIdToConfirm;
+        if (!itemId) return;
+
+        try {
+            const { error } = await supabase
+                .from('item')
+                .delete()
+                .eq('item_id', itemId);
+
+            if (error) {
+                console.error('Error deleting item:', error);
+                alert('Failed to delete item: ' + error.message);
+            } else {
+                await fetchUserPostedItems(); // Await reloading the items list
+                showBanner('Item deleted successfully!', 'success');
+            }
+        } catch (err) {
+            console.error('Unexpected error deleting item:', err);
+            alert('Failed to delete item due to unexpected error.');
+        } finally {
+            window.closeDeleteModal();
+        }
+    }
+
+    window.closeDeleteModal = function closeDeleteModal() {
+        const modal = document.getElementById('deleteConfirmModal');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+        window.deleteItemIdToConfirm = null;
+    };
+
+    document.getElementById('confirmDeleteBtn').addEventListener('click', window.confirmDelete);
+    document.getElementById('cancelDeleteBtn').addEventListener('click', window.closeDeleteModal);
+
+    // Close modal if user clicks outside the modal content
+    document.getElementById('deleteConfirmModal').addEventListener('click', (event) => {
+        if (event.target === document.getElementById('deleteConfirmModal')) {
+            window.closeDeleteModal();
+        }
+    });
+
+    // Function to show the custom alert modal
+    function showCustomAlert(message) {
+        const modal = document.getElementById('customAlertModal');
+        const modalBody = document.getElementById('customAlertBody');
+        modalBody.textContent = message;
+        modal.style.display = 'flex';
+    }
+
+    // Add event listener to close the custom alert modal
+    document.getElementById('customAlertCloseBtn').addEventListener('click', () => {
+        const modal = document.getElementById('customAlertModal');
+        modal.style.display = 'none';
+    });
+
+    // Close modal if user clicks outside the modal content
+    document.getElementById('customAlertModal').addEventListener('click', (event) => {
+        if (event.target === document.getElementById('customAlertModal')) {
+            event.target.style.display = 'none';
+        }
+    });
+
+    // Replace existing alert calls with showCustomAlert
+    const originalAlert = window.alert;
+    window.alert = showCustomAlert;
+
+</script>
+
+<!-- Custom Alert Modal -->
+<div id="customAlertModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50" style="display: none;">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div class="mt-3 text-center">
+            <div id="customAlertMessage" class="mx-auto flex items-center justify-center h-12 w-12 bg-white rounded-full">
+                <!-- Optional: Add an icon here based on message type (e.g., success, error) -->
+            </div>
+            <h3 class="text-lg leading-6 font-medium text-gray-900" id="modalTitle">Notification</h3>
+            <div class="mt-2 px-7 py-3">
+                <p class="text-sm text-gray-500" id="customAlertBody">Message goes here.</p>
+            </div>
+            <div class="items-center px-4 py-3">
+                <button id="customAlertCloseBtn" class="px-4 py-2 bg-[#084F6A] text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-[#063e53] focus:outline-none focus:ring-2 focus:ring-[#084F6A]">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <div id="error-message" style="
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 1000;
+        background-color: #e74c3c;
+        color: white;
+        padding: 12px 24px;
+        border-radius: 5px;
+        font-weight: bold;
+        display: none;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        max-width: 90%;
+        text-align: center;
+    "></div>
+
+<script>
+    function showBanner(message, type = "error") {
+        const errorMessage = document.getElementById("error-message");
+
+        errorMessage.style.display = "block";
+        errorMessage.textContent = (type === "success" ? "✅ " : "❌ ") + message;
+
+        if (type === "success") {
+            errorMessage.style.backgroundColor = "#2ecc71"; // green
+        } else {
+            errorMessage.style.backgroundColor = "#e74c3c"; // red
+        }
+
+        // Auto-hide after 3 seconds
+        setTimeout(() => {
+            errorMessage.style.display = "none";
+        }, 3000);
+    }
+</script>
+<style>
+    .loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+    }
+    .loading-spinner {
+        background: white;
+        padding: 2rem;
+        border-radius: 0.5rem;
+        text-align: center;
+    }
+    .loading-spinner i {
+        font-size: 2rem;
+        color: #084F6A;
+        animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+</style>
+<!-- Loading Overlay -->
+<div id="loadingOverlay" class="loading-overlay" style="display: flex;">
+    <div class="loading-spinner">
+        <div class="ring-spinner"></div>
+    </div>
+</div>
+
+<style>
+    .ring-spinner {
+        display: inline-block;
+        width: 80px;
+        height: 80px;
+        border: 8px solid #d3e6f8; /* Light background ring */
+        border-top-color: #084F6A; /* Dark blue arc */
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        box-sizing: border-box;
+    }
+    .loading-spinner {
+        background: transparent;
+        padding: 0;
+        border-radius: 0;
+        text-align: center;
+    }
+</style>
+
+</body>
+</html>

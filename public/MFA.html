@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        let userEmail = '';
+        let userPassword = '';
+
+        // Function to get URL parameters
+        function getQueryParams() {
+            const params = new URLSearchParams(window.location.search);
+            return {
+                email: params.get('email'),
+                password: params.get('password')
+            };
+        }
+
+        // Get the email and password from the URL parameters when the page loads
+        window.onload = function() {
+            const { email, password } = getQueryParams();
+            userEmail = email;
+            userPassword = password;
+        };
+
+        function sendEmailCode() {
+            // Simulate sending a verification code to the user's email
+            showNotification(`Verification code sent to ${userEmail}!`, 'success');
+            // Redirect to Email_code.html with the user's email as a URL parameter
+            setTimeout(() => {
+                window.location.href = `Email_code.html?email=${encodeURIComponent(userEmail)}`;
+            }, 2000); // Redirect after 2 seconds
+        }
+
+        function sendPhoneCode() {
+            // Simulate sending an OTP to the user's phone number
+            showNotification("OTP sent to your phone number!", 'success');
+            // Redirect to Phone_code.html
+            setTimeout(() => {
+                window.location.href = 'Phone_code.html';
+            }, 2000); // Redirect after 2 seconds
+        }
+
+        function sendPushNotification() {
+            // Simulate sending a confirmation email to the user's email
+            showNotification(`Push notification sent to ${userEmail}!`, 'success');
+            // Redirect to push_notif.html
+            setTimeout(() => {
+                window.location.href = 'push_notif.html';
+            }, 2000); // Redirect after 2 seconds
+        }
+
+        function showNotification(message, type) {
+            const notificationContainer = document.getElementById("notificationContainer");
+            const notification = document.createElement("div");
+            notification.className = `p-4 mb-4 text-sm text-white rounded-lg ${type === 'success' ? 'bg-green-500' : 'bg-red-500'}`;
+            notification.textContent = message;
+
+            notificationContainer.appendChild(notification);
+
+            // Automatically remove the notification after 3 seconds
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+    </script>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+    <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
+        <div class="flex justify-center mb-6">
+            <img alt="Company logo with text 'CamPlea'" class="h-16" height="100" src="Login_images/LOGO.png" width="200"/>
+        </div>
+        <div id="notificationContainer" class="mb-4"></div> <!-- Notification container below the logo -->
+        <h2 class="text-center text-xl font-semibold text-blue-900 mb-6">
+            Choose a Verification Method
+        </h2>
+        <div class="space-y-4">
+            <button onclick="sendPushNotification()" class="w-full py-2 px-4 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100">
+                Send a push notification
+            </button>
+            <button onclick="sendEmailCode()" class="w-full py-2 px-4 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100">
+                Send code to my Email
+            </button>
+            <button onclick="sendPhoneCode()" class="w-full py-2 px-4 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100">
+                Send code to my phone
+            </button>
+        </div>
+        <div class="mt-6 flex justify-start">
+            <button onclick="window.location.href='Login_page.html'" class="py-2 px-12 bg-[#084F6A] text-white rounded-md hover:bg-[#063847]">
+                Cancel
+            </button>
+        </div>
+    </div>
+</body>
+</html>

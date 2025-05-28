@@ -1,0 +1,1060 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Transactions</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            margin: 0;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            box-sizing: border-box;
+            max-width: 1200px; /* Extend width to make side panel wider */
+            margin-left: auto;
+            margin-right: auto;
+        }
+        h1 {
+            color: #084F6A;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        section {
+            background: white;
+            border-radius: 8px;
+            padding: 10px 15px;
+            margin-bottom: 15px;
+            flex-grow: 1;
+            /* Removed overflow-y: auto to disable scroll bars */
+            /* overflow-y: auto; */
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+        section h2 {
+            margin-top: 0;
+            color: #084F6A;
+            font-size: 18px;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 5px;
+        }
+        ul {
+            list-style: none;
+            padding-left: 0;
+            margin: 0;
+        }
+        li {
+            padding: 8px 5px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        li:last-child {
+            border-bottom: none;
+        }
+        .item-name {
+            font-weight: bold;
+            color: #333;
+        }
+        .item-price {
+            color: #666;
+            font-size: 14px;
+            margin-right: 10px;
+        }
+        .empty-message {
+            color: #999;
+            font-style: italic;
+            text-align: center;
+            margin-top: 20px;
+        }
+        button.remove-btn {
+            background-color: #d9534f;
+            border: none;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-left: 5px; /* Optional space, can be adjusted */
+        }
+        button.remove-btn:hover {
+            background-color: #c9302c;
+        }
+    </style>
+</head>
+<body>
+    <h1>Transactions</h1>
+
+    <section id="cartSection">
+        <h2>Cart</h2>
+        <ul id="cartList">
+            <li class="empty-message">Your cart is empty.</li>
+        </ul>
+    </section>
+
+    <section id="currentlyBuyingSection">
+        <h2>Currently Buying</h2>
+        <ul id="currentlyBuyingList">
+            <li class="empty-message">No items currently buying.</li>
+        </ul>
+    </section>
+
+    <section id="purchasedItemsSection">
+        <h2>Purchased Items</h2>
+        <ul id="purchasedItemsList">
+            <li class="empty-message">No purchased items yet.</li>
+        </ul>
+    </section>
+
+    <!-- Modal for Detailed Post -->
+    <div id="detailedPostModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background-color: rgba(0,0,0,0.7); z-index: 2000; justify-content: center; align-items: center;">
+      <div style="position: relative; width: 90%; max-width: 900px; height: 90%; background: white; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); display: flex; flex-direction: column;">
+        <button id="closeDetailedPostModal" style="position: absolute; top: 10px; right: 10px; background: #084F6A; color: white; border: none; border-radius: 5px; padding: 8px 12px; font-size: 16px; cursor: pointer; z-index: 2100;">Close</button>
+        <iframe id="detailedPostIframe" src="" style="flex-grow: 1; border: none; border-radius: 0 0 10px 10px;"></iframe>
+      </div>
+    </div>
+
+<div id="error-message" style="
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+  background-color: #2ecc71; /* default to success green */
+  color: white;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: bold;
+  display: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  max-width: 300px;
+  text-align: left;
+  font-size: 0.95rem;
+"></div>
+
+
+
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+        const supabaseUrl = 'https://wuhgqjeijmxsgvnykttj.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind1aGdxamVpam14c2d2bnlrdHRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI4MjkzMDQsImV4cCI6MjA1ODQwNTMwNH0._lZy7CE2A8HM1hatjGYrMR8QAUi8nk4L_EuV7Fojhwg';
+
+        const supabase = createClient(supabaseUrl, supabaseKey);
+
+        // Fetch transactions with status 'cart' and render
+        async function fetchCartItems() {
+            const loggedInStudId = localStorage.getItem('stud_id');
+            if (!loggedInStudId) {
+                console.error('User not logged in');
+                return [];
+            }
+            const { data, error } = await supabase
+                .from('transactions')
+                .select(`
+                    transac_id,
+                    buyer_id,
+                    seller_id,
+                    status,
+                    created_at,
+                    item:item_uuid (
+                        item_id,
+                        item_name,
+                        item_price,
+                        item_price_type,
+                        item_price_min,
+                        item_price_max,
+                        photos
+                    ),
+                    seller:student!seller_id (
+                        stud_id,
+                        stud_fname,
+                        stud_lname
+                    )
+                `)
+                .eq('status', 'cart')
+                .eq('buyer_id', loggedInStudId);
+
+            if (error) {
+                console.error('Error fetching cart items:', error);
+                return [];
+            }
+            return data;
+        }
+
+        // Render cart items in the cartList ul
+        async function renderCart() {
+            const cartList = document.getElementById('cartList');
+            cartList.innerHTML = '';
+
+            const cartItems = await fetchCartItems();
+
+            if (!cartItems || cartItems.length === 0) {
+                const emptyMsg = document.createElement('li');
+                emptyMsg.className = 'empty-message';
+                emptyMsg.textContent = 'Your cart is empty.';
+                cartList.appendChild(emptyMsg);
+                return;
+            }
+
+            cartItems.forEach((item) => {
+                const li = document.createElement('li');
+                li.style.cursor = 'pointer';
+                li.dataset.itemId = item.item.item_id;
+
+                // Show first photo if available
+                const photoUrl = (item.item.photos && item.item.photos.length > 0) ? item.item.photos[0] : 'Homepage_images/circle-user.png';
+                const img = document.createElement('img');
+                img.src = photoUrl;
+                img.alt = item.item.item_name || 'Item photo';
+                img.style.width = '50px';
+                img.style.height = '50px';
+                img.style.objectFit = 'cover';
+                img.style.borderRadius = '5px';
+                img.style.marginRight = '10px';
+                img.style.verticalAlign = 'middle';
+
+                const nameSpan = document.createElement('span');
+                nameSpan.className = 'item-name';
+                nameSpan.textContent = item.item.item_name || 'Unnamed item';
+
+                // Create container div for name and seller name
+                const nameContainer = document.createElement('div');
+                nameContainer.style.display = 'flex';
+                nameContainer.style.flexDirection = 'column';
+
+                // Add seller name span below item name
+                const sellerNameSpan = document.createElement('span');
+                sellerNameSpan.className = 'item-seller';
+                if (item.seller && item.seller.stud_fname && item.seller.stud_lname) {
+                    sellerNameSpan.textContent = `Seller: ${item.seller.stud_fname} ${item.seller.stud_lname}`;
+                } else {
+                    sellerNameSpan.textContent = 'Seller: Unknown';
+                }
+                sellerNameSpan.style.fontSize = '12px';
+                sellerNameSpan.style.color = '#555';
+                sellerNameSpan.style.marginTop = '2px';
+
+                // Append name and seller name to container
+                nameContainer.appendChild(nameSpan);
+                nameContainer.appendChild(sellerNameSpan);
+
+                // Determine price display
+                let priceDisplay = '';
+                if (item.item.item_price_type === 'single') {
+                    priceDisplay = `₱${item.item.item_price}`;
+                } else if (item.item.item_price_type === 'range') {
+                    priceDisplay = `₱${item.item.item_price_min} - ₱${item.item.item_price_max}`;
+                } else if (item.item.item_price_type === 'hidden') {
+                    priceDisplay = 'Price hidden';
+                } else {
+                    priceDisplay = 'Price not available';
+                }
+
+                const priceSpan = document.createElement('span');
+                priceSpan.className = 'item-price';
+                priceSpan.textContent = priceDisplay;
+
+                const removeBtn = document.createElement('button');
+                removeBtn.className = 'remove-btn';
+                removeBtn.textContent = 'Remove';
+                removeBtn.onclick = async (e) => {
+                    e.stopPropagation();
+                    await removeFromCart(item.transac_id);
+                };
+
+                li.appendChild(img);
+                li.appendChild(nameContainer);
+                li.appendChild(priceSpan);
+                li.appendChild(removeBtn);
+                cartList.appendChild(li);
+
+                // Add click event to open detailed post modal
+                li.addEventListener('click', () => {
+                    openDetailedPostModal(item.item.item_id);
+                });
+            });
+        }
+
+        // Remove from cart by updating status to 'cancelled'
+        async function removeFromCart(transac_id) {
+            const { error } = await supabase
+                .from('transactions')
+                .update({ status: 'cancelled' })
+                .eq('transac_id', transac_id);
+
+            if (error) {
+                console.error('Error removing item from cart:', error);
+                return;
+            }
+            // Refresh cart list after removal
+            renderCart();
+        }
+
+        // Fetch transactions with status 'requested' and render
+        async function fetchCurrentlyBuyingItems() {
+            const loggedInStudId = localStorage.getItem('stud_id');
+            if (!loggedInStudId) {
+                console.error('User not logged in');
+                return [];
+            }
+            const { data, error } = await supabase
+                .from('transactions')
+                .select(`
+                    transac_id,
+                    buyer_id,
+                    seller_id,
+                    status,
+                    created_at,
+                    item:item_uuid (
+                        item_id,
+                        item_name,
+                        item_price,
+                        item_price_type,
+                        item_price_min,
+                        item_price_max,
+                        photos
+                    ),
+                    seller:student!seller_id (
+                        stud_fname,
+                        stud_lname
+                    )
+                `)
+        .in('status', ['requested', 'sent', 'received'])
+        .eq('buyer_id', loggedInStudId);
+
+            if (error) {
+                console.error('Error fetching currently buying items:', error);
+                return [];
+            }
+            return data;
+        }
+
+async function renderCurrentlyBuying() {
+    const currentlyBuyingList = document.getElementById('currentlyBuyingList');
+    currentlyBuyingList.innerHTML = '';
+
+    const currentlyBuyingItems = await fetchCurrentlyBuyingItems();
+
+    if (!currentlyBuyingItems || currentlyBuyingItems.length === 0) {
+        const emptyMsg = document.createElement('li');
+        emptyMsg.className = 'empty-message';
+        emptyMsg.textContent = 'No items currently buying.';
+        currentlyBuyingList.appendChild(emptyMsg);
+        return;
+    }
+
+    // Deduplicate items by item_id to avoid duplicates in UI
+    const uniqueItemsMap = new Map();
+    currentlyBuyingItems.forEach(item => {
+        if (item.item && item.item.item_id && !uniqueItemsMap.has(item.item.item_id)) {
+            uniqueItemsMap.set(item.item.item_id, item);
+        }
+    });
+    const uniqueItems = Array.from(uniqueItemsMap.values());
+
+    uniqueItems.forEach((item) => {
+        const li = document.createElement('li');
+        li.style.cursor = 'pointer';
+        li.dataset.itemId = item.item.item_id;
+
+        // Show first photo if available, with null checks
+        const photoUrl = (item.item && item.item.photos && item.item.photos.length > 0) ? item.item.photos[0] : 'Homepage_images/circle-user.png';
+        const img = document.createElement('img');
+        img.src = photoUrl;
+        img.alt = (item.item && item.item.item_name) ? item.item.item_name : 'Item photo';
+        img.style.width = '50px';
+        img.style.height = '50px';
+        img.style.objectFit = 'cover';
+        img.style.borderRadius = '5px';
+        img.style.marginRight = '10px';
+        img.style.verticalAlign = 'middle';
+
+        const nameSpan = document.createElement('span');
+        nameSpan.className = 'item-name';
+        nameSpan.textContent = (item.item && item.item.item_name) ? item.item.item_name : 'Unnamed item';
+
+        // Create container div for name and seller name
+        const nameContainer = document.createElement('div');
+        nameContainer.style.display = 'flex';
+        nameContainer.style.flexDirection = 'column';
+
+        // Add seller name span below item name
+        const sellerNameSpan = document.createElement('span');
+        sellerNameSpan.className = 'item-seller';
+        if (item.seller && item.seller.stud_fname && item.seller.stud_lname) {
+            sellerNameSpan.textContent = `Seller: ${item.seller.stud_fname} ${item.seller.stud_lname}`;
+        } else {
+            sellerNameSpan.textContent = 'Seller: Unknown';
+        }
+        sellerNameSpan.style.fontSize = '12px';
+        sellerNameSpan.style.color = '#555';
+        sellerNameSpan.style.marginTop = '2px';
+
+        // Append name and seller name to container
+        nameContainer.appendChild(nameSpan);
+        nameContainer.appendChild(sellerNameSpan);
+
+        // Determine price display
+        let priceDisplay = '';
+        if (item.item && item.item.item_price_type === 'single') {
+            priceDisplay = `₱${item.item.item_price}`;
+        } else if (item.item && item.item.item_price_type === 'range') {
+            priceDisplay = `₱${item.item.item_price_min} - ₱${item.item.item_price_max}`;
+        } else if (item.item && item.item.item_price_type === 'hidden') {
+            priceDisplay = 'Price hidden';
+        } else {
+            priceDisplay = 'Price not available';
+        }
+
+        const priceSpan = document.createElement('span');
+        priceSpan.className = 'item-price';
+        priceSpan.textContent = priceDisplay;
+
+        const markReceivedBtn = document.createElement('button');
+        markReceivedBtn.className = 'remove-btn';
+
+        // Render button based on transaction status
+        if (item.status === 'received' || item.status === 'completed') {
+            markReceivedBtn.textContent = 'Marked as Received';
+            markReceivedBtn.disabled = true;
+            markReceivedBtn.style.backgroundColor = '#ccc';
+            markReceivedBtn.style.cursor = 'not-allowed';
+
+            // Add note span if not already present
+            const noteSpan = document.createElement('span');
+            noteSpan.textContent = " waiting for the seller's confirmation";
+            noteSpan.className = 'received-note';
+            noteSpan.style.color = '#555';
+            noteSpan.style.marginLeft = '8px';
+            markReceivedBtn.parentNode?.appendChild(noteSpan);
+        } else {
+            markReceivedBtn.textContent = 'Mark as Received';
+            markReceivedBtn.style.backgroundColor = '#28a745'; // green color
+            markReceivedBtn.onclick = async (e) => {
+                e.stopPropagation();
+                await markAsReceived(item.transac_id);
+            };
+        }
+
+        const cancelBtn = document.createElement('button');
+        cancelBtn.className = 'remove-btn';
+        cancelBtn.textContent = 'Cancel';
+        cancelBtn.onclick = async (e) => {
+            e.stopPropagation();
+            await cancelCurrentlyBuying(item.transac_id, item.item.item_id);
+        };
+
+        // Create a container for the buttons
+        const buttonContainer = document.createElement('div');
+        buttonContainer.style.display = 'flex';
+        buttonContainer.style.flexDirection = 'column';
+        buttonContainer.style.gap = '5px'; // Add some space between buttons
+
+        // Add buttons to container
+        buttonContainer.appendChild(markReceivedBtn);
+        buttonContainer.appendChild(cancelBtn);
+
+        li.appendChild(img);
+        li.appendChild(nameContainer);
+        li.appendChild(priceSpan);
+        li.appendChild(buttonContainer);
+        currentlyBuyingList.appendChild(li);
+
+        // Add click event to open detailed post modal
+        li.addEventListener('click', () => {
+            openDetailedPostModal(item.item.item_id);
+        });
+    });
+}
+
+        // Cancel currently buying by updating status to 'cancelled' and item status to 'available'
+        async function cancelCurrentlyBuying(transac_id, item_id) {
+            console.log('cancelCurrentlyBuying called with:', { transac_id, item_id });
+
+            // Get current authenticated user UUID and stud_id
+            const { data: { user }, error: userError } = await supabase.auth.getUser();
+            if (userError || !user) {
+                console.error('User not authenticated', userError);
+                return;
+            }
+            const userUuid = user.id;
+            const studId = localStorage.getItem('stud_id');
+            if (!studId) {
+                console.error('stud_id not found in localStorage');
+                return;
+            }
+
+            // Update transaction status to 'cancelled'
+            const { error: transError } = await supabase
+                .from('transactions')
+                .update({ status: 'cancelled' })
+                .eq('transac_id', transac_id);
+
+            if (transError) {
+                console.error('Error cancelling currently buying item:', transError);
+                return;
+            }
+
+            // Fetch item name for notification content
+            const { data: itemData, error: itemFetchError } = await supabase
+                .from('item')
+                .select('item_name')
+                .eq('item_id', item_id)
+                .single();
+
+            if (itemFetchError) {
+                console.error('Error fetching item name:', itemFetchError);
+            }
+
+            const itemName = itemData ? itemData.item_name : 'the item';
+
+            // Fetch seller id for the item
+            const { data: sellerData, error: sellerError } = await supabase
+                .from('item')
+                .select('stud_id')
+                .eq('item_id', item_id)
+                .single();
+
+            if (sellerError || !sellerData) {
+                console.error('Error fetching seller info:', sellerError);
+                return;
+            }
+            const sellerId = sellerData.stud_id;
+
+            // Insert notification to seller that buyer cancelled
+            const notificationContent = `I am no longer interested on buying ${itemName}`;
+
+            // Map sellerId (stud_id) to seller UUID by querying student table for user_id
+        const { data: sellerStudent, error: sellerStudentError } = await supabase
+            .from('student')
+            .select('user_id, stud_fname, stud_lname')
+            .eq('stud_id', sellerId)
+            .single();
+
+        let sellerUuid = null;
+        if (sellerStudentError || !sellerStudent) {
+            console.error('Error mapping seller stud_id to user_id:', sellerStudentError);
+            return; // Stop if UUID not found
+        } else {
+            sellerUuid = sellerStudent.user_id;
+        }
+
+            const { error: notifError } = await supabase
+                .from('notifications')
+                .insert({
+                    sender_uuid: userUuid,
+                    receiver_uuid: sellerUuid,
+                    sender_id: studId,
+                    receiver_id: sellerId,
+                    type: 'cancel_trans',
+                    content: notificationContent,
+                    created_at: new Date().toISOString()
+                });
+
+            if (notifError) {
+                console.error('Error inserting notification:', notifError);
+            }
+
+            // Check if there are other 'requested' transactions for the same item
+            const { data: otherRequests, error: otherRequestsError } = await supabase
+                .from('transactions')
+                .select('transac_id')
+                .eq('item_uuid', item_id)
+                .eq('status', 'requested');
+
+            if (otherRequestsError) {
+                console.error('Error checking other requested transactions:', otherRequestsError);
+                return;
+            }
+            console.log('Other requested transactions for item:', otherRequests);
+
+            // If no other requested transactions, call backend to update item status to 'available'
+            if (!otherRequests || otherRequests.length === 0) {
+                try {
+                    const response = await fetch(`/item/${item_id}/set-available`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                    const result = await response.json();
+                    if (!result.success) {
+                        console.error('Error updating item status to available:', result.message);
+                    } else {
+                        console.log('Item status updated to available:', result.data);
+                    }
+                } catch (err) {
+                    console.error('Error calling backend to update item status:', err);
+                }
+            }
+
+            // Refresh currently buying list and cart list after cancellation
+            renderCurrentlyBuying();
+            renderCart();
+        }
+
+window.markAsReceived = async function markAsReceived(transac_id) {
+    if (!transac_id) return;
+    const studId = localStorage.getItem('stud_id');
+    if (!studId) {
+        alert('User not logged in. Redirecting to login page.');
+        window.location.href = 'Login_page.html';
+        return;
+    }
+    try {
+        // Get current authenticated user UUID
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        if (userError || !user) {
+            console.error('User not authenticated', userError);
+            return;
+        }
+        const userUuid = user.id;
+
+        // Fetch transaction details to get item_id, seller_id, and current status
+        const { data: transaction, error: transError } = await supabase
+            .from('transactions')
+            .select('item_uuid, seller_id, status')
+            .eq('transac_id', transac_id)
+            .single();
+
+        if (transError || !transaction) {
+            console.error('Error fetching transaction details:', transError);
+            alert('Failed to fetch transaction details.');
+            return;
+        }
+
+        const itemId = transaction.item_uuid;
+        const sellerId = transaction.seller_id;
+        const currentStatus = transaction.status;
+
+        // Fetch item name for notification content
+        const { data: itemData, error: itemFetchError } = await supabase
+            .from('item')
+            .select('item_name')
+            .eq('item_id', itemId)
+            .single();
+
+        if (itemFetchError) {
+            console.error('Error fetching item name:', itemFetchError);
+        }
+
+        const itemName = itemData ? itemData.item_name : 'your item';
+
+        // Map sellerId (stud_id) to seller UUID by querying student table for user_id, stud_fname, stud_lname
+        const { data: sellerStudent, error: sellerStudentError } = await supabase
+            .from('student')
+            .select('user_id, stud_fname, stud_lname')
+            .eq('stud_id', sellerId)
+            .single();
+
+        let sellerUuid = null;
+        if (sellerStudentError || !sellerStudent) {
+            console.error('Error mapping seller stud_id to user_id:', sellerStudentError);
+            return; // Stop if UUID not found
+        } else {
+            sellerUuid = sellerStudent.user_id;
+        }
+
+        // Determine new status and notification logic
+        let newStatus;
+        let sendNotification = false;
+        let notificationContent = '';
+
+        if (currentStatus === 'requested') {
+            newStatus = 'received';
+            sendNotification = true;
+            notificationContent = `The item ${itemName} has been marked as received by the buyer.`;
+        } else if (currentStatus === 'sent') {
+            newStatus = 'completed';
+            sendNotification = false;
+            notificationContent = `The item ${itemName} transaction has been completed by the buyer.`;
+
+            // Add notification for buyer that transaction is complete and can provide feedback
+            const buyerUuid = userUuid; // logged-in user is buyer
+            const sellerName = sellerStudent ? `${sellerStudent.stud_fname} ${sellerStudent.stud_lname}` : 'the seller';
+            const notificationMessage = `The transaction with ${sellerName} is complete. You can now provide a feedback about the transaction.`;
+
+            try {
+                // Check if a similar notification already exists to avoid duplicates
+                const { data: existingNotifications, error: existingError } = await supabase
+                    .from('notifications')
+                    .select('notification_id')
+                    .eq('receiver_uuid', buyerUuid)
+                    .eq('type', 'transaction_complete')
+                    .eq('item_id', itemId)
+                    .eq('sender_id', sellerId)
+                    .limit(1);
+
+                if (existingError) {
+                    console.error('Error checking existing notifications:', existingError);
+                }
+
+                if (!existingNotifications || existingNotifications.length === 0) {
+                    const { error: notifCompleteError } = await supabase
+                        .from('notifications')
+                        .insert({
+                            sender_uuid: sellerStudent ? sellerStudent.user_id : null,
+                            receiver_uuid: buyerUuid,
+                            sender_id: sellerId,
+                            receiver_id: studId,
+                            type: 'transaction_complete',
+                            content: notificationMessage,
+                            item_id: itemId,
+                            created_at: new Date().toISOString()
+                        });
+                    if (notifCompleteError) {
+                        console.error('Error inserting transaction complete notification:', notifCompleteError);
+                    }
+                } else {
+                    console.log('Transaction complete notification already exists, skipping duplicate insert.');
+                }
+            } catch (err) {
+                console.error('Exception inserting transaction complete notification:', err);
+            }
+        } else {
+            alert('Invalid transaction status for marking as received.');
+            return;
+        }
+
+        if (sendNotification) {
+            const { error: notifError } = await supabase
+                .from('notifications')
+                .insert({
+                    sender_uuid: userUuid,
+                    receiver_uuid: sellerUuid,
+                    sender_id: studId,
+                    receiver_id: sellerId,
+                    type: newStatus === 'completed' ? 'mark_completed' : 'mark_received',
+                    content: notificationContent,
+                    item_id: itemId,
+                    created_at: new Date().toISOString()
+                });
+
+            if (notifError) {
+                console.error('Error inserting notification:', notifError);
+            }
+        }
+
+        // Update the transactions table to set status to newStatus for this transaction
+        const { error: transUpdateError } = await supabase
+            .from('transactions')
+            .update({ status: newStatus })
+            .eq('transac_id', transac_id);
+
+        if (transUpdateError) {
+            console.error('Error updating transaction status:', transUpdateError);
+            alert('Failed to mark as received: ' + transUpdateError.message);
+            return;
+        } else {
+            console.log(`Transaction ${transac_id} status updated to ${newStatus}`);
+        }
+
+        // If transaction completed, update item status to sold via backend endpoint to bypass RLS
+        if (newStatus === 'completed') {
+            console.log('Calling backend endpoint to update item status to sold for item:', itemId);
+            try {
+                const response = await fetch(`/item/${itemId}/mark-sold`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${await supabase.auth.getSession().then(s => s.data.session?.access_token)}`
+                    }
+                });
+                const result = await response.json();
+                if (!result.success) {
+                    console.error('Backend failed to update item status:', result.message);
+                    alert('Failed to update item status to sold.');
+                    return;
+                } else {
+                    console.log('Item status updated to sold successfully via backend.');
+                }
+            } catch (err) {
+                console.error('Error calling backend to update item status:', err);
+                alert('Failed to update item status to sold.');
+                return;
+            }
+            // Refresh UI after update
+            renderCurrentlyBuying();
+            renderPurchasedItems();
+        }
+
+        showBanner(
+  newStatus === 'completed'
+    ? '✅ Transaction marked as completed successfully.'
+    : '✅ Item marked as received successfully.',
+  'success'
+);
+
+function showBanner(message, type = "error") {
+    const errorMessage = document.getElementById("error-message");
+
+    errorMessage.style.display = "block";
+    errorMessage.textContent = message;
+
+    if (type === "success") {
+        errorMessage.style.backgroundColor = "#2ecc71";
+    } else {
+        errorMessage.style.backgroundColor = "#e74c3c";
+    }
+
+    setTimeout(() => {
+        errorMessage.style.display = "none";
+    }, 3000);
+}
+
+
+
+        // Update the button UI: find the button by transac_id and update text, disable it, and add note
+        const buttons = document.querySelectorAll('button');
+        buttons.forEach(button => {
+            if (button.onclick && button.onclick.toString().includes(`markAsReceived('${transac_id}')`)) {
+                button.textContent = 'Marked as Received';
+                button.disabled = true;
+                // Add note span if not already present
+                if (!button.nextElementSibling || !button.nextElementSibling.classList.contains('received-note')) {
+                    const noteSpan = document.createElement('span');
+                    noteSpan.textContent = " waiting for the seller's confirmation";
+                    noteSpan.className = 'received-note';
+                    noteSpan.style.color = '#555';
+                    noteSpan.style.marginLeft = '8px';
+                    button.parentNode.appendChild(noteSpan);
+                }
+            }
+        });
+
+        // Refresh the lists to move item from Currently Buying to Purchased Items
+        await new Promise(resolve => setTimeout(resolve, 1000)); // increased wait to 1000ms for DB consistency
+
+        // Immediately remove the item from currentlyBuyingList DOM to avoid showing stale data
+const currentlyBuyingList = document.getElementById('currentlyBuyingList');
+        const li = currentlyBuyingList.querySelector(`li[data-item-id="${itemId}"]`);
+        if (li) {
+            const buttons = li.querySelectorAll('button');
+            buttons.forEach(btn => {
+                if (btn.textContent === 'Mark as Received') {
+                    btn.textContent = 'Marked as Received';
+                    btn.disabled = true;
+                    btn.style.backgroundColor = '#ccc';
+                    btn.style.cursor = 'not-allowed';
+                }
+            });
+        }
+
+        // ...rest of your code (refresh lists, etc.)...
+    } catch (err) {
+        console.error('Unexpected error marking as received:', err);
+        alert('Failed to mark as received due to unexpected error.');
+    }
+}
+
+        // Function to open detailed post modal on main page (index.html)
+        function openDetailedPostModal(itemId) {
+            // Send message to parent window to open modal with itemId
+            if (window.parent && window.parent !== window) {
+                window.parent.postMessage({ type: 'openDetailedPostModal', itemId: itemId }, '*');
+            } else {
+                // Fallback: open modal in current page
+                const modal = document.getElementById('detailedPostModal');
+                const iframe = document.getElementById('detailedPostIframe');
+                iframe.src = `Detailed_post.html?item_id=${itemId}&embedded=1`;
+                modal.style.display = 'flex';
+            }
+        }
+
+        // Close button event listener
+        document.addEventListener('DOMContentLoaded', () => {
+            const closeBtn = document.getElementById('closeDetailedPostModal');
+            closeBtn.addEventListener('click', () => {
+                const modal = document.getElementById('detailedPostModal');
+                const iframe = document.getElementById('detailedPostIframe');
+                iframe.src = '';
+                modal.style.display = 'none';
+            });
+        });
+
+        // Initial render
+        renderCart();
+        renderCurrentlyBuying();
+
+        // Fetch transactions with status 'completed' and render purchased items
+        async function fetchPurchasedItems() {
+            const loggedInStudId = localStorage.getItem('stud_id');
+            if (!loggedInStudId) {
+                console.error('User not logged in');
+                return [];
+            }
+            const { data, error } = await supabase
+                .from('transactions')
+                .select(`
+                    transac_id,
+                    buyer_id,
+                    seller_id,
+                    status,
+                    created_at,
+                    item:item_uuid (
+                        item_id,
+                        item_name,
+                        item_price,
+                        item_price_type,
+                        item_price_min,
+                        item_price_max,
+                        photos
+                    ),
+                    seller:student!seller_id (
+                        stud_id,
+                        stud_fname,
+                        stud_lname
+                    )
+                `)
+                .eq('status', 'completed')
+                .eq('buyer_id', loggedInStudId);
+
+            if (error) {
+                console.error('Error fetching purchased items:', error);
+                return [];
+            }
+            return data;
+        }
+
+        // Render purchased items in the purchasedItemsList ul
+        async function renderPurchasedItems() {
+            const purchasedItemsList = document.getElementById('purchasedItemsList');
+            purchasedItemsList.innerHTML = '';
+
+            const purchasedItems = await fetchPurchasedItems();
+
+            if (!purchasedItems || purchasedItems.length === 0) {
+                const emptyMsg = document.createElement('li');
+                emptyMsg.className = 'empty-message';
+                emptyMsg.textContent = 'No purchased items yet.';
+                purchasedItemsList.appendChild(emptyMsg);
+                return;
+            }
+
+            // Fetch feedbacks for purchased items by current user
+            const studId = localStorage.getItem('stud_id');
+            let feedbacks = [];
+            if (studId) {
+                const { data, error } = await supabase
+                    .from('feedback')
+                    .select('item_id')
+                    .eq('buyer_id', studId);
+                if (!error && data) {
+                    feedbacks = data.map(fb => fb.item_id);
+                }
+            }
+
+            purchasedItems.forEach((item) => {
+                const li = document.createElement('li');
+                li.style.cursor = 'pointer';
+                li.dataset.itemId = item.item.item_id;
+
+                // Show first photo if available, with null checks
+                const photoUrl = (item.item && item.item.photos && item.item.photos.length > 0) ? item.item.photos[0] : 'Homepage_images/circle-user.png';
+                const img = document.createElement('img');
+                img.src = photoUrl;
+                img.alt = (item.item && item.item.item_name) ? item.item.item_name : 'Item photo';
+                img.style.width = '50px';
+                img.style.height = '50px';
+                img.style.objectFit = 'cover';
+                img.style.borderRadius = '5px';
+                img.style.marginRight = '10px';
+                img.style.verticalAlign = 'middle';
+
+                const nameSpan = document.createElement('span');
+                nameSpan.className = 'item-name';
+                nameSpan.textContent = (item.item && item.item.item_name) ? item.item.item_name : 'Unnamed item';
+
+                // Create container div for name and seller name
+                const nameContainer = document.createElement('div');
+                nameContainer.style.display = 'flex';
+                nameContainer.style.flexDirection = 'column';
+
+                // Add seller name span below item name
+                const sellerNameSpan = document.createElement('span');
+                sellerNameSpan.className = 'item-seller';
+                if (item.seller && item.seller.stud_fname && item.seller.stud_lname) {
+                    sellerNameSpan.textContent = `Seller: ${item.seller.stud_fname} ${item.seller.stud_lname}`;
+                } else {
+                    sellerNameSpan.textContent = 'Seller: Unknown';
+                }
+                sellerNameSpan.style.fontSize = '12px';
+                sellerNameSpan.style.color = '#555';
+                sellerNameSpan.style.marginTop = '2px';
+
+                // Append name and seller name to container
+                nameContainer.appendChild(nameSpan);
+                nameContainer.appendChild(sellerNameSpan);
+
+                // Determine price display
+                let priceDisplay = '';
+                if (item.item && item.item.item_price_type === 'single') {
+                    priceDisplay = `₱${item.item.item_price}`;
+                } else if (item.item && item.item.item_price_type === 'range') {
+                    priceDisplay = `₱${item.item.item_price_min} - ₱${item.item.item_price_max}`;
+                } else if (item.item && item.item.item_price_type === 'hidden') {
+                    priceDisplay = 'Price hidden';
+                } else {
+                    priceDisplay = 'Price not available';
+                }
+
+                const priceSpan = document.createElement('span');
+                priceSpan.className = 'item-price';
+                priceSpan.textContent = priceDisplay;
+
+                const feedbackBtn = document.createElement('button');
+                feedbackBtn.className = 'remove-btn';
+
+                // Disable and change button if feedback exists for this item
+                if (feedbacks.includes(item.item.item_id)) {
+                    feedbackBtn.textContent = 'Rated';
+                    feedbackBtn.style.backgroundColor = '#ccc';
+                    feedbackBtn.disabled = true;
+                } else {
+                    feedbackBtn.textContent = 'Feedback';
+                    feedbackBtn.style.backgroundColor = '#084F6A';
+                    feedbackBtn.style.marginLeft = '10px';
+                    feedbackBtn.onclick = (e) => {
+                        e.stopPropagation();
+                        // Pass seller_id as well for feedback page only if valid
+                        const sellerId = item.seller && item.seller.stud_id ? item.seller.stud_id : null;
+                        if (!sellerId) {
+                            alert('Seller information is missing. Cannot provide feedback.');
+                            return;
+                        }
+                        // Send message to parent to close side panel
+                        window.top.postMessage({ type: 'closeSidePanel' }, '*');
+                        // Redirect to index.html with query parameters to open feedback popup in the main window
+                        let url = `index.html?item_id=${item.item.item_id}&seller_id=${sellerId}`;
+                        window.top.location.href = url;
+                    };
+                }
+
+                li.appendChild(img);
+                li.appendChild(nameContainer);
+                li.appendChild(priceSpan);
+                li.appendChild(feedbackBtn);
+                purchasedItemsList.appendChild(li);
+
+                // Add click event to open detailed post modal
+                li.addEventListener('click', () => {
+                    openDetailedPostModal(item.item.item_id);
+                });
+            });
+        }
+
+        // Listen for feedback submission message from feedback.html popup
+        window.addEventListener('message', (event) => {
+            if (event.data && event.data.type === 'feedbackSubmitted' && event.data.itemId) {
+                // Re-render purchased items to update button state
+                renderPurchasedItems();
+            }
+        });
+
+        // Call renderPurchasedItems on initial load and after relevant updates
+        renderPurchasedItems();
+
+    </script>
+</body>
+</html>

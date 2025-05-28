@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>My Conversations</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 0 20px;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+        h1 {
+            color: #084F6A;
+            margin-bottom: 20px;
+        }
+        .conversation-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .conversation-item {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            min-width: 0;
+        }
+        .conversation-item:hover {
+            background-color: #e6f0f7;
+        }
+        .profile-pic {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+        .conversation-info {
+            flex-grow: 1;
+            min-width: 0;
+        }
+        .conversation-name {
+            font-weight: bold;
+            font-size: 18px;
+            margin-bottom: 5px;
+            color: #084F6A;
+        }
+        .latest-message {
+            font-size: 14px;
+            color: #444;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
+            width: 100%;
+            display: block;
+        }
+        .unread-latest-message {
+            font-weight: bold;
+            color: black;
+        }
+        .delete-button {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background-color: transparent;
+            border: none;
+            color: #d9534f;
+            font-weight: bold;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 0;
+            margin: 0;
+            line-height: 1;
+            flex-shrink: 0;
+        }
+        .delete-button:hover {
+            color: #c9302c;
+        }
+        .no-conversations {
+            text-align: center;
+            color: #666;
+            margin-top: 50px;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <h1>My Conversations</h1>
+    <ul id="conversationList" class="conversation-list"></ul>
+    <p id="noConversations" class="no-conversations" style="display:none;">You have no conversations yet.</p>
+
+    <script>
+        const supabaseUrl = 'https://wuhgqjeijmxsgvnykttj.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind1aGdxamVpam14c2d2bnlrdHRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI4MjkzMDQsImV4cCI6MjA1ODQwNTMwNH0._lZy7CE2A8HM1hatjGYrMR8QAUi8nk4L_EuV7Fojhwg';
+        const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+
+        let loggedInStudId = null;
+        let loggedInUserUUID = null;
+
+        async function fetchLoggedInUser() {
+            const { data: sessionData, error: sessionError } = await supabaseClient.auth.getSession();
+            if (sessionError || !sessionData.session) {
+                alert('You must be logged in to view your conversations.');
+                window.location.href = 'Login_page.html';
+                return null;
+            }
+            loggedInUserUUID = sessionData.session.user.id; // auth.uid()
+            const userEmail = sessionData.session.user.email;
+            const { data: student, error: studentError } = await supabaseClient
+                .from('student')
+                .select('stud_id')
+                .eq('stud_email', userEmail)
+                .single();
+            if (studentError || !student) {
+                alert('Unable to fetch your student information.');
+                return null;
+            }
+            loggedInStudId = student.stud_id;
+            return student.stud_id;
+        }
+
+        async function fetchConversations() {
+            const { data, error } = await supabaseClient
+                .from('conversation')
+                .select(`
+                    conversation_id,
+                    last_message_id,
+                    user1_uuid,
+                    user2_uuid,
+                    user1:student!conversation_user1_id_fkey (
+                        stud_id,
+                        stud_fname,
+                        stud_lname,
+                        stud_picture
+                    ),
+                    user2:student!conversation_user2_id_fkey (
+                        stud_id,
+                        stud_fname,
+                        stud_lname,
+                        stud_picture
+                    ),
+                    last_message:message!conversation_last_message_id_fkey (
+                        mess_content,
+                        mess_created,
+                        mess_photo,
+                        sender_id,
+                        is_read,
+                        receiver_id
+                    )
+                `)
+                .or(`user1_uuid.eq.${loggedInUserUUID},user2_uuid.eq.${loggedInUserUUID}`);
+
+            if (error) {
+                console.error('Error fetching conversations:', error);
+                return [];
+            }
+            return data;
+        }
+
+        function getOtherUser(conversation) {
+            if (conversation.user1_uuid === loggedInUserUUID) {
+                return conversation.user2;
+            } else if (conversation.user2_uuid === loggedInUserUUID) {
+                return conversation.user1;
+            } else {
+                return conversation.user1;
+            }
+        }
+
+        function formatTimeAgo(dateString) {
+            const createdDate = new Date(dateString + 'Z');
+            const now = new Date();
+            let diffInSeconds = Math.floor((now.getTime() - createdDate.getTime()) / 1000);
+
+            if (diffInSeconds < 0) {
+                diffInSeconds = 0; // prevent negative seconds
+            }
+
+            if (diffInSeconds < 60) {
+                return '1 minute ago';
+            }
+
+            const diffInMinutes = Math.floor(diffInSeconds / 60);
+            if (diffInMinutes < 60) {
+                return diffInMinutes + ' minute' + (diffInMinutes === 1 ? '' : 's') + ' ago';
+            }
+
+            const diffInHours = Math.floor(diffInMinutes / 60);
+            if (diffInHours < 24) {
+                return diffInHours + ' hour' + (diffInHours === 1 ? '' : 's') + ' ago';
+            }
+
+            const diffInDays = Math.floor(diffInHours / 24);
+            if (diffInDays < 7) {
+                return diffInDays + ' day' + (diffInDays === 1 ? '' : 's') + ' ago';
+            }
+
+            const diffInWeeks = Math.floor(diffInDays / 7);
+            if (diffInWeeks < 4) {
+                return diffInWeeks + ' week' + (diffInWeeks === 1 ? '' : 's') + ' ago';
+            }
+
+            const diffInMonths = Math.floor(diffInDays / 30);
+            return diffInMonths + ' month' + (diffInMonths === 1 ? '' : 's') + ' ago';
+        }
+
+        // New function to hide conversation client-side
+        function hideConversation(conversationId) {
+            let hiddenConversations = JSON.parse(localStorage.getItem('hiddenConversations') || '[]');
+            if (!hiddenConversations.includes(conversationId)) {
+                hiddenConversations.push(conversationId);
+                localStorage.setItem('hiddenConversations', JSON.stringify(hiddenConversations));
+            }
+            // Remove the conversation element from the DOM
+            const list = document.getElementById('conversationList');
+            const convElement = list.querySelector(`li[data-conversation-id="${conversationId}"]`);
+            if (convElement) {
+                list.removeChild(convElement);
+            }
+        }
+
+        function createConversationElement(conversation) {
+            const otherUser = getOtherUser(conversation);
+            let latestMessage = '(No messages yet)';
+            const latestMessageTime = (conversation.last_message && conversation.last_message.length > 0) ? formatTimeAgo(conversation.last_message[0].mess_created) : '';
+
+            console.log('createConversationElement - conversation_id:', conversation.conversation_id, 'last_message:', conversation.last_message);
+
+            if (conversation.last_message && conversation.last_message.length > 0) {
+                const lastMsg = conversation.last_message[0];
+                console.log('Last message details:', lastMsg);
+                if (lastMsg.mess_photo && (!lastMsg.mess_content || lastMsg.mess_content.trim() === '')) {
+                    if (lastMsg.sender_id === loggedInStudId) {
+                        latestMessage = 'You sent a photo';
+                    } else {
+                        const otherUserFullName = otherUser.stud_fname + ' ' + otherUser.stud_lname;
+                        latestMessage = `${otherUserFullName} sent a photo`;
+                    }
+                } else if (lastMsg.mess_content && lastMsg.mess_content.trim() !== '') {
+                    if (lastMsg.sender_id === loggedInStudId) {
+                        latestMessage = `You: ${lastMsg.mess_content}`;
+                    } else {
+                        latestMessage = lastMsg.mess_content;
+                    }
+                }
+            }
+
+            const li = document.createElement('li');
+            li.className = 'conversation-item';
+            li.style.position = 'relative'; // to position delete button top right
+            li.setAttribute('data-conversation-id', conversation.conversation_id);
+
+            li.onclick = function() {
+                window.location.href = 'message_page.html?seller_id=' + otherUser.stud_id + '&from=myconversation';
+            };
+
+            const profileImg = document.createElement('img');
+            profileImg.className = 'profile-pic';
+            profileImg.src = otherUser.stud_picture || 'Homepage_images/circle-user.png';
+            profileImg.alt = otherUser.stud_fname + ' ' + otherUser.stud_lname;
+
+            const infoDiv = document.createElement('div');
+            infoDiv.className = 'conversation-info';
+
+            const nameDiv = document.createElement('div');
+            nameDiv.className = 'conversation-name';
+            nameDiv.textContent = otherUser.stud_fname + ' ' + otherUser.stud_lname;
+
+            const messageDiv = document.createElement('div');
+            let isUnreadLatest = false;
+            if (conversation.last_message && conversation.last_message.length > 0) {
+                const lastMsg = conversation.last_message[0];
+                console.log('Last message is_read value:', lastMsg.is_read, 'type:', typeof lastMsg.is_read);
+                if (lastMsg.receiver_id === loggedInStudId && (lastMsg.is_read === false || lastMsg.is_read === 'false' || lastMsg.is_read == false) && lastMsg.sender_id !== loggedInStudId) {
+                    isUnreadLatest = true;
+                }
+            }
+            messageDiv.className = 'latest-message' + (isUnreadLatest ? ' unread-latest-message' : '');
+            messageDiv.textContent = latestMessage;
+
+            const timeDiv = document.createElement('div');
+            timeDiv.className = 'conversation-context';
+            timeDiv.style.fontSize = '12px';
+            timeDiv.style.color = '#999';
+            timeDiv.textContent = latestMessageTime;
+
+            infoDiv.appendChild(nameDiv);
+            infoDiv.appendChild(messageDiv);
+            infoDiv.appendChild(timeDiv);
+
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'delete-button';
+            deleteBtn.textContent = '×';
+            deleteBtn.title = 'Hide conversation';
+            deleteBtn.onclick = function(e) {
+                e.stopPropagation();
+                hideConversation(conversation.conversation_id);
+            };
+
+            li.appendChild(profileImg);
+            li.appendChild(infoDiv);
+            li.appendChild(deleteBtn);
+
+            return li;
+        }
+
+        async function loadConversations() {
+            console.log('loadConversations started');
+            const list = document.getElementById('conversationList');
+            const noConv = document.getElementById('noConversations');
+            list.innerHTML = '';
+            noConv.style.display = 'none';
+
+            const conversations = await fetchConversations();
+            console.log('Fetched conversations count:', conversations ? conversations.length : 0);
+            if (!conversations || conversations.length === 0) {
+                noConv.style.display = 'block';
+                return;
+            }
+
+            const hiddenConversations = JSON.parse(localStorage.getItem('hiddenConversations') || '[]');
+
+            const filteredConversations = conversations.filter(conv => {
+                if (conv.user1_uuid === loggedInUserUUID && conv.user2_uuid === loggedInUserUUID) {
+                    return false;
+                }
+                // Filter out hidden conversations
+                if (hiddenConversations.includes(conv.conversation_id)) {
+                    return false;
+                }
+                return true;
+            });
+
+            // Instead of relying on last_message_id, fetch latest messages per conversation directly
+            const conversationIds = filteredConversations.map(conv => conv.conversation_id);
+            let latestMessagesMap = {};
+            if (conversationIds.length > 0) {
+                const { data: latestMessages, error: latestMessagesError } = await supabaseClient
+                    .from('message')
+                    .select('mess_content, mess_created, mess_photo, sender_id, is_read, receiver_id, conversation_id')
+                    .in('conversation_id', conversationIds)
+                    .order('mess_created', { ascending: false });
+
+                if (latestMessagesError) {
+                    console.error('Error fetching latest messages:', latestMessagesError);
+                } else {
+                    // Map conversation_id to latest message (first occurrence)
+                    latestMessages.forEach(msg => {
+                        if (!latestMessagesMap[msg.conversation_id]) {
+                            latestMessagesMap[msg.conversation_id] = msg;
+                        }
+                    });
+                }
+            }
+
+            console.log('Latest messages map:', latestMessagesMap);
+
+            // Assign last_message to each conversation using latestMessagesMap
+            filteredConversations.forEach(conv => {
+                conv.last_message = latestMessagesMap[conv.conversation_id] ? [latestMessagesMap[conv.conversation_id]] : null;
+            });
+
+            console.log('Last messages mapped to conversations:', filteredConversations.map(c => ({
+                conversation_id: c.conversation_id,
+                last_message: c.last_message,
+                last_message_id: c.last_message_id
+            })));
+
+            filteredConversations.sort((a, b) => {
+                const aTime = (a.last_message && a.last_message.length > 0) ? new Date(a.last_message[0].mess_created).getTime() : 0;
+                const bTime = (b.last_message && b.last_message.length > 0) ? new Date(b.last_message[0].mess_created).getTime() : 0;
+                return bTime - aTime;
+            });
+
+            filteredConversations.forEach(conv => {
+                const convElement = createConversationElement(conv);
+                list.appendChild(convElement);
+            });
+            console.log('loadConversations finished');
+        }
+
+        // Function to update a single conversation item in the DOM
+        function updateConversationItem(conversation) {
+            const list = document.getElementById('conversationList');
+            const existingItem = list.querySelector(`li[data-conversation-id="${conversation.conversation_id}"]`);
+            if (existingItem) {
+                list.removeChild(existingItem);
+            }
+            const newItem = createConversationElement(conversation);
+            newItem.setAttribute('data-conversation-id', conversation.conversation_id);
+            list.prepend(newItem);
+        }
+
+        let conversationChannels = {};
+        let messageChannels = {};
+
+        (async () => {
+            loggedInStudId = await fetchLoggedInUser();
+            if (!loggedInStudId) return;
+            await loadConversations();
+
+            // Subscribe to conversation updates for the logged-in user
+            const conversationChannel = supabaseClient
+                .channel('public:conversation')
+                .on(
+                    'postgres_changes',
+                    {
+                        event: 'UPDATE',
+                        schema: 'public',
+                        table: 'conversation',
+                        filter: `or(user1_uuid.eq.${loggedInUserUUID},user2_uuid.eq.${loggedInUserUUID})`
+                    },
+                    async (payload) => {
+                        console.log('Realtime conversation update event:', payload);
+                        // Fetch updated conversation data
+                        const { data: updatedConversations, error } = await supabaseClient
+                            .from('conversation')
+                            .select(`
+                                conversation_id,
+                                last_message_id,
+                                user1_uuid,
+                                user2_uuid,
+                                user1:student!conversation_user1_id_fkey (
+                                    stud_id,
+                                    stud_fname,
+                                    stud_lname,
+                                    stud_picture
+                                ),
+                                user2:student!conversation_user2_id_fkey (
+                                    stud_id,
+                                    stud_fname,
+                                    stud_lname,
+                                    stud_picture
+                                ),
+                                last_message:message!conversation_last_message_id_fkey (
+                                    mess_content,
+                                    mess_created,
+                                    mess_photo,
+                                    sender_id,
+                                    is_read,
+                                    receiver_id
+                                )
+                            `)
+                            .eq('conversation_id', payload.new.conversation_id);
+                        if (error) {
+                            console.error('Error fetching updated conversation:', error);
+                            return;
+                        }
+                        if (updatedConversations && updatedConversations.length > 0) {
+                            updateConversationItem(updatedConversations[0]);
+                        }
+                    }
+                )
+                .on(
+                    'postgres_changes',
+                    {
+                        event: 'INSERT',
+                        schema: 'public',
+                        table: 'conversation',
+                        filter: `or(user1_uuid.eq.${loggedInUserUUID},user2_uuid.eq.${loggedInUserUUID})`
+                    },
+                    async (payload) => {
+                        console.log('Realtime conversation insert event:', payload);
+                        // Reload full list for new conversation
+                        await loadConversations();
+
+                        // Subscribe to messages for the new conversation
+                        const convId = payload.new.conversation_id;
+                        if (!messageChannels[convId]) {
+                            subscribeToMessageChannel(convId);
+                        }
+                    }
+                )
+                .subscribe();
+
+            // Subscribe to message channels for existing conversations
+            const conversations = await fetchConversations();
+            conversations.forEach(conv => {
+                if (!messageChannels[conv.conversation_id]) {
+                    subscribeToMessageChannel(conv.conversation_id);
+                }
+            });
+
+            function subscribeToMessageChannel(conversationId) {
+                const channelName = `conversation-${conversationId}`;
+                const channel = supabaseClient
+                    .channel(channelName)
+                            .on(
+                                'postgres_changes',
+                                {
+                                    event: 'INSERT',
+                                    schema: 'public',
+                                    table: 'message',
+                                    filter: `conversation_id=eq.${conversationId}`
+                                },
+                                async (payload) => {
+                                    console.log(`New message inserted in conversation ${conversationId}:`, payload);
+                                    // Remove conversationId from hiddenConversations if present
+                                    let hiddenConversations = JSON.parse(localStorage.getItem('hiddenConversations') || '[]');
+                                    const index = hiddenConversations.indexOf(conversationId);
+                                    if (index !== -1) {
+                                        hiddenConversations.splice(index, 1);
+                                        localStorage.setItem('hiddenConversations', JSON.stringify(hiddenConversations));
+                                    }
+                                    // Reload conversations to reflect changes
+                                    await loadConversations();
+                                }
+                            )
+                    .on(
+                        'postgres_changes',
+                        {
+                            event: 'UPDATE',
+                            schema: 'public',
+                            table: 'message',
+                            filter: `conversation_id=eq.${conversationId}`
+                        },
+                        async (payload) => {
+                            console.log(`Message updated in conversation ${conversationId}:`, payload);
+                            // Update only the affected conversation item
+                            // Similar to insert, reload conversations to reflect updates
+                            await loadConversations();
+                        }
+                    )
+                    .subscribe();
+
+                messageChannels[conversationId] = channel;
+            }
+
+            async function fetchConversationById(conversationId) {
+                const { data, error } = await supabaseClient
+                    .from('conversation')
+                    .select(`
+                        conversation_id,
+                        last_message_id,
+                        user1_uuid,
+                        user2_uuid,
+                        user1:student!conversation_user1_id_fkey (
+                            stud_id,
+                            stud_fname,
+                            stud_lname,
+                            stud_picture
+                        ),
+                        user2:student!conversation_user2_id_fkey (
+                            stud_id,
+                            stud_fname,
+                            stud_lname,
+                            stud_picture
+                        ),
+                        last_message:message!conversation_last_message_id_fkey (
+                            mess_content,
+                            mess_created,
+                            mess_photo,
+                            sender_id,
+                            is_read,
+                            receiver_id
+                        )
+                    `)
+                    .eq('conversation_id', conversationId)
+                    .single();
+
+                if (error) {
+                    console.error('Error fetching conversation by ID:', error);
+                    return null;
+                }
+                return data;
+            }
+
+            conversationChannel.on('subscription_error', (error) => {
+                console.error('Conversation subscription error:', error);
+            });
+
+            Object.values(messageChannels).forEach(channel => {
+                channel.on('subscription_error', (error) => {
+                    console.error('Message subscription error:', error);
+                });
+            });
+
+            conversationChannel.on('subscription_succeeded', () => {
+                console.log('Conversation subscription succeeded');
+            });
+
+            Object.values(messageChannels).forEach(channel => {
+                channel.on('subscription_succeeded', () => {
+                    console.log('Message subscription succeeded');
+                });
+            });
+        })();
+    </script>
+</body>
+</html>

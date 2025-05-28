@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Transaction Monitoring - CamFlea Admin</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #F2F2F2;
+            margin: 0;
+            padding: 20px;
+        }
+        .navbar {
+            background-color: #084F6A;
+            padding: 10px 40px;
+            height: 80px;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        .navbar h1 {
+            margin: 0;
+            font-size: 1.5rem;
+        }
+        #backToAdminBtn {
+            margin-left: auto;
+            padding: 8px 16px;
+            background-color: #084F6A;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .content {
+            margin-top: 20px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        #searchBar {
+            width: 100%;
+            padding: 10px;
+            font-size: 1rem;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #ccc;
+            text-align: left;
+        }
+        th {
+            background-color: #084F6A;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        #noResults {
+            text-align: center;
+            color: #555;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <h1>Transaction Monitoring</h1>
+        <button id="backToAdminBtn">Back to Admin</button>
+    </div>
+    <div class="content">
+        <input type="text" id="searchBar" placeholder="Search by Transaction ID, Buyer, Seller, or Product Name" />
+        <table id="transactionsTable">
+            <thead>
+                <tr>
+                    <th>Transaction ID</th>
+                    <th>Buyer Name</th>
+                    <th>Seller Name</th>
+                    <th>Product Name</th>
+                    <th>Status</th>
+                    <th>Created At</th>
+                    <th>Updated At</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Transactions will be populated here -->
+            </tbody>
+        </table>
+        <div id="noResults" style="display:none;">No transactions found.</div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <script>
+        const supabaseUrl = 'https://wuhgqjeijmxsgvnykttj.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind1aGdxamVpam14c2d2bnlrdHRqIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MjgyOTMwNCwiZXhwIjoyMDU4NDA1MzA0fQ.z25Bc1YxdBjWo5b9ezMW7noMSTehSNzTtzOCLFNm-o4';
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+        const transactionsTableBody = document.querySelector('#transactionsTable tbody');
+        const searchBar = document.getElementById('searchBar');
+        const backToAdminBtn = document.getElementById('backToAdminBtn');
+
+        backToAdminBtn.addEventListener('click', () => {
+            window.location.href = 'admin.html';
+        });
+
+        let transactions = [];
+
+        async function fetchTransactions() {
+            // Fetch transactions with buyer, seller, and item info
+const { data, error } = await supabase
+    .from('transactions')
+    .select(`
+        transac_id,
+        status,
+        created_at,
+        updated_at,
+        buyer:buyer_id (
+            stud_id,
+            stud_fname,
+            stud_lname
+        ),
+        seller:seller_id (
+            stud_id,
+            stud_fname,
+            stud_lname
+        ),
+        item:item_uuid (
+            item_id,
+            item_name
+        )
+    `)
+    .order('created_at', { ascending: false });
+
+            if (error) {
+                console.error('Error fetching transactions:', error);
+                transactionsTableBody.innerHTML = '<tr><td colspan="7">Error loading transactions.</td></tr>';
+                return;
+            }
+
+            transactions = data || [];
+            displayTransactions(transactions);
+        }
+
+        function displayTransactions(transactionsToDisplay) {
+            transactionsTableBody.innerHTML = '';
+            if (transactionsToDisplay.length === 0) {
+                document.getElementById('noResults').style.display = 'block';
+                return;
+            } else {
+                document.getElementById('noResults').style.display = 'none';
+            }
+
+            transactionsToDisplay.forEach(tran => {
+                const tr = document.createElement('tr');
+tr.innerHTML = `
+    <td>${tran.transac_id}</td>
+    <td>${tran.buyer ? ((tran.buyer.stud_fname || '') + ' ' + (tran.buyer.stud_lname || '')).trim() : 'N/A'}</td>
+    <td>${tran.seller ? ((tran.seller.stud_fname || '') + ' ' + (tran.seller.stud_lname || '')).trim() : 'N/A'}</td>
+    <td>${tran.item?.item_name || 'N/A'}</td>
+    <td>${tran.status}</td>
+    <td>${new Date(tran.created_at).toLocaleString()}</td>
+    <td>${new Date(tran.updated_at).toLocaleString()}</td>
+`;
+                transactionsTableBody.appendChild(tr);
+            });
+        }
+
+        searchBar.addEventListener('input', () => {
+            const query = searchBar.value.toLowerCase();
+            const filtered = transactions.filter(tran => {
+                return (
+                    tran.transac_id.toString().toLowerCase().includes(query) ||
+(
+  ((tran.buyer?.stud_fname || '') + ' ' + (tran.buyer?.stud_lname || '')).toLowerCase().includes(query)
+) ||
+(
+  ((tran.seller?.stud_fname || '') + ' ' + (tran.seller?.stud_lname || '')).toLowerCase().includes(query)
+) ||
+                    (tran.item?.item_name?.toLowerCase().includes(query))
+                );
+            });
+            displayTransactions(filtered);
+        });
+
+        // Initial fetch
+        fetchTransactions();
+    </script>
+</body>
+</html>

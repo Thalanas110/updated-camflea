@@ -1,0 +1,1705 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CamFlea</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #F2F2F2; /* Changed background color */
+        }
+        .navbar {
+            background-color: #084F6A;
+            padding: 10px 40px;
+            height: 100px;
+            position: relative;
+        }
+        .main-content {
+            position: absolute;
+            left: 50%;
+            top: 60%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            width: 90%;
+            max-width: 1000px;
+        }
+        .logo {
+            height: 50px;
+            width: auto;
+            flex-shrink: 0;
+        }
+        .search-bar {
+            flex-grow: 1;
+            position: relative;
+            min-width: 500px;
+        }
+        .search-bar input {
+            width: 100%;
+            padding: 12px 40px 12px 20px;
+            border: none;
+            border-radius: 0;
+            outline: none;
+            font-size: 16px;
+            padding-right: 0;
+        }
+        .search-icon {
+            position: absolute;
+            right: 15px; /* Moved back to the left */
+            top: 50%;
+            transform: translateY(-50%);
+            height: 18px;
+            width: 18px;
+            padding: 8px 12px; /* Increased padding for wider background */
+            background-color: #084F6A;
+            border-radius: 2px;
+            cursor: pointer;
+            box-sizing: content-box; /* Ensures padding doesn't affect icon size */
+            padding-left: 20px;
+            padding-right: 20px;
+        }
+        .ask-ai-container {
+            display: flex;
+            align-items: center;
+            gap: 5px; 
+            flex-shrink: 0;
+            margin-left: 20px;
+        }
+        .ask-ai {
+            color: white;
+            font-size: 18px;
+        }
+        .ask-ai-icon {
+            height: 28px;
+            width: 28px;
+        }
+        .profile-section {
+            position: absolute;
+            left: 40px;
+            top: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: white;
+        }
+        .profile-icon {
+            height: 18px;
+            width: 18px;
+        }
+        .notifications-container {
+            position: absolute;
+            right: 40px;
+            top: 15px;
+            display: flex;
+            gap: 20px;
+            color: white;
+        }
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+        .nav-icon {
+            height: 18px;
+            width: 18px;
+        }
+
+        .logout {
+            color: white;
+            text-decoration: none;
+        }
+        .link{
+            color: white;
+            text-decoration: none;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            background-color: #F2F2F2; /* Changed background color */
+            padding: 20px;
+            border-radius: 8px;
+            width: 250px; /* Made it less wide */
+            margin-top: 20px;
+        }
+        .sidebar h2 {
+            text-align: center;
+            font-size: 1.25rem;
+            font-weight: bold; /* Made it bold */
+            margin-bottom: 1rem;
+        }
+        .sidebar label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: bold; /* Made it bold */
+            margin-bottom: 0.5rem;
+        }
+        .sidebar input[type="text"] {
+            width: calc(50% - 0.5rem);
+            padding: 0.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0;
+            margin-bottom: 1rem;
+            text-align: center; /* Center the text inside the input */
+        }
+        .sidebar button {
+            width: 100%;
+            background-color: #084F6A; /* Changed to the specified color */
+            color: #ffffff;
+            padding: 0.5rem;
+            border-radius: 0.375rem;
+            font-size: 1rem;
+            font-weight: 500;
+            margin-bottom: 1rem;
+            box-shadow: none; /* Removed shadow */
+        }
+        .sidebar select {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0; /* Make it square */
+            appearance: none;
+            margin-bottom: 1rem;
+            background: none; /* Remove background image */
+            text-align: center; /* Center the text */
+        }
+        .sidebar .relative {
+            position: relative;
+        }
+        .sidebar .relative i {
+            position: absolute;
+            right: 0.5rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6b7280;
+        }
+        .sidebar .space-y-2 > div {
+            display: flex;
+            align-items: center;
+        }
+        .sidebar .space-y-2 input[type="checkbox"] {
+            margin-right: 0.5rem;
+        }
+        .select-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        .select-container select {
+            padding-left: 0; /* Remove left padding */
+            text-align: center; /* Center the text */
+        }
+        .select-container option {
+            display: flex;
+            align-items: center;
+            justify-content: center; /* Center the content */
+        }
+        .select-container option img {
+            margin-left: 10px; /* Add space between text and image */
+        }
+
+        .content-container {
+  display: flex;
+  gap: 20px;
+  padding: 20px;
+}
+
+.sidebar {
+  width: 250px;
+  background-color: #fff;
+}
+
+.main-content {
+  flex-grow: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+#conversationPanel {
+position: fixed;
+top: 0;
+right: -420px; /* hidden by default */
+width: 420px;
+height: 100%;
+background-color: #f9f9f9;
+box-shadow: -2px 0 8px rgba(0,0,0,0.4);
+transition: right 0.3s ease;
+z-index: 1000;
+display: flex;
+flex-direction: column;
+}
+#conversationPanel.open {
+right: 0;
+}
+#notificationPanel {
+  position: fixed;
+  top: 0;
+  right: -420px; /* hidden by default */
+  width: 420px;
+  height: 100%;
+  background-color: #f9f9f9;
+  box-shadow: -2px 0 8px rgba(0,0,0,0.4);
+  transition: right 0.3s ease;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+}
+#notificationPanel.open {
+  right: 0;
+}
+#transactionPanel {
+  position: fixed;
+  top: 0;
+  right: -420px;
+  width: 420px;
+  height: 100%;
+  background-color: #f9f9f9;
+  box-shadow: -2px 0 8px rgba(0,0,0,0.4);
+  transition: right 0.3s ease;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+}
+#transactionPanel.open {
+  right: 0;
+}
+#conversationPanel iframe {
+border: none;
+width: 100%;
+height: 100%;
+flex-grow: 1;
+}
+#closeConversationPanel {
+background: #084F6A;
+color: white;
+border: none;
+border-radius: 0 0 0 8px;
+padding: 10px 15px;
+cursor: pointer;
+font-size: 18px;
+align-self: flex-start;
+}
+#conversationOverlay {
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+background-color: transparent; /* Removed darkening */
+z-index: 999;
+display: none;
+}
+
+
+  </style>
+</head>
+<body>
+    <div class="navbar">
+      <div class="profile-section" style="display: flex; align-items: center; gap: 12px;">
+        <img src="Homepage_images/circle-user.png" alt="Profile" class="profile-icon">
+        <span><a href="ViewProfile.html" class="link">Visit your profile</a></span>
+        <span><a href="post_item.html" id="postItemLink" class="link" style="background-color: #084F6A; padding: 6px 12px; border-radius: 4px; color: white; font-weight: 600; text-decoration: none; cursor: pointer;">Post Item</a></span>
+      </div>
+  
+      <div class="notifications-container">
+        <div class="nav-item"
+          <img src="Homepage_images/bell.png" alt="Notifications" class="nav-icon">
+          <span>Notifications</span>
+        </div>
+        <div class="nav-item">
+          <span><a href="#" class="logout" onclick="logoutUser()">Logout</a></span>
+        </div>
+      </div>
+      <div class="main-content">
+        <img src="Homepage_images/LOGO_WHITE.png" alt="CamFlea Logo" class="logo">
+        <div class="search-bar" style="position: relative;">
+          <input type="text" placeholder="Search" autocomplete="off" />
+          <img src="Homepage_images/search.png" alt="Search" class="search-icon" />
+          <div id="recent-searches-dropdown" style="display:none; position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #ccc; max-height: 200px; overflow-y: auto; z-index: 1000; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
+            <!-- Recent searches will be dynamically inserted here -->
+          </div>
+        </div>
+        <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.6.2"></script>
+        <script>
+          document.addEventListener("DOMContentLoaded", () => {
+            const searchInput = document.querySelector(".search-bar input");
+            const searchIcon = document.querySelector(".search-icon");
+            const recentSearchesDropdown = document.getElementById("recent-searches-dropdown");
+
+            // Restore search input value from localStorage if present
+            const savedSearchQuery = localStorage.getItem("currentSearchQuery");
+            if (savedSearchQuery) {
+              searchInput.value = savedSearchQuery;
+              // Apply search results based on restored search input
+              fetchAndDisplayItems();
+            }
+
+            function getRecentSearches() {
+              const studId = localStorage.getItem("stud_id") || "guest";
+              const key = `recentSearches_${studId}`;
+              const searches = localStorage.getItem(key);
+              return searches ? JSON.parse(searches) : [];
+            }
+
+            function saveRecentSearch(searchTerm) {
+              if (!searchTerm) return;
+              const studId = localStorage.getItem("stud_id") || "guest";
+              const key = `recentSearches_${studId}`;
+              let searches = getRecentSearches();
+              // Remove if already exists to avoid duplicates
+              searches = searches.filter(term => term.toLowerCase() !== searchTerm.toLowerCase());
+              searches.unshift(searchTerm);
+              // Keep only last 5 searches
+              if (searches.length > 5) {
+                searches = searches.slice(0, 5);
+              }
+              localStorage.setItem(key, JSON.stringify(searches));
+            }
+
+            function renderRecentSearches() {
+              const searches = getRecentSearches();
+              if (searches.length === 0) {
+                recentSearchesDropdown.style.display = "none";
+                return;
+              }
+              recentSearchesDropdown.innerHTML = "";
+              searches.forEach(term => {
+                const item = document.createElement("div");
+                item.style.display = "flex";
+                item.style.justifyContent = "space-between";
+                item.style.alignItems = "center";
+                item.style.padding = "8px 12px";
+                item.style.borderBottom = "1px solid #eee";
+
+                const termSpan = document.createElement("span");
+                termSpan.textContent = term;
+                termSpan.style.cursor = "pointer";
+                termSpan.style.flexGrow = "1";
+                termSpan.addEventListener("click", () => {
+                  searchInput.value = term;
+                  localStorage.setItem("currentSearchQuery", term); // Persist selected recent search
+                  recentSearchesDropdown.style.display = "none";
+                  fetchAndDisplayItems();
+                  searchInput.blur();
+                });
+
+                const deleteBtn = document.createElement("button");
+                deleteBtn.textContent = "×";
+                deleteBtn.style.background = "transparent";
+                deleteBtn.style.border = "none";
+                deleteBtn.style.color = "#888";
+                deleteBtn.style.fontSize = "16px";
+                deleteBtn.style.cursor = "pointer";
+                deleteBtn.style.marginLeft = "10px";
+                deleteBtn.title = "Delete this search";
+                deleteBtn.addEventListener("click", (e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  let updatedSearches = getRecentSearches().filter(s => s.toLowerCase() !== term.toLowerCase());
+                  const studId = localStorage.getItem("stud_id") || "guest";
+                  const key = `recentSearches_${studId}`;
+                  localStorage.setItem(key, JSON.stringify(updatedSearches));
+                  renderRecentSearches();
+                });
+
+                item.appendChild(termSpan);
+                item.appendChild(deleteBtn);
+                recentSearchesDropdown.appendChild(item);
+              });
+              recentSearchesDropdown.style.display = "block";
+            }
+
+            searchInput.addEventListener("click", function () {
+              if (this.value.length > 0) {
+                this.select();
+              }
+              renderRecentSearches();
+            });
+
+            searchInput.addEventListener("blur", function () {
+              // Delay hiding dropdown to allow click event on dropdown items
+              setTimeout(() => {
+                recentSearchesDropdown.style.display = "none";
+              }, 200);
+            });
+
+searchInput.addEventListener("input", function () {
+  if (searchInput.value.trim() === "") {
+    fetchAndDisplayItems();
+    localStorage.removeItem("currentSearchQuery");
+  } else {
+    // When user clears and starts typing, update currentSearchQuery in localStorage
+    localStorage.setItem("currentSearchQuery", searchInput.value.trim());
+    // Do not fetch results while typing to avoid excessive queries
+    // fetchAndDisplayItems();
+  }
+});
+
+            searchInput.addEventListener("keypress", function (event) {
+              if (event.key === "Enter") {
+                if (searchInput.value.trim() === "") {
+                  fetchAndDisplayItems();
+                  localStorage.removeItem("currentSearchQuery");
+                } else {
+                  fetchAndDisplayItems();
+                  saveRecentSearch(searchInput.value.trim());
+                  localStorage.setItem("currentSearchQuery", searchInput.value.trim());
+                }
+                // Remove focus from search input to hide insertion point
+                searchInput.blur();
+              }
+            });
+
+            searchIcon.addEventListener("click", function () {
+              if (searchInput.value.trim() === "") {
+                fetchAndDisplayItems();
+                localStorage.removeItem("currentSearchQuery");
+              } else {
+                fetchAndDisplayItems();
+                saveRecentSearch(searchInput.value.trim());
+                localStorage.setItem("currentSearchQuery", searchInput.value.trim());
+              }
+            });
+
+            // Debounce helper function
+            function debounce(func, wait) {
+              let timeout;
+              return function(...args) {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(this, args), wait);
+              };
+            }
+
+            // Removed debounced input event listener to disable auto-search on typing
+            // const debouncedSearch = debounce(() => {
+            //   if (searchInput.value.trim() === "") {
+            //     fetchAndDisplayItems();
+            //     localStorage.removeItem("currentSearchQuery");
+            //   } else {
+            //     fetchAndDisplayItems();
+            //     localStorage.setItem("currentSearchQuery", searchInput.value.trim());
+            //   }
+            // }, 300);
+
+            // searchInput.removeEventListener("input", debouncedSearch);
+
+            // Do NOT render recent searches dropdown on page load to avoid auto dropdown after login
+            // renderRecentSearches();
+          });
+
+          // Unified function to fetch and display items based on search query and filters
+            async function fetchAndDisplayItems() {
+              const searchQuery = document.querySelector(".search-bar input").value.trim();
+
+              // Get current filter values
+              const condition = document.getElementById('condition-filter').value;
+              const school = document.getElementById('school-filter').value;
+              let priceMin = parseFloat(document.getElementById('price-min').value);
+              let priceMax = parseFloat(document.getElementById('price-max').value);
+
+              if (isNaN(priceMin)) {
+                  priceMin = 0;
+              }
+              if (isNaN(priceMax)) {
+                  priceMax = Number.MAX_VALUE;
+              }
+
+              // Map checkbox IDs to enum values
+              const itemTypeMap = {
+                'type-books': 'books & school supplies',
+                'type-clothes': 'clothes & accessories',
+                'type-gadgets': 'gadgets & electronics',
+                'type-instruments': 'instruments & recreations',
+                'type-crafted': 'crafted & collectibles',
+                'type-sports': 'sports & fitness',
+              };
+
+              // Get selected item types from the checkboxes
+              const itemTypes = Array.from(document.querySelectorAll('.item-type-checkbox:checked'))
+                .map(checkbox => itemTypeMap[checkbox.id]); // Map IDs to enum values
+
+              // If school filter is set, first query student IDs for that school
+              let studentIds = null;
+              if (school && school !== '') {
+                const { data: students, error: studentError } = await supabaseClient
+                  .from('student')
+                  .select('stud_id')
+                  .eq('stud_school', school);
+
+                if (studentError) {
+                  console.error('Error fetching students for school filter:', studentError);
+                  return;
+                }
+
+                studentIds = students.map(s => s.stud_id);
+                if (studentIds.length === 0) {
+                  // No students found for this school, so no items to show
+                  const container = document.getElementById("items-container");
+                  container.innerHTML = "<p>No items found matching your filters.</p>";
+                  return;
+                }
+              }
+
+              let query = supabaseClient
+                .from("item")
+                .select(
+                  `
+                      item_id,
+                      item_name,
+                      item_description,
+                      item_condition,
+                      item_status,
+                      item_type,
+                      item_price_type,
+                      item_price_min,
+                      item_price_max,
+                      item_price,
+                      photos,
+                      created_at,
+                      stud_id,
+                      student:stud_id (
+                          stud_school
+                      )
+                  `
+                )
+                .eq("item_status", "available");
+
+              // Determine if price filter is active
+              const minInput = document.getElementById('price-min').value.trim();
+              const maxInput = document.getElementById('price-max').value.trim();
+              const isPriceFilterActive = minInput !== '' || maxInput !== '';
+
+              // Apply price filtering with OR condition for single and range price types
+              // Include hidden price items only if price filter is not active
+              if (isPriceFilterActive) {
+                  let priceFilter = `and(item_price_type.eq.single,item_price.gte.${priceMin},item_price.lte.${priceMax}),and(item_price_type.eq.range,item_price_min.lte.${priceMax},item_price_max.gte.${priceMin})`;
+                  query = query.or(priceFilter);
+              }
+              // If no price filter, do not apply price filtering at all (fetch all available items)
+
+              if (condition) {
+                query = query.eq('item_condition', condition);
+              }
+
+              if (studentIds) {
+                query = query.in('stud_id', studentIds);
+              }
+
+              if (itemTypes.length > 0) {
+                query = query.in('item_type', itemTypes);
+              }
+
+              const { data, error } = await query;
+
+              if (error) {
+                console.error("Error fetching items:", error);
+                return;
+              }
+
+              let filteredData = data;
+
+              // Client-side filter to exclude items with missing student or stud_school
+              filteredData = filteredData.filter(item => item.student && item.student.stud_school);
+
+              const container = document.getElementById("items-container");
+              container.innerHTML = "";
+
+              if (filteredData.length === 0) {
+                container.innerHTML = "<p>No items found matching your filters.</p>";
+                return;
+              }
+
+              // If search query is empty, display all filtered items without fuzzy search
+              if (!searchQuery) {
+                // Sort filteredData by created_at descending (newest first)
+                filteredData.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                displayItems(filteredData, container);
+                return;
+              }
+
+              // Setup Fuse.js for fuzzy search on filtered data
+              const options = {
+                keys: [
+                  { name: "item_name", weight: 0.9 },
+                  { name: "item_description", weight: 0.1 }
+                ],
+                threshold: 0.5, // Increased threshold for better recall
+                includeMatches: true,
+                minMatchCharLength: 2, // Lowered minMatchCharLength to allow shorter matches
+                ignoreLocation: false,
+              };
+              const fuse = new Fuse(filteredData, options);
+              let result = fuse.search(searchQuery);
+
+              // Boost scores for exact word matches
+              const queryLower = searchQuery.toLowerCase();
+              result.forEach(r => {
+                const itemName = r.item.item_name.toLowerCase();
+                const itemDesc = (r.item.item_description || "").toLowerCase();
+                const exactWordRegex = new RegExp(`\\b${queryLower}\\b`, 'i');
+                if (exactWordRegex.test(itemName) || exactWordRegex.test(itemDesc)) {
+                  // Boost score by reducing it (better score)
+                  r.score = r.score * 0.1; // More aggressive boost for exact matches
+                }
+              });
+
+              // Sort results by adjusted score ascending
+              result.sort((a, b) => a.score - b.score);
+
+              // Filter results by score to exclude low similarity matches
+              // result = result.filter(r => r.score !== undefined && r.score <= 0.4);
+
+              if (result.length === 0) {
+                container.innerHTML = "<p>No items found matching your search and filters.</p>";
+                return;
+              }
+
+              // Extract items from Fuse result
+              const searchedItems = result.map(r => {
+                return {
+                  item: r.item,
+                  matches: r.matches
+                };
+              });
+
+              displayItems(searchedItems, container, true);
+            }
+
+          // Helper function to display items in container
+          let currentPage = 1;
+          const itemsPerPage = 15; // 5 layers * 3 items per layer
+
+          function displayItems(items, container, withHighlight = false, page = 1) {
+            function timeAgo(createdAt) {
+              const createdDateUtc = new Date(createdAt);
+              const now = new Date();
+              const diffInSeconds = Math.floor((now - createdDateUtc) / 1000);
+
+              if (diffInSeconds < 60)
+                return `${diffInSeconds} sec${diffInSeconds === 1 ? "" : "s"} ago`;
+              const diffInMinutes = Math.floor(diffInSeconds / 60);
+              if (diffInMinutes < 60)
+                return `${diffInMinutes} min${diffInMinutes === 1 ? "" : "s"} ago`;
+              const diffInHours = Math.floor(diffInMinutes / 60);
+              if (diffInHours < 24)
+                return `${diffInHours} hr${diffInHours === 1 ? "" : "s"} ago`;
+              const diffInDays = Math.floor(diffInHours / 24);
+              return `${diffInDays} day${diffInDays === 1 ? "" : "s"} ago`;
+            }
+
+            // Helper function to highlight matched substrings
+            function highlightMatches(text, indices) {
+              if (!indices || indices.length === 0) return text;
+              let result = "";
+              let lastIndex = 0;
+              indices.forEach(([start, end]) => {
+                result += text.substring(lastIndex, start);
+                result += `<span style="background-color: yellow;">${text.substring(start, end + 1)}</span>`;
+                lastIndex = end + 1;
+              });
+              result += text.substring(lastIndex);
+              return result;
+            }
+
+              // Sort items by relevance score ascending to show most accurate first
+              items.sort((a, b) => {
+                const scoreA = withHighlight ? a.score ?? 0 : 0;
+                const scoreB = withHighlight ? b.score ?? 0 : 0;
+                return scoreA - scoreB;
+              });
+
+            // Calculate pagination
+            const totalItems = items.length;
+            const totalPages = Math.ceil(totalItems / itemsPerPage);
+            if (page < 1) page = 1;
+            if (page > totalPages) page = totalPages;
+
+            const startIndex = (page - 1) * itemsPerPage;
+            const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
+            const itemsToDisplay = items.slice(startIndex, endIndex);
+
+            container.innerHTML = ''; // Clear container before adding cards
+
+            itemsToDisplay.forEach(entry => {
+              const item = withHighlight ? entry.item : entry;
+              const matches = withHighlight ? entry.matches : null;
+
+              const photoUrl = item.photos?.[0] || "https://via.placeholder.com/250x200?text=No+Image";
+              const school = item.student?.stud_school || "No School Found";
+              const timePosted = timeAgo(item.created_at);
+
+              // Prepare highlighted fields
+              let highlightedName = item.item_name;
+              let highlightedDescription = item.item_description || "";
+              let highlightedCondition = item.item_condition;
+              let highlightedType = item.item_type;
+              let highlightedSchool = school;
+
+              if (withHighlight && matches && matches.length > 0) {
+                matches.forEach(match => {
+                  const key = match.key;
+                  const indices = match.indices;
+                  if (key === "item_name") {
+                    highlightedName = highlightMatches(item.item_name, indices);
+                  } else if (key === "item_description") {
+                    highlightedDescription = highlightMatches(item.item_description || "", indices);
+                  } else if (key === "item_condition") {
+                    highlightedCondition = highlightMatches(item.item_condition, indices);
+                  } else if (key === "item_type") {
+                    highlightedType = highlightMatches(item.item_type, indices);
+                  } else if (key === "student.stud_school") {
+                    highlightedSchool = highlightMatches(school, indices);
+                  }
+                });
+              }
+
+              const card = document.createElement("div");
+              card.style.background = "#fff";
+              card.style.padding = "16px";
+              card.style.border = "1px solid #ccc";
+              card.style.borderRadius = "8px";
+              card.style.width = "220px";
+              card.style.cursor = "pointer";
+
+              card.onclick = () => {
+                if (!item.item_id) {
+                  console.error("Item ID is undefined for this item:", item);
+                  alert("Failed to load item details. Please try again.");
+                  return;
+                }
+                // Open modal and load detailed post in iframe
+                const modal = document.getElementById('detailedPostModal');
+                const iframe = document.getElementById('detailedPostIframe');
+                iframe.src = `Detailed_post.html?item_id=${item.item_id}&embedded=1`;
+                modal.style.display = 'flex';
+              };
+
+              let priceDisplay = '';
+              if (item.item_price_type === 'single') {
+                priceDisplay = `₱${item.item_price}`;
+              } else if (item.item_price_type === 'range') {
+                priceDisplay = `₱${item.item_price_min} - ₱${item.item_price_max}`;
+              } else if (item.item_price_type === 'hidden') {
+                priceDisplay = 'Price hidden';
+              } else {
+                priceDisplay = 'Price not available';
+              }
+
+              card.innerHTML = `
+                <img src="${photoUrl}" alt="${item.item_name}" style="width: 100%; height: 180px; object-fit: cover; border-radius: 8px;">
+                <h3 style="margin: 10px 0 5px 0;">${highlightedName}</h3>
+                <p style="margin: 2px 0; display:none;">${highlightedDescription}</p>
+                <p style="margin: 2px 0;">Condition: ${highlightedCondition}</p>
+                <p style="margin: 2px 0;">Type: ${highlightedType}</p>
+                <p style="margin: 2px 0;">Status: ${item.item_status}</p>
+                <p style="margin: 2px 0;">Price: ${priceDisplay}</p>
+                <p style="margin: 2px 0; font-weight: bold;">School: ${highlightedSchool}</p>
+                <p style="margin: 2px 0; color: gray;">Posted: ${timePosted}</p>
+              `;
+
+              container.appendChild(card);
+            });
+
+            // Pagination controls
+            let paginationContainer = document.getElementById('pagination-controls');
+            if (!paginationContainer) {
+              paginationContainer = document.createElement('div');
+              paginationContainer.id = 'pagination-controls';
+              paginationContainer.style.display = 'flex';
+              paginationContainer.style.justifyContent = 'center';
+              paginationContainer.style.alignItems = 'center';
+              paginationContainer.style.marginTop = '20px';
+              paginationContainer.style.gap = '10px';
+
+              container.parentNode.appendChild(paginationContainer);
+            }
+
+            paginationContainer.innerHTML = '';
+
+            const prevButton = document.createElement('button');
+            prevButton.textContent = '← Previous';
+            prevButton.style.padding = '8px 12px';
+            prevButton.style.backgroundColor = '#084F6A';
+            prevButton.style.color = 'white';
+            prevButton.style.border = 'none';
+            prevButton.style.borderRadius = '5px';
+            prevButton.style.cursor = 'pointer';
+            prevButton.disabled = page === 1;
+            prevButton.addEventListener('click', () => {
+              if (currentPage > 1) {
+                currentPage--;
+                displayItems(items, container, withHighlight, currentPage);
+                // Reset scroll to top on page change
+                container.scrollTop = 0;
+              }
+            });
+
+            const pageIndicator = document.createElement('span');
+            pageIndicator.textContent = `Page ${page} of ${totalPages}`;
+            pageIndicator.style.fontWeight = 'bold';
+            pageIndicator.style.minWidth = '120px';  /* Added wider space for page indicator */
+            pageIndicator.style.textAlign = 'center';
+
+            const nextButton = document.createElement('button');
+            nextButton.textContent = 'Next →';
+            nextButton.style.padding = '8px 12px';
+            nextButton.style.backgroundColor = '#084F6A';
+            nextButton.style.color = 'white';
+            nextButton.style.border = 'none';
+            nextButton.style.borderRadius = '5px';
+            nextButton.style.cursor = 'pointer';
+            nextButton.disabled = page === totalPages;
+            nextButton.addEventListener('click', () => {
+              if (currentPage < totalPages) {
+                currentPage++;
+                displayItems(items, container, withHighlight, currentPage);
+                // Reset scroll to top on page change
+                container.scrollTop = 0;
+              }
+            });
+
+            paginationContainer.appendChild(prevButton);
+            paginationContainer.appendChild(pageIndicator);
+            paginationContainer.appendChild(nextButton);
+          }
+        </script>
+        <div class="ask-ai-container" id="ask-ai-container" style="cursor: pointer;">
+          <img src="Homepage_images/ai.png" alt="Ask AI" class="ask-ai-icon">
+          <span class="ask-ai"><a href="#" class="link" id="ask-ai-link">Ask AI</a></span>
+        </div>
+      </div>
+      <!-- Floating My Conversations Button -->
+      <button id="myConversationsBtn" title="My Conversations" style="
+        position: fixed;
+        right: 20px;
+        bottom: 50%;
+        transform: translateY(50%);
+        background-color: #084F6A;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 60px;
+        height: 60px;
+        font-size: 14px;
+        cursor: pointer;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        z-index: 1100;
+      ">
+        &#128172;
+      </button>
+
+      <!-- Floating Notifications Button -->
+      <button id="notificationsFloatBtn" title="Notifications" style="
+        position: fixed;
+        right: 20px;
+        bottom: 60%;
+        transform: translateY(50%);
+        background-color: #084F6A;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 60px;
+        height: 60px;
+        font-size: 20px;
+        cursor: pointer;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        z-index: 1100;
+      ">
+        &#128276;
+      </button>
+
+      <!-- Floating Transactions Button -->
+      <button id="transactionFloatBtn" title="Transactions" style="
+        position: fixed;
+        right: 20px;
+        bottom: 70%;
+        transform: translateY(50%);
+        background-color: #084F6A;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 60px;
+        height: 60px;
+        font-size: 20px;
+        cursor: pointer;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        z-index: 1100;
+      ">
+        &#128179;
+      </button>
+      </div>
+  
+    <!-- Overlay -->
+    <!-- Removed overlay element to allow interaction with other UI elements -->
+
+    <!-- Sliding conversation panel with iframe -->
+    <div id="conversationPanel" aria-hidden="true" style="position: fixed; top: 0; width: 420px; height: 100%; background-color: #f9f9f9; box-shadow: -2px 0 8px rgba(0,0,0,0.4); transition: right 0.3s ease; z-index: 1000; display: flex; flex-direction: column;">
+    <!-- Removed close button as per user request -->
+    <iframe src="myconversation.html" title="My Conversations" style="border: none; width: 100%; height: 100%; flex-grow: 1;"></iframe>
+    </div>
+
+    <!-- Sliding notification panel with iframe -->
+    <div id="notificationPanel" aria-hidden="true" style="position: fixed; top: 0; width: 420px; height: 100%; background-color: #f9f9f9; box-shadow: -2px 0 8px rgba(0,0,0,0.4); transition: right 0.3s ease; z-index: 1000; display: flex; flex-direction: column;">
+      <iframe src="notification.html" title="Notifications" style="border: none; width: 100%; height: 100%; flex-grow: 1;"></iframe>
+    </div>
+
+    <!-- Sliding transaction panel with iframe -->
+<div id="transactionPanel" aria-hidden="true" style="position: fixed; top: 0; width: 420px; height: 100%; background-color: #f9f9f9; box-shadow: -2px 0 8px rgba(0,0,0,0.4); transition: right 0.3s ease; z-index: 1000; display: flex; flex-direction: column;">
+      <iframe src="transaction.html" title="Transactions" style="border: none; width: 100%; height: 100%; flex-grow: 1;"></iframe>
+    </div>
+      
+        <!-- CONTENT WRAPPER -->
+        <div class="content-container" style="display: flex; gap: 30px; padding: 20px;">
+          <!-- SIDEBAR FILTERS -->
+          <div class="sidebar mx-auto" style="width: 300px;">
+            <h2>SEARCH FILTER</h2>
+      
+            <div class="mb-4">
+              <label>Price Range</label>
+              <div class="flex space-x-2">
+                <input id="price-min" type="text" placeholder="MIN" class="w-1/2 p-2 border border-gray-300">
+                <input id="price-max" type="text" placeholder="MAX" class="w-1/2 p-2 border border-gray-300">
+              </div>
+            </div>
+      
+            <!-- Removed the Apply button as it does not serve any purpose -->
+      
+            <div class="mb-4">
+              <label>Seller's Rating</label>
+              <div class="relative select-container">
+                <select class="w-full p-2 border border-gray-300 appearance-none">
+                  <option>5 stars</option>
+                  <option>4 stars</option>
+                  <option>3 stars</option>
+                  <option>2 stars</option>
+                  <option>1 star</option>
+                </select>
+                <i class="fas fa-chevron-down absolute right-2 top-3 text-gray-500"></i>
+              </div>
+            </div>
+      
+            <div class="mb-4">
+              <label>School From</label>
+              <div class="relative">
+                <select id="school-filter" class="w-full p-2 border border-gray-300 appearance-none">
+                  <option value="">All Schools</option>
+                  <option value="Gordon College">Gordon College</option>
+                  <option value="Columban College">Columban College</option>
+                </select>
+                <i class="fas fa-chevron-down absolute right-2 top-3 text-gray-500"></i>
+              </div>
+            </div>
+              <script>
+              // Persist and restore search input and filter selections including school filter
+              document.addEventListener("DOMContentLoaded", () => {
+                const userSchool = localStorage.getItem("userSchool");
+                const searchInput = document.querySelector(".search-bar input");
+                const schoolFilter = document.getElementById("school-filter");
+                const conditionFilter = document.getElementById("condition-filter");
+                const priceMinInput = document.getElementById("price-min");
+                const priceMaxInput = document.getElementById("price-max");
+                const itemTypeCheckboxes = document.querySelectorAll(".item-type-checkbox");
+      
+                // Restore search input value from localStorage if present
+                const savedSearchQuery = localStorage.getItem("currentSearchQuery");
+                if (savedSearchQuery) {
+                  searchInput.value = savedSearchQuery;
+                }
+      
+                // Restore saved filters from localStorage or use defaults
+                const savedSchool = localStorage.getItem("filter_school");
+                const savedCondition = localStorage.getItem("filter_condition");
+                const savedPriceMin = localStorage.getItem("filter_price_min");
+                const savedPriceMax = localStorage.getItem("filter_price_max");
+                const savedItemTypes = JSON.parse(localStorage.getItem("filter_item_types") || "[]");
+      
+                if (savedSchool !== null) {
+                  schoolFilter.value = savedSchool;
+                } else if (userSchool && (userSchool === "Gordon College" || userSchool === "Columban College")) {
+                  schoolFilter.value = userSchool;
+                } else {
+                  schoolFilter.value = ""; // default to All Schools if no match
+                }
+      
+                if (savedCondition) {
+                  conditionFilter.value = savedCondition;
+                } else {
+                  conditionFilter.value = "";
+                }
+      
+                if (savedPriceMin) {
+                  priceMinInput.value = savedPriceMin;
+                } else {
+                  priceMinInput.value = "";
+                }
+      
+                if (savedPriceMax) {
+                  priceMaxInput.value = savedPriceMax;
+                } else {
+                  priceMaxInput.value = "";
+                }
+      
+                if (savedItemTypes.length > 0) {
+                  itemTypeCheckboxes.forEach(checkbox => {
+                    checkbox.checked = savedItemTypes.includes(checkbox.id);
+                  });
+                } else {
+                  itemTypeCheckboxes.forEach(checkbox => {
+                    checkbox.checked = false;
+                  });
+                }
+      
+                // Save filter changes to localStorage
+                schoolFilter.addEventListener("change", () => {
+                  localStorage.setItem("filter_school", schoolFilter.value);
+                  fetchAndDisplayItems();
+                });
+      
+                conditionFilter.addEventListener("change", () => {
+                  localStorage.setItem("filter_condition", conditionFilter.value);
+                  fetchAndDisplayItems();
+                });
+      
+                priceMinInput.addEventListener("input", () => {
+                  localStorage.setItem("filter_price_min", priceMinInput.value);
+                  fetchAndDisplayItems();
+                });
+      
+                priceMaxInput.addEventListener("input", () => {
+                  localStorage.setItem("filter_price_max", priceMaxInput.value);
+                  fetchAndDisplayItems();
+                });
+      
+                itemTypeCheckboxes.forEach(checkbox => {
+                  checkbox.addEventListener("change", () => {
+                    const selectedTypes = Array.from(itemTypeCheckboxes)
+                      .filter(cb => cb.checked)
+                      .map(cb => cb.id);
+                    localStorage.setItem("filter_item_types", JSON.stringify(selectedTypes));
+                    fetchAndDisplayItems();
+                  });
+                });
+      
+                // Initial fetch with restored search and filters
+                fetchAndDisplayItems();
+              });
+            </script>
+      
+            <div class="mb-4">
+              <label>Condition</label>
+              <div class="relative">
+                <select id="condition-filter" class="w-full p-2 border border-gray-300 appearance-none">
+                  <option value="">All Conditions</option>
+                  <option value="brand new">Brand New</option>
+                  <option value="gently used">Gently Used</option>
+                  <option value="heavily used">Heavily Used</option>
+                </select>
+                <i class="fas fa-chevron-down absolute right-2 top-3 text-gray-500"></i>
+              </div>
+            </div>
+      
+            <div class="mb-4">
+              <label>Item Type</label>
+              <div class="space-y-2">
+                <div><input type="checkbox" id="type-books" class="item-type-checkbox"><label for="type-books">Books & School Supplies</label></div>
+                <div><input type="checkbox" id="type-clothes" class="item-type-checkbox"><label for="type-clothes">Clothes, Accessories & Self Care</label></div>
+                <div><input type="checkbox" id="type-gadgets" class="item-type-checkbox"><label for="type-gadgets">Gadgets & Electronics</label></div>
+                <div><input type="checkbox" id="type-instruments" class="item-type-checkbox"><label for="type-instruments">Instruments & Recreations</label></div>
+                <div><input type="checkbox" id="type-crafted" class="item-type-checkbox"><label for="type-crafted">Crafted & Collectibles</label></div>
+                <div><input type="checkbox" id="type-sports" class="item-type-checkbox"><label for="type-sports">Sports, Fitness & Outdoor</label></div>
+              </div>
+              <!-- Clear Filters Button -->
+              <button id="clear-filters-btn" type="button">Clear Filters</button>
+            </div>
+      
+          <!-- MAIN PRODUCTS SECTION -->
+          <div class="main-content" style="flex: 1;">
+            <div id="items-container" style="display: flex; flex-wrap: wrap; gap: 20px; overflow-y: auto; max-height: 600px; padding-right: 10px;"></div>
+          </div>
+        </div>
+      
+        <!-- SUPABASE SCRIPT -->
+        <script>
+const supabaseUrl = 'https://wuhgqjeijmxsgvnykttj.supabase.co';
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind1aGdxamVpam14c2d2bnlrdHRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI4MjkzMDQsImV4cCI6MjA1ODQwNTMwNH0._lZy7CE2A8HM1hatjGYrMR8QAUi8nk4L_EuV7Fojhwg';
+const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+
+// document.addEventListener('DOMContentLoaded', () => {
+//     const userName = `${localStorage.getItem('stud_fname')} ${localStorage.getItem('stud_lname')}`;
+//     const profileSection = document.querySelector('.profile-section span');
+//     if (userName.trim()) {
+//         profileSection.innerHTML = `Welcome, ${userName}`;
+//     }
+// });
+
+        // Removed the entire fetchItems function as it is redundant
+
+const priceMinInput = document.getElementById('price-min');
+const priceMaxInput = document.getElementById('price-max');
+
+function updateTimeAgoElements() {
+  const elements = document.querySelectorAll('.time-ago');
+  const now = new Date();
+
+  elements.forEach(el => {
+    const createdAt = el.getAttribute('data-created-at');
+    if (!createdAt) return;
+
+    const createdDate = new Date(createdAt);
+    const diffInSeconds = Math.floor((now - createdDate) / 1000);
+
+    let timeAgoText = '';
+    if (diffInSeconds < 60) {
+      timeAgoText = `${diffInSeconds} second${diffInSeconds === 1 ? '' : 's'} ago`;
+    } else {
+      const diffInMinutes = Math.floor(diffInSeconds / 60);
+      if (diffInMinutes < 60) {
+        timeAgoText = `${diffInMinutes} minute${diffInMinutes === 1 ? '' : 's'} ago`;
+      } else {
+        const diffInHours = Math.floor(diffInMinutes / 60);
+        if (diffInHours < 24) {
+          timeAgoText = `${diffInHours} hour${diffInHours === 1 ? '' : 's'} ago`;
+        } else {
+          const diffInDays = Math.floor(diffInHours / 24);
+          if (diffInDays < 7) {
+            timeAgoText = `${diffInDays} day${diffInDays === 1 ? '' : 's'} ago`;
+          } else {
+            const diffInWeeks = Math.floor(diffInDays / 7);
+            if (diffInWeeks < 4) {
+              timeAgoText = `${diffInWeeks} week${diffInWeeks === 1 ? '' : 's'} ago`;
+            } else {
+              const diffInMonths = Math.floor(diffInDays / 30);
+              timeAgoText = `${diffInMonths} month${diffInMonths === 1 ? '' : 's'} ago`;
+            }
+          }
+        }
+      }
+    }
+
+    el.textContent = `Posted: ${timeAgoText}`;
+  });
+}
+
+// Update time ago elements every 60 seconds
+setInterval(updateTimeAgoElements, 60000);
+
+function sanitizeNumericInput(value) {
+    // Allow only digits and at most one decimal point
+    let sanitized = value.replace(/[^0-9.]/g, '');
+    const parts = sanitized.split('.');
+    if (parts.length > 2) {
+        // More than one decimal point, keep only first
+        sanitized = parts[0] + '.' + parts.slice(1).join('');
+    }
+    return sanitized;
+}
+
+    priceMinInput?.addEventListener('input', () => {
+        const sanitizedValue = sanitizeNumericInput(priceMinInput.value);
+        if (priceMinInput.value !== sanitizedValue) {
+            priceMinInput.value = sanitizedValue;
+        }
+
+        const minValRaw = priceMinInput.value.trim();
+        const maxValRaw = priceMaxInput.value.trim();
+
+        if (minValRaw === '' && maxValRaw === '') {
+            // Both empty, fetch all items (no price filter)
+            fetchAndDisplayItems();
+            return;
+        }
+        // If one is empty, treat empty min as 0, empty max as max value
+        const minVal = minValRaw === '' ? 0 : parseFloat(minValRaw);
+        const maxVal = maxValRaw === '' ? Number.MAX_VALUE : parseFloat(maxValRaw);
+
+        if (isNaN(minVal) || isNaN(maxVal)) {
+            // Do not fetch if invalid numbers
+            return;
+        }
+
+        if (minVal > maxVal) {
+            // Show no items found message if min is greater than max
+            const container = document.getElementById('items-container');
+            container.innerHTML = '<p>No items found matching your search and filters.</p>';
+            return;
+        }
+
+        fetchAndDisplayItems();
+        return;
+    });
+
+    priceMaxInput?.addEventListener('input', () => {
+        const sanitizedValue = sanitizeNumericInput(priceMaxInput.value);
+        if (priceMaxInput.value !== sanitizedValue) {
+            priceMaxInput.value = sanitizedValue;
+        }
+
+        const minValRaw = priceMinInput.value.trim();
+        const maxValRaw = priceMaxInput.value.trim();
+
+        if (minValRaw === '' && maxValRaw === '') {
+            // Both empty, fetch all items (no price filter)
+            fetchAndDisplayItems();
+            return;
+        }
+        // If one is empty, treat empty min as 0, empty max as max value
+        const minVal = minValRaw === '' ? 0 : parseFloat(minValRaw);
+        const maxVal = maxValRaw === '' ? Number.MAX_VALUE : parseFloat(maxValRaw);
+
+        if (isNaN(minVal) || isNaN(maxVal)) {
+            // Do not fetch if invalid numbers
+            return;
+        }
+
+        if (minVal > maxVal) {
+            // Show no items found message if min is greater than max
+            const container = document.getElementById('items-container');
+            container.innerHTML = '<p>No items found matching your filters.</p>';
+            return;
+        }
+
+        fetchAndDisplayItems();
+    });
+document.getElementById('condition-filter')?.addEventListener('change', fetchAndDisplayItems);
+document.getElementById('school-filter')?.addEventListener('change', fetchAndDisplayItems);
+document.querySelectorAll('.item-type-checkbox').forEach(checkbox => {
+  checkbox.addEventListener('change', fetchAndDisplayItems);
+});
+
+
+fetchAndDisplayItems();
+
+supabaseClient
+  .channel('public:item')
+  .on('postgres_changes', { event: '*', schema: 'public', table: 'item' }, payload => {
+    console.log(`Item ${payload.event} event:`, payload);
+    fetchAndDisplayItems();
+  })
+  .subscribe();
+
+
+    function logoutUser() {
+        // Clear only user-related stored login data, keep recent searches intact
+        localStorage.removeItem("stud_id");
+        localStorage.removeItem("stud_fname");
+        localStorage.removeItem("stud_lname");
+        localStorage.removeItem("stud_email");
+        localStorage.removeItem("userSchool");
+        localStorage.removeItem("isLoggedIn");
+        localStorage.removeItem("currentSearchQuery"); // Clear search input on logout
+
+        // Clear saved filters on logout to reset filters on next login
+        localStorage.removeItem("filter_school");
+        localStorage.removeItem("filter_condition");
+        localStorage.removeItem("filter_price_min");
+        localStorage.removeItem("filter_price_max");
+        localStorage.removeItem("filter_item_types");
+
+        sessionStorage.removeItem("stud_id");
+
+        // Do NOT clear entire localStorage or sessionStorage to preserve recent searches
+        // localStorage.clear();
+        // sessionStorage.clear();
+
+        // Redirect to login page
+        window.location.href = "Login_page.html";
+    }
+    </script>
+
+
+  <script type="module">
+    import Chatbot from "https://cdn.jsdelivr.net/npm/@denserai/embed-chat@1/dist/web.min.js";
+    window.Chatbot = Chatbot; // Expose Chatbot to global window object
+  window.chatbotInstance = Chatbot.init({
+    chatbotId: "18b38ed1-d756-4f0d-8276-f55f53108689",
+  });
+  </script>  
+
+  <script>
+    // Add click event to open chatbot when Ask AI or AI logo is clicked
+    document.getElementById('ask-ai-container').addEventListener('click', () => {
+      // Try to find chatbot toggle button or widget container and simulate click
+      const chatbotToggleButton = document.querySelector('.denserai-chat-toggle-button');
+      const chatbotWidget = document.querySelector('.denserai-chat-widget');
+
+      console.log('Ask AI container clicked');
+
+    if (chatbotToggleButton) {
+      chatbotToggleButton.click();
+    } else if (window.chatbotInstance && typeof window.chatbotInstance.show === 'function') {
+      window.chatbotInstance.show();
+    } else if (window.chatbotInstance && typeof window.chatbotInstance.open === 'function') {
+      window.chatbotInstance.open();
+    } else if (window.Chatbot && typeof window.Chatbot.init === 'function') {
+      console.warn('Chatbot toggle button not found. Initializing chatbot instance.');
+      window.chatbotInstance = window.Chatbot.init({
+        chatbotId: "18b38ed1-d756-4f0d-8276-f55f53108689",
+      });
+      if (window.chatbotInstance && typeof window.chatbotInstance.show === 'function') {
+        window.chatbotInstance.show();
+      } else if (window.chatbotInstance && typeof window.chatbotInstance.open === 'function') {
+        window.chatbotInstance.open();
+      } else {
+        console.error('Failed to show chatbot widget after initialization.');
+      }
+    } else {
+      console.error('Chatbot toggle button not found and no suitable Chatbot API method available.');
+    }
+    });
+
+    document.getElementById('ask-ai-link').addEventListener('click', (event) => {
+      event.preventDefault();
+      console.log('Ask AI link clicked');
+      // Trigger the same click handler as container
+      document.getElementById('ask-ai-container').click();
+    });
+
+
+const myConversationsBtn = document.getElementById("myConversationsBtn");
+const conversationPanel = document.getElementById("conversationPanel");
+const closeConversationPanelBtn = document.getElementById("closeConversationPanel");
+// Removed conversationOverlay element and references
+// const conversationOverlay = document.getElementById("conversationOverlay");
+
+const notificationsBtn = document.getElementById("notificationsBtn");
+const notificationPanel = document.getElementById("notificationPanel");
+const transactionFloatBtn = document.getElementById("transactionFloatBtn");
+const transactionPanel = document.getElementById("transactionPanel");
+
+function toggleConversationPanel() {
+    if (conversationPanel.classList.contains("open")) {
+        console.log("Closing conversation panel");
+        conversationPanel.classList.remove("open");
+        conversationPanel.setAttribute("aria-hidden", "true");
+        // Removed overlay hide
+        // conversationOverlay.style.display = "none";
+    } else {
+        console.log("Opening conversation panel");
+        // Close notification panel if open
+        if (notificationPanel.classList.contains("open")) {
+            notificationPanel.classList.remove("open");
+            notificationPanel.setAttribute("aria-hidden", "true");
+        }
+        // Close transaction panel if open
+        if (transactionPanel.classList.contains("open")) {
+            transactionPanel.classList.remove("open");
+            transactionPanel.setAttribute("aria-hidden", "true");
+        }
+        conversationPanel.classList.add("open");
+        conversationPanel.setAttribute("aria-hidden", "false");
+        // Removed overlay show
+        // conversationOverlay.style.display = "block";
+    }
+}
+
+function closeConversationPanel() {
+    console.log("Closing conversation panel");
+    if (conversationPanel.classList.contains("open")) {
+        conversationPanel.classList.remove("open");
+        conversationPanel.setAttribute("aria-hidden", "true");
+        // Removed overlay hide
+        // conversationOverlay.style.display = "none";
+    } else {
+        console.log("Panel already closed");
+    }
+}
+
+let notificationPanelIsOpen = false;
+
+function toggleNotificationPanel() {
+    const iframe = document.querySelector('#notificationPanel iframe');
+    if (notificationPanel.classList.contains("open")) {
+        console.log("Closing notification panel");
+        notificationPanel.classList.remove("open");
+        notificationPanel.setAttribute("aria-hidden", "true");
+        notificationPanelIsOpen = false;
+        // Send message to iframe to mark notifications as read on panel close
+        if (iframe && iframe.contentWindow) {
+            iframe.contentWindow.postMessage({ type: 'markNotificationsRead' }, '*');
+        }
+        // Removed overlay hide
+        // conversationOverlay.style.display = "none";
+    } else {
+        console.log("Opening notification panel");
+        // Close conversation panel if open
+        if (conversationPanel.classList.contains("open")) {
+            conversationPanel.classList.remove("open");
+            conversationPanel.setAttribute("aria-hidden", "true");
+        }
+        // Close transaction panel if open
+        if (transactionPanel.classList.contains("open")) {
+            transactionPanel.classList.remove("open");
+            transactionPanel.setAttribute("aria-hidden", "true");
+        }
+        notificationPanel.classList.add("open");
+        notificationPanel.setAttribute("aria-hidden", "false");
+        notificationPanelIsOpen = true;
+        // Send message to iframe to clear displayedNotificationIds before reloading notifications
+        if (iframe && iframe.contentWindow) {
+            iframe.contentWindow.postMessage({ type: 'clearDisplayedNotificationIds' }, '*');
+            iframe.contentWindow.postMessage({ type: 'reloadNotifications' }, '*');
+        }
+        // Removed overlay show
+        // conversationOverlay.style.display = "block";
+    }
+}
+
+function closeNotificationPanel() {
+    console.log("Closing notification panel");
+    if (notificationPanel.classList.contains("open")) {
+        notificationPanel.classList.remove("open");
+        notificationPanel.setAttribute("aria-hidden", "true");
+        // Removed overlay hide
+        // conversationOverlay.style.display = "none";
+    } else {
+        console.log("Notification panel already closed");
+    }
+}
+
+function toggleTransactionPanel() {
+    if (transactionPanel.classList.contains("open")) {
+        console.log("Closing transaction panel");
+        transactionPanel.classList.remove("open");
+        transactionPanel.setAttribute("aria-hidden", "true");
+        // Removed overlay hide
+        // conversationOverlay.style.display = "none";
+    } else {
+        console.log("Opening transaction panel");
+        // Close conversation panel if open
+        if (conversationPanel.classList.contains("open")) {
+            conversationPanel.classList.remove("open");
+            conversationPanel.setAttribute("aria-hidden", "true");
+        }
+        // Close notification panel if open
+        if (notificationPanel.classList.contains("open")) {
+            notificationPanel.classList.remove("open");
+            notificationPanel.setAttribute("aria-hidden", "true");
+        }
+        transactionPanel.classList.add("open");
+        transactionPanel.setAttribute("aria-hidden", "false");
+        // Removed overlay show
+        // conversationOverlay.style.display = "block";
+    }
+}
+
+function closeTransactionPanel() {
+    console.log("Closing transaction panel");
+    if (transactionPanel.classList.contains("open")) {
+        transactionPanel.classList.remove("open");
+        transactionPanel.setAttribute("aria-hidden", "true");
+        // Removed overlay hide
+        // conversationOverlay.style.display = "none";
+    } else {
+        console.log("Transaction panel already closed");
+    }
+}
+
+myConversationsBtn.addEventListener("click", toggleConversationPanel);
+if (notificationsBtn) {
+  notificationsBtn.addEventListener("click", toggleNotificationPanel);
+}
+if (transactionFloatBtn) {
+  transactionFloatBtn.addEventListener("click", toggleTransactionPanel);
+}
+
+// Removed event listener for closeConversationPanelBtn as the button was removed
+// Removed overlay click event listener
+// conversationOverlay.addEventListener("click", () => {
+//     closeConversationPanel();
+//     closeNotificationPanel();
+//     closeTransactionPanel();
+// });
+
+const notificationsFloatBtn = document.getElementById("notificationsFloatBtn");
+notificationsFloatBtn.addEventListener("click", toggleNotificationPanel);
+
+const transactionFloatBtn2 = document.getElementById("transactionFloatBtn");
+transactionFloatBtn2.addEventListener("click", toggleTransactionPanel);
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Check URL parameter to open conversation panel automatically
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('openConversations') === '1') {
+        if (!conversationPanel.classList.contains('open')) {
+            conversationPanel.classList.add('open');
+            conversationPanel.setAttribute('aria-hidden', 'false');
+            // Removed overlay show
+            // conversationOverlay.style.display = 'block';
+        }
+    }
+});
+    </script>
+  </body>
+
+  <!-- Modal for Detailed Post -->
+  <div id="detailedPostModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background-color: rgba(0,0,0,0.7); z-index: 2000; justify-content: center; align-items: center;">
+    <div style="position: relative; width: 90%; max-width: 900px; height: 90%; background: white; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); display: flex; flex-direction: column;">
+      <button id="closeDetailedPostModal" style="position: absolute; top: 10px; right: 10px; background: #084F6A; color: white; border: none; border-radius: 5px; padding: 8px 12px; font-size: 16px; cursor: pointer; z-index: 2100;">Close</button>
+      <iframe id="detailedPostIframe" src="" style="flex-grow: 1; border: none; border-radius: 0 0 10px 10px;"></iframe>
+    </div>
+  </div>
+
+  <!-- Modal for Post Item -->
+  <div id="postItemModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background-color: rgba(0,0,0,0.7); z-index: 2100; justify-content: center; align-items: center;">
+    <div style="position: relative; width: 90%; max-width: 900px; height: 90%; background: white; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); display: flex; flex-direction: column;">
+      <button id="closePostItemModal" style="position: absolute; top: 10px; right: 10px; background: #084F6A; color: white; border: none; border-radius: 5px; padding: 8px 12px; font-size: 16px; cursor: pointer; z-index: 2200;">Close</button>
+      <iframe id="postItemIframe" src="" style="flex-grow: 1; border: none; border-radius: 0 0 10px 10px;"></iframe>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('closeDetailedPostModal').addEventListener('click', () => {
+      const modal = document.getElementById('detailedPostModal');
+      const iframe = document.getElementById('detailedPostIframe');
+      iframe.src = '';
+      modal.style.display = 'none';
+    });
+
+    document.getElementById('closePostItemModal').addEventListener('click', () => {
+      const modal = document.getElementById('postItemModal');
+      const iframe = document.getElementById('postItemIframe');
+      iframe.src = '';
+      modal.style.display = 'none';
+    });
+
+    // Clear iframe src on modal close to avoid stale content
+    window.addEventListener('beforeunload', () => {
+      const detailedIframe = document.getElementById('detailedPostIframe');
+      if (detailedIframe) {
+        detailedIframe.src = '';
+      }
+      const postItemIframe = document.getElementById('postItemIframe');
+      if (postItemIframe) {
+        postItemIframe.src = '';
+      }
+    });
+
+    // Ensure modals are hidden and iframe src cleared on page load to prevent empty modal showing
+    document.addEventListener('DOMContentLoaded', () => {
+      const detailedModal = document.getElementById('detailedPostModal');
+      const detailedIframe = document.getElementById('detailedPostIframe');
+      if (detailedModal) detailedModal.style.display = 'none';
+      if (detailedIframe) detailedIframe.src = '';
+
+      const postItemModal = document.getElementById('postItemModal');
+      const postItemIframe = document.getElementById('postItemIframe');
+      if (postItemModal) postItemModal.style.display = 'none';
+      if (postItemIframe) postItemIframe.src = '';
+    });
+
+    // Open post_item.html in modal iframe when clicking Post Item link
+    document.getElementById('postItemLink').addEventListener('click', (event) => {
+      event.preventDefault();
+      const modal = document.getElementById('postItemModal');
+      const iframe = document.getElementById('postItemIframe');
+      iframe.src = 'post_item.html';
+      modal.style.display = 'flex';
+    });
+
+    // Listen for messages from iframe to navigate profile inside modal iframe
+    window.addEventListener('message', (event) => {
+      if (!event.data) return;
+
+      if (event.data.type === 'navigateProfile') {
+        const url = event.data.url;
+        const modal = document.getElementById('detailedPostModal');
+        const iframe = document.getElementById('detailedPostIframe');
+        if (modal && iframe) {
+          iframe.src = url;
+          if (modal.style.display !== 'flex') {
+            modal.style.display = 'flex';
+          }
+        }
+      } else if (event.data.type === 'showDetailedPostModal') {
+        // Show the detailed post modal
+        const modal = document.getElementById('detailedPostModal');
+        if (modal) {
+          modal.style.display = 'flex';
+        }
+        // Optionally, set iframe src to current detailed post if needed
+        // If iframe src is empty, reload or keep as is
+      }
+    });
+  </script>
+
+  <script>
+    // Add event listener for Clear Filters button
+    document.getElementById('clear-filters-btn').addEventListener('click', () => {
+      // Clear search input
+      const searchInput = document.querySelector('.search-bar input');
+      if (searchInput) {
+        searchInput.value = '';
+        localStorage.removeItem('currentSearchQuery');
+      }
+
+      // Clear price inputs
+      const priceMinInput = document.getElementById('price-min');
+      const priceMaxInput = document.getElementById('price-max');
+      if (priceMinInput) {
+        priceMinInput.value = '';
+        localStorage.removeItem('filter_price_min');
+      }
+      if (priceMaxInput) {
+        priceMaxInput.value = '';
+        localStorage.removeItem('filter_price_max');
+      }
+
+      // Clear condition filter
+      const conditionFilter = document.getElementById('condition-filter');
+      if (conditionFilter) {
+        conditionFilter.value = '';
+        localStorage.removeItem('filter_condition');
+      }
+
+      // Clear school filter
+      const schoolFilter = document.getElementById('school-filter');
+      if (schoolFilter) {
+        schoolFilter.value = '';
+        localStorage.removeItem('filter_school');
+      }
+
+      // Clear item type checkboxes
+      const itemTypeCheckboxes = document.querySelectorAll('.item-type-checkbox');
+      itemTypeCheckboxes.forEach(checkbox => {
+        checkbox.checked = false;
+      });
+      localStorage.removeItem('filter_item_types');
+
+      // Fetch and display all items with cleared filters
+      fetchAndDisplayItems();
+    });
+  </script>
+
+  <script>
+    // Listen for messages from child iframes to open detailed post modal
+    window.addEventListener('message', (event) => {
+      if (!event.data) return;
+      if (event.data.type === 'openDetailedPostModal' && event.data.itemId) {
+        const itemId = event.data.itemId;
+        const modal = document.getElementById('detailedPostModal');
+        const iframe = document.getElementById('detailedPostIframe');
+        iframe.src = `Detailed_post.html?item_id=${itemId}&embedded=1`;
+        modal.style.display = 'flex';
+      }
+    });
+
+    // Close button event listener for detailed post modal
+    document.addEventListener('DOMContentLoaded', () => {
+      const closeBtn = document.getElementById('closeDetailedPostModal');
+      if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+          const modal = document.getElementById('detailedPostModal');
+          const iframe = document.getElementById('detailedPostIframe');
+          iframe.src = '';
+          modal.style.display = 'none';
+        });
+      }
+    });
+  </script>
+</html>

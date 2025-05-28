@@ -1,0 +1,7 @@
+.checkmark-unread {
+  color: #999999 !important; /* light gray */
+}
+
+.checkmark-read {
+  color: #084F6A !important; /* dark blue */
+}

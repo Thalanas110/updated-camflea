@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Admin Dashboard - CamFlea</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f2f2f2;
+            margin: 0;
+            padding: 20px;
+        }
+        header {
+            background-color: #084F6A;
+            color: white;
+            padding: 15px 20px;
+            text-align: center;
+        }
+        main {
+            margin-top: 20px;
+        }
+        h1 {
+            margin: 0;
+        }
+        .content {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Admin Dashboard</h1>
+    </header>
+    <main>
+        <div class="content">
+            <p>Welcome to the admin dashboard. Here you can manage the application.</p>
+            <button id="userManagementBtn" style="margin-top: 15px; padding: 10px 20px; font-size: 1rem; background-color: #084F6A; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                User Management
+            </button>
+            <button id="postItemManagementBtn" style="margin-top: 15px; padding: 10px 20px; font-size: 1rem; background-color: #084F6A; color: white; border: none; border-radius: 5px; cursor: pointer; margin-left: 10px;">
+                Post & Item Management
+            </button>
+            <button id="transactionMonitoringBtn" style="margin-top: 15px; padding: 10px 20px; font-size: 1rem; background-color: #084F6A; color: white; border: none; border-radius: 5px; cursor: pointer; margin-left: 10px;">
+                Transaction Monitoring
+            </button>
+            <button id="reportsViolationsBtn" style="margin-top: 15px; padding: 10px 20px; font-size: 1rem; background-color: #084F6A; color: white; border: none; border-radius: 5px; cursor: pointer; margin-left: 10px;">
+                Reports & Violations Center
+            </button>
+            <button id="logoutBtn" style="margin-top: 15px; padding: 10px 20px; font-size: 1rem; background-color: #cc0000; color: white; border: none; border-radius: 5px; cursor: pointer; margin-left: 10px;">
+                Log Out
+            </button>
+        </div>
+
+        <section class="content stats-section" style="margin-top: 20px;">
+            <h2>Statistics Summary</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
+                <div class="stat-card" id="userStatsCard" style="background: #fff; border-radius: 8px; padding: 15px; box-shadow: 0 0 8px rgba(0,0,0,0.1);">
+                    <h3 style="margin-top: 0; color: #084F6A; font-size: 1.2rem; margin-bottom: 10px;">Total Users by School</h3>
+                    <canvas id="userStatsPieChart" style="max-width: 100%; height: 200px;"></canvas>
+                    <ul class="stat-list" id="userStatsList" style="list-style: none; padding-left: 0; margin: 0; display:none;">
+                        <li>Loading...</li>
+                    </ul>
+                </div>
+                <div class="stat-card" id="itemStatsCard" style="background: #fff; border-radius: 8px; padding: 15px; box-shadow: 0 0 8px rgba(0,0,0,0.1);">
+                    <h3 style="margin-top: 0; color: #084F6A; font-size: 1.2rem; margin-bottom: 10px;">Items Listed by Type</h3>
+                    <canvas id="itemsByTypeChart" style="max-width: 100%; height: 200px;"></canvas>
+                    <h4 style="margin-top: 15px;">Total Sold Items by Type</h4>
+                    <ul class="stat-list" id="soldItemsStatsList" style="list-style: none; padding-left: 0; margin: 0;">
+                        <li>Loading...</li>
+                    </ul>
+                </div>
+                <div class="stat-card" id="transactionStatsCard" style="background: #fff; border-radius: 8px; padding: 15px; box-shadow: 0 0 8px rgba(0,0,0,0.1);">
+                    <h3 style="margin-top: 0; color: #084F6A; font-size: 1.2rem; margin-bottom: 10px;">Ongoing Transactions by Status</h3>
+                    <canvas id="transactionStatusPieChart" style="max-width: 100%; height: 200px;"></canvas>
+                    <ul class="stat-list" id="transactionStatsList" style="list-style: none; padding-left: 0; margin: 0; display:none;">
+                        <li>Loading...</li>
+                    </ul>
+                    <!-- Removed total sold items count display as per user request -->
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+        const supabaseUrl = 'https://wuhgqjeijmxsgvnykttj.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind1aGdxamVpam14c2d2bnlrdHRqIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MjgyOTMwNCwiZXhwIjoyMDU4NDA1MzA0fQ.z25Bc1YxdBjWo5b9ezMW7noMSTehSNzTtzOCLFNm-o4';
+        
+        const supabase = createClient(supabaseUrl, supabaseKey);
+
+        Chart.register(window.ChartDataLabels);
+
+        async function fetchUserStats() {
+            // Fetch all students with stud_school and group in JS
+            const { data: allStudents, error: allError } = await supabase
+                .from('student')
+                .select('stud_school');
+
+            if (allError) {
+                console.error('Error fetching all students:', allError);
+                return {};
+            }
+
+            const schoolCounts = {};
+            allStudents.forEach(student => {
+                const school = student.stud_school || 'Unknown';
+                schoolCounts[school] = (schoolCounts[school] || 0) + 1;
+            });
+
+            return schoolCounts;
+        }
+
+        async function fetchItemStats() {
+            // Total listed items by item_type
+            const { data: items, error: itemsError } = await supabase
+                .from('item')
+                .select('item_type');
+
+            if (itemsError) {
+                console.error('Error fetching items:', itemsError);
+                return { itemsByType: {}, soldItemsByType: {} };
+            }
+
+            const itemsByType = {};
+            const soldItemsByType = {};
+
+            items.forEach(item => {
+                const type = item.item_type || 'Unknown';
+                itemsByType[type] = (itemsByType[type] || 0) + 1;
+            });
+
+            // Fetch sold items by item_type
+            const { data: soldItems, error: soldError } = await supabase
+                .from('item')
+                .select('item_type')
+                .eq('item_status', 'sold');
+
+            if (soldError) {
+                console.error('Error fetching sold items:', soldError);
+                return { itemsByType, soldItemsByType };
+            }
+
+            soldItems.forEach(item => {
+                const type = item.item_type || 'Unknown';
+                soldItemsByType[type] = (soldItemsByType[type] || 0) + 1;
+            });
+
+            return { itemsByType, soldItemsByType };
+        }
+
+        async function fetchTransactionStats() {
+            // Total ongoing transactions by status
+            const { data: transactions, error: transError } = await supabase
+                .from('transactions')
+                .select('status');
+
+            if (transError) {
+                console.error('Error fetching transactions:', transError);
+                return { transactionsByStatus: {}, totalSoldItems: 0 };
+            }
+
+            const transactionsByStatus = {};
+            let totalSoldItems = 0;
+
+            transactions.forEach(tran => {
+                const status = tran.status || 'Unknown';
+                transactionsByStatus[status] = (transactionsByStatus[status] || 0) + 1;
+            });
+
+            // Fetch total sold items count from item table where item_status = 'sold'
+            const { data: soldItems, error: soldError } = await supabase
+                .from('item')
+                .select('item_id')
+                .eq('item_status', 'sold');
+
+            if (!soldError && soldItems) {
+                totalSoldItems = soldItems.length;
+                // Add sold items count as a new status category in transactionsByStatus
+                transactionsByStatus['Sold'] = totalSoldItems;
+            }
+
+            return { transactionsByStatus, totalSoldItems };
+        }
+
+        function renderUserStats(schoolCounts) {
+            // Render pie chart for users by school
+            const ctx = document.getElementById('userStatsPieChart').getContext('2d');
+            const labels = Object.keys(schoolCounts);
+            const data = Object.values(schoolCounts);
+
+            if (window.userPieChart) {
+                window.userPieChart.destroy();
+            }
+
+            window.userPieChart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Users by School',
+                        data: data,
+                        backgroundColor: [
+                            'rgba(255, 99, 132, 0.7)',
+                            'rgba(54, 162, 235, 0.7)',
+                            'rgba(255, 206, 86, 0.7)',
+                            'rgba(75, 192, 192, 0.7)',
+                            'rgba(153, 102, 255, 0.7)',
+                            'rgba(255, 159, 64, 0.7)',
+                            'rgba(201, 203, 207, 0.7)'
+                        ],
+                        borderColor: 'rgba(255, 255, 255, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                        },
+                        tooltip: {
+                            enabled: false
+                        },
+                        datalabels: {
+                            display: true,
+                            formatter: function(value, context) {
+                                const label = context.chart.data.labels[context.dataIndex];
+                                const total = context.chart._metasets[context.datasetIndex].total;
+                                const percentage = total ? ((value / total) * 100).toFixed(2) : 0;
+                                return `${label}: ${value} (${percentage}%)`;
+                            },
+                            color: '#fff',
+                            font: {
+                                weight: 'bold',
+                                size: 12
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+function renderItemStats(itemsByType, soldItemsByType) {
+            // Render sold items list
+            const soldItemsStatsList = document.getElementById('soldItemsStatsList');
+            soldItemsStatsList.innerHTML = '';
+            for (const [type, count] of Object.entries(soldItemsByType)) {
+                const li = document.createElement('li');
+                li.textContent = `${type}: ${count}`;
+                soldItemsStatsList.appendChild(li);
+            }
+
+            // Render pie chart for items by type
+            const ctx = document.getElementById('itemsByTypeChart').getContext('2d');
+            const labels = Object.keys(itemsByType);
+            const data = Object.values(itemsByType);
+
+            if (window.itemsChart) {
+                window.itemsChart.destroy();
+            }
+
+            window.itemsChart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Items Listed',
+                        data: data,
+                        backgroundColor: [
+                            'rgba(255, 99, 132, 0.7)',
+                            'rgba(54, 162, 235, 0.7)',
+                            'rgba(255, 206, 86, 0.7)',
+                            'rgba(75, 192, 192, 0.7)',
+                            'rgba(153, 102, 255, 0.7)',
+                            'rgba(255, 159, 64, 0.7)',
+                            'rgba(201, 203, 207, 0.7)'
+                        ],
+                        borderColor: 'rgba(255, 255, 255, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                        },
+                        datalabels: {
+                            display: true,
+                            formatter: function(value, context) {
+                                const total = context.chart._metasets[context.datasetIndex].total;
+                                const percentage = total ? ((value / total) * 100).toFixed(2) : 0;
+                                return `${percentage}%`;
+                            },
+                            color: '#fff',
+                            font: {
+                                weight: 'bold',
+                                size: 12
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderTransactionStats(transactionsByStatus, totalSoldItems) {
+            // Render pie chart for transactions by status including sold items
+            const ctx = document.getElementById('transactionStatusPieChart').getContext('2d');
+            const labels = Object.keys(transactionsByStatus);
+            const data = Object.values(transactionsByStatus);
+
+            if (window.transactionPieChart) {
+                window.transactionPieChart.destroy();
+            }
+
+            window.transactionPieChart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Transactions by Status',
+                        data: data,
+                        backgroundColor: [
+                            'rgba(255, 99, 132, 0.7)',
+                            'rgba(54, 162, 235, 0.7)',
+                            'rgba(255, 206, 86, 0.7)',
+                            'rgba(75, 192, 192, 0.7)',
+                            'rgba(153, 102, 255, 0.7)',
+                            'rgba(255, 159, 64, 0.7)',
+                            'rgba(201, 203, 207, 0.7)'
+                        ],
+                        borderColor: 'rgba(255, 255, 255, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                        },
+                        datalabels: {
+                            display: true,
+                            formatter: function(value, context) {
+                                const label = context.chart.data.labels[context.dataIndex];
+                                const total = context.chart._metasets[context.datasetIndex].total;
+                                const percentage = total ? ((value / total) * 100).toFixed(2) : 0;
+                                return `${label}: ${value} (${percentage}%)`;
+                            },
+                            color: '#fff',
+                            font: {
+                                weight: 'bold',
+                                size: 12
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Removed display of total sold items count as per user request
+        }
+
+        async function loadStatistics() {
+            const userStats = await fetchUserStats();
+            renderUserStats(userStats);
+
+            const { itemsByType, soldItemsByType } = await fetchItemStats();
+            renderItemStats(itemsByType, soldItemsByType);
+
+            const { transactionsByStatus, totalSoldItems } = await fetchTransactionStats();
+            renderTransactionStats(transactionsByStatus, totalSoldItems);
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            loadStatistics();
+        });
+    </script>
+    <script>
+        document.getElementById('userManagementBtn').addEventListener('click', () => {
+            window.location.href = 'user_management.html';
+        });
+        document.getElementById('postItemManagementBtn').addEventListener('click', () => {
+            window.location.href = 'admin_post_item_management.html';
+        });
+        document.getElementById('transactionMonitoringBtn').addEventListener('click', () => {
+            window.location.href = 'transaction_monitoring.html';
+        });
+        document.getElementById('reportsViolationsBtn').addEventListener('click', () => {
+            window.location.href = 'reports_violations.html';
+        });
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            // Navigate to login page on logout
+            window.location.href = 'Login_page.html';
+        });
+    </script>
+</body>
+</html>

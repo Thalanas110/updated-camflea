@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Notifications</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 400px;
+            margin: 20px auto;
+            padding: 0 10px;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+        h1 {
+            color: #084F6A;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .notification-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .notification-item {
+            background: white;
+            border-radius: 16px;
+            padding: 18px 20px 18px 18px;
+            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.07), 0 1.5px 4px rgba(0,0,0,0.04);
+            cursor: default;
+            transition: background-color 0.2s, box-shadow 0.2s;
+            position: relative;
+            min-height: 70px;
+        }
+        .notification-item.unread {
+            background-color: #e6f0f7;
+        }
+        .notification-item.unread .notification-text {
+            font-weight: bold;
+        }
+        .notification-item:hover {
+            box-shadow: 0 8px 24px rgba(0,0,0,0.10), 0 2px 8px rgba(0,0,0,0.06);
+            background-color: #f4fafd;
+        }
+        .profile-pic {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 18px;
+            flex-shrink: 0;
+            border: 2px solid #e6f0f7;
+            background: #fff;
+        }
+.notification-content {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    min-width: 0;
+    position: relative;
+    padding-bottom: 8px; /* Add space for the time */
+}
+        .notification-text {
+            font-size: 16px;
+            margin-bottom: 4px;
+            color: #084F6A;
+            word-break: break-word;
+        }
+.notification-subtext {
+    font-size: 14px;
+    color: #666;
+    border-top: 1px solid #f0f0f0;
+    margin-top: 6px;
+    padding-top: 4px;
+    margin-bottom: 2px; /* Add a little space below subtext */
+    word-break: break-word;
+}
+        /* Custom style for cancel_trans subtext */
+        .notification-subtext.cancel-trans {
+            font-style: italic;
+            color: #999;
+        }
+.time-ago {
+    font-size: 12px;
+    color: #999;
+    position: absolute;
+    right: 16px; /* Add space from the right edge */
+    bottom: 4px;
+    white-space: nowrap;
+    background: white;
+    padding-left: 6px;
+}
+        .no-notifications {
+            text-align: center;
+            color: #666;
+            margin-top: 50px;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Notifications</h1>
+    <ul id="notificationList" class="notification-list" style="display:none;"></ul>
+    <p id="noNotifications" class="no-notifications" style="display:none;">No notifications yet.</p>
+
+    <script>
+        const supabaseUrl = 'https://wuhgqjeijmxsgvnykttj.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind1aGdxamVpam14c2d2bnlrdHRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI4MjkzMDQsImV4cCI6MjA1ODQwNTMwNH0._lZy7CE2A8HM1hatjGYrMR8QAUi8nk4L_EuV7Fojhwg';
+        const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+
+        let loggedInUserUUID = null;
+        let loggedInStudId = null;
+        let currentConversationId = null; // Track current conversation being viewed
+
+        async function fetchLoggedInUser() {
+            const { data: sessionData, error: sessionError } = await supabaseClient.auth.getSession();
+            if (sessionError || !sessionData.session) {
+                alert('You must be logged in to view notifications.');
+                window.location.href = 'Login_page.html';
+                return null;
+            }
+            loggedInUserUUID = sessionData.session.user.id; // auth.uid()
+            const userEmail = sessionData.session.user.email;
+            const { data: student, error: studentError } = await supabaseClient
+                .from('student')
+                .select('stud_id')
+                .eq('stud_email', userEmail)
+                .single();
+            if (studentError || !student) {
+                alert('Unable to fetch your student information.');
+                return null;
+            }
+            loggedInStudId = student.stud_id;
+            console.log('Logged in student ID:', loggedInStudId);
+            return student.stud_id;
+        }
+
+        function timeAgo(dateString) {
+            const createdDate = new Date(dateString);
+            const now = new Date();
+            let diffInSeconds = Math.floor((now.getTime() - createdDate.getTime()) / 1000);
+
+            if (diffInSeconds < 0) diffInSeconds = 0;
+
+            if (diffInSeconds < 60) return 'Just now';
+
+            const diffInMinutes = Math.floor(diffInSeconds / 60);
+            if (diffInMinutes < 60) return diffInMinutes + ' minute' + (diffInMinutes === 1 ? '' : 's') + ' ago';
+
+            const diffInHours = Math.floor(diffInMinutes / 60);
+            if (diffInHours < 24) return diffInHours + ' hour' + (diffInHours === 1 ? '' : 's') + ' ago';
+
+            const diffInDays = Math.floor(diffInHours / 24);
+            if (diffInDays < 7) return diffInDays + ' day' + (diffInDays === 1 ? '' : 's') + ' ago';
+
+            const diffInWeeks = Math.floor(diffInDays / 7);
+            if (diffInWeeks < 4) return diffInWeeks + ' week' + (diffInWeeks === 1 ? '' : 's') + ' ago';
+
+            const diffInMonths = Math.floor(diffInDays / 30);
+            return diffInMonths + ' month' + (diffInMonths === 1 ? '' : 's') + ' ago';
+        }
+
+    function createNotificationElement(notification, sender, unreadCount = 0) {
+        const li = document.createElement('li');
+        li.className = 'notification-item';
+        if (!notification.is_read) {
+            li.classList.add('unread');
+        }
+
+        const profileImg = document.createElement('img');
+        profileImg.className = 'profile-pic';
+        // Use notification.profile_image if available, else fallback to sender's profile picture
+        // Fix profile_image path to remove 'public/' prefix if present for correct relative URL
+        let profileImageSrc = notification.profile_image || sender.stud_picture || 'Homepage_images/circle-user.png';
+        if (profileImageSrc.startsWith('public/')) {
+            profileImageSrc = profileImageSrc.substring('public/'.length);
+        }
+        profileImg.src = profileImageSrc;
+        profileImg.alt = sender.stud_fname + ' ' + sender.stud_lname;
+
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'notification-content';
+
+        const textDiv = document.createElement('div');
+        textDiv.className = 'notification-text';
+
+if (notification.type === 'cancel_trans') {
+    textDiv.textContent = notification.content || '';
+    contentDiv.appendChild(textDiv); // Main text first
+    const subTextDiv = document.createElement('div');
+    subTextDiv.className = 'notification-subtext cancel-trans';
+    subTextDiv.textContent = 'The transaction is cancelled';
+    contentDiv.appendChild(subTextDiv); // Subtext after
+} else if (notification.type === 'message') {
+    textDiv.textContent = `${sender.stud_fname} sent a message`;
+    if (unreadCount > 0) {
+        textDiv.textContent += ` (${unreadCount} unread message${unreadCount > 1 ? 's' : ''})`;
+    }
+    contentDiv.appendChild(textDiv);
+} else if (notification.type === 'buy_request') {
+    textDiv.textContent = notification.content || `${sender.stud_fname} wants to buy your item`;
+    contentDiv.appendChild(textDiv);
+} else if (notification.type === 'mark_sent' || notification.type === 'mark_received') {
+    textDiv.textContent = notification.content || '';
+    contentDiv.appendChild(textDiv);
+} else if (notification.type === 'item_sold') {
+    textDiv.textContent = notification.content ? `the ${notification.content} is already sold` : 'An item you requested notification for has been sold.';
+    contentDiv.appendChild(textDiv);
+} else if (notification.type === 'item_available') {
+    textDiv.textContent = notification.content ? `the ${notification.content} is now available. Please check it out` : 'An item you requested notification for is now available.';
+    contentDiv.appendChild(textDiv);
+} else {
+    textDiv.textContent = notification.content || '';
+    contentDiv.appendChild(textDiv);
+    // Append subtext for other types if needed
+    const subTextDiv = document.createElement('div');
+    subTextDiv.className = 'notification-subtext';
+    subTextDiv.textContent = notification.content || '';
+    contentDiv.appendChild(subTextDiv);
+}
+
+        const timeDiv = document.createElement('div');
+        timeDiv.className = 'time-ago';
+        timeDiv.textContent = timeAgo(notification.created_at);
+
+    //  contentDiv.appendChild(textDiv);   
+        // Append subtext only if notification type is not 'message' or 'buy_request' or mark_sent/mark_received or cancel_trans
+        if (notification.type !== 'message' && notification.type !== 'buy_request' && notification.type !== 'mark_sent' && notification.type !== 'mark_received' && notification.type !== 'cancel_trans') {
+            const subTextDiv = document.createElement('div');
+            subTextDiv.className = 'notification-subtext';
+            subTextDiv.textContent = notification.content || '';
+            contentDiv.appendChild(subTextDiv);
+        }
+
+        li.appendChild(profileImg);
+        li.appendChild(contentDiv);
+        li.appendChild(timeDiv);
+
+        return li;
+    }
+
+    async function fetchNotifications() {
+        console.log('Fetching notifications for receiver_uuid:', loggedInUserUUID);
+        // Get the user's JWT token
+        const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
+        if (sessionError || !session) {
+            console.error('No active session found:', sessionError);
+            return [];
+        }
+        const token = session.access_token;
+
+        const response = await fetch('http://localhost:5000/notifications', {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        if (!response.ok) {
+            console.error('Error fetching notifications:', response.statusText);
+            return [];
+        }
+
+        const result = await response.json();
+        if (!result.success) {
+            console.error('Error fetching notifications:', result.message);
+            return [];
+        }
+
+        console.log('Fetched notifications:', result.notifications);
+        if (result.notifications && result.notifications.length > 0) {
+            console.log('Keys of first notification:', Object.keys(result.notifications[0]));
+        }
+        return result.notifications;
+    }
+
+        async function fetchSender(senderId) {
+            const { data: sender, error } = await supabaseClient
+                .from('student')
+                .select('stud_id, stud_fname, stud_lname, stud_picture')
+                .eq('stud_id', senderId)
+                .single();
+
+            if (error) {
+                console.error('Error fetching sender info:', error);
+                return null;
+            }
+            return sender;
+        }
+
+        async function fetchUnreadMessageCounts() {
+            // Fetch all unread messages for loggedInStudId
+            const { data, error } = await supabaseClient
+                .from('message')
+                .select('sender_id')
+                .eq('receiver_id', loggedInStudId)
+                .eq('is_read', false);
+
+            if (error) {
+                console.error('Error fetching unread messages:', error);
+                return {};
+            }
+
+            const counts = {};
+            if (data && Array.isArray(data)) {
+                data.forEach(item => {
+                    counts[item.sender_id] = (counts[item.sender_id] || 0) + 1;
+                });
+            }
+            return counts;
+        }
+
+    async function loadNotifications() {
+        const notifications = await fetchNotifications();
+        const list = document.getElementById('notificationList');
+        const noNotif = document.getElementById('noNotifications');
+        list.innerHTML = '';
+        noNotif.style.display = 'none';
+
+        if (!notifications || notifications.length === 0) {
+            noNotif.style.display = 'block';
+            list.style.display = 'none';
+            return;
+        }
+
+        // Fetch accurate unread message counts per sender from messages table
+        const unreadCounts = await fetchUnreadMessageCounts();
+
+        // Deduplicate notifications using composite key with normalized keys
+        const latestNotificationsMap = {};
+        notifications.forEach(notif => {
+            if (notif.sender_id && notif.type) {
+                let key = `${notif.sender_id}_${notif.type}`;
+                if (notif.type === 'buy_request' && notif.content) {
+                    key += `_${notif.content.trim().toLowerCase()}`;
+                }
+                // For message notifications, only keep the latest notification per sender
+                if (notif.type === 'message') {
+                    key = `message_${notif.sender_id}`;
+                }
+                if (!latestNotificationsMap[key] || new Date(notif.created_at) > new Date(latestNotificationsMap[key].created_at)) {
+                    latestNotificationsMap[key] = notif;
+                }
+            } else {
+                const key = `no_sender_${notif.notification_id}`;
+                latestNotificationsMap[key] = notif;
+            }
+        });
+
+        const filteredNotifications = Object.values(latestNotificationsMap);
+        filteredNotifications.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+        // Fetch all unique sender_ids in batch
+        const senderIds = [...new Set(filteredNotifications.map(n => n.sender_id).filter(id => id != null))];
+        let sendersMap = {};
+        if (senderIds.length > 0) {
+            const { data: senders, error } = await supabaseClient
+                .from('student')
+                .select('stud_id, stud_fname, stud_lname, stud_picture')
+                .in('stud_id', senderIds);
+            if (!error && senders) {
+                sendersMap = senders.reduce((acc, sender) => {
+                    acc[sender.stud_id] = sender;
+                    return acc;
+                }, {});
+            }
+        }
+
+        // Global set to track displayed notification IDs to prevent duplicates across reloads
+        if (!window.displayedNotificationIds) {
+            window.displayedNotificationIds = new Set();
+        }
+
+        for (const notification of filteredNotifications) {
+            if (window.displayedNotificationIds.has(notification.notification_id)) {
+                console.log('Skipping already displayed notification with ID:', notification.notification_id);
+                continue; // Skip duplicate notification by ID
+            }
+            window.displayedNotificationIds.add(notification.notification_id);
+
+            if (notification.type === 'message') {
+                // Also skip if a message notification for this sender was already appended
+                if ([...window.displayedNotificationIds].some(id => {
+                    const notif = filteredNotifications.find(n => n.notification_id === id);
+                    return notif && notif.type === 'message' && notif.sender_id === notification.sender_id && id !== notification.notification_id;
+                })) {
+                    continue;
+                }
+            }
+
+            let sender = sendersMap[notification.sender_id] || {
+                stud_fname: 'Someone',
+                stud_lname: '',
+                stud_picture: 'Homepage_images/circle-user.png'
+            };
+            const unreadCount = notification.type === 'message' ? (unreadCounts[notification.sender_id] || 0) : 0;
+            const notifElement = createNotificationElement(notification, sender, unreadCount);
+            list.appendChild(notifElement);
+        }
+        list.style.display = 'block';
+    }
+
+            (async () => {
+                await fetchLoggedInUser();
+                if (!loggedInStudId) return;
+                await loadNotifications();
+
+                // Subscribe to real-time notifications for the logged-in user
+                const notificationChannel = supabaseClient
+                    .channel('public:notifications')
+                    .on(
+                        'postgres_changes',
+                        {
+                            event: 'INSERT',
+                            schema: 'public',
+                            table: 'notifications',
+                            filter: `receiver_id=eq.${loggedInStudId}`
+                        },
+                    async (payload) => {
+                        console.log('New notification received:', payload);
+                if (window.loadNotificationsDebounceTimeout) {
+                    clearTimeout(window.loadNotificationsDebounceTimeout);
+                }
+                window.loadNotificationsDebounceTimeout = setTimeout(async () => {
+                    // Clear notification list before reloading to avoid duplicates
+                    const list = document.getElementById('notificationList');
+                    if (list) {
+                        list.innerHTML = '';
+                    }
+                    // Clear global displayedNotificationIds set to allow fresh notifications on reload
+                    if (window.displayedNotificationIds) {
+                        window.displayedNotificationIds.clear();
+                    }
+                    // Prevent concurrent reloads with a lock
+                    if (window.isLoadingNotifications) {
+                        console.log('loadNotifications already in progress, skipping reload');
+                        return;
+                    }
+                    // Removed immediate marking notifications as read on new notification insert event to keep them bold until panel opened
+                    /*
+                    // Remove 'unread' class from all notification items to mark as read when notification panel is opened
+                    const notificationItems = document.querySelectorAll('.notification-item.unread');
+                    notificationItems.forEach(item => {
+                        item.classList.remove('unread');
+                    });
+                    // Update notifications in database as read for loggedInStudId
+                    try {
+                        const { data, error } = await supabaseClient
+                            .from('notifications')
+                            .update({ is_read: true })
+                            .eq('receiver_id', loggedInStudId)
+                            .eq('is_read', false);
+                        if (error) {
+                            console.error('Error marking notifications as read:', error);
+                        } else {
+                            console.log('Marked notifications as read:', data);
+                        }
+                    } catch (err) {
+                        console.error('Exception marking notifications as read:', err);
+                    }
+                    */
+                    await loadNotifications();
+                }, 300);
+                    }
+                    )
+                    .subscribe();
+
+                console.log('Subscribed to notifications channel for receiver_id:', loggedInStudId);
+
+                // Subscribe to real-time message changes for unread message count updates
+                const messageChannel = supabaseClient
+                    .channel('public:message')
+                    .on(
+                        'postgres_changes',
+                        {
+                            event: '*',
+                            schema: 'public',
+                            table: 'message',
+                            filter: `receiver_id=eq.${loggedInStudId}`
+                        },
+                    async (payload) => {
+                        console.log('Message table change detected:', payload);
+                        if (window.loadNotificationsDebounceTimeout) {
+                            clearTimeout(window.loadNotificationsDebounceTimeout);
+                        }
+                        // Clear notification list before reloading to avoid duplicates
+                        const list = document.getElementById('notificationList');
+                        if (list) {
+                            list.innerHTML = '';
+                        }
+                        window.loadNotificationsDebounceTimeout = setTimeout(async () => {
+                            await loadNotifications();
+                        }, 300);
+                    }
+                    )
+                    .subscribe();
+
+                console.log('Subscribed to message channel for receiver_id:', loggedInStudId);
+            })();
+
+        // Listen for messages from parent window to mark notifications as read or reload notifications
+        window.addEventListener('message', async (event) => {
+            if (!event.data) return;
+
+            if (event.data.type === 'markNotificationsRead') {
+                console.log('Received markNotificationsRead message from parent');
+                // Remove "unread" class from all notification items
+                const notificationItems = document.querySelectorAll('.notification-item.unread');
+                notificationItems.forEach(item => {
+                    item.classList.remove('unread');
+                });
+
+                // Update notifications in database as read for loggedInStudId
+                if (!loggedInStudId) {
+                    console.warn('loggedInStudId not set, cannot mark notifications as read');
+                    return;
+                }
+
+                try {
+                    // Update all unread notifications for this user to is_read = true
+                    const { data, error } = await supabaseClient
+                        .from('notifications')
+                        .update({ is_read: true })
+                        .eq('receiver_id', loggedInStudId)
+                        .eq('is_read', false);
+
+                    if (error) {
+                        console.error('Error marking notifications as read:', error);
+                    } else {
+                        console.log('Marked notifications as read:', data);
+                    }
+                } catch (err) {
+                    console.error('Exception marking notifications as read:', err);
+                }
+            } else if (event.data.type === 'reloadNotifications') {
+                console.log('Received reloadNotifications message from parent');
+                await loadNotifications();
+            } else if (event.data.type === 'clearDisplayedNotificationIds') {
+                console.log('Received clearDisplayedNotificationIds message from parent');
+                if (window.displayedNotificationIds) {
+                    window.displayedNotificationIds.clear();
+                }
+            } else if (event.data.type === 'currentConversation') {
+                // Update current conversation ID from parent window
+                currentConversationId = event.data.conversationId;
+                console.log('Updated currentConversationId to:', currentConversationId);
+            }
+        });
+
+        // Override loadNotifications to filter message notifications based on currentConversationId and read status within 3 seconds
+        const messageReadTimestamps = {}; // Store message read timestamps from UI updates
+
+        window.addEventListener('message', (event) => {
+            if (!event.data) return;
+
+            if (event.data.type === 'messageReadUpdate') {
+                const { messageId, readTimestamp } = event.data;
+                if (messageId && readTimestamp) {
+                    messageReadTimestamps[messageId] = new Date(readTimestamp);
+                    console.log('Received messageReadUpdate:', messageId, readTimestamp);
+                }
+            }
+        });
+
+        async function loadNotifications() {
+            const notifications = await fetchNotifications();
+            const list = document.getElementById('notificationList');
+            const noNotif = document.getElementById('noNotifications');
+            list.innerHTML = '';
+            noNotif.style.display = 'none';
+
+            if (!notifications || notifications.length === 0) {
+                noNotif.style.display = 'block';
+                list.style.display = 'none';
+                return;
+            }
+
+            // Fetch accurate unread message counts per sender from messages table
+            const unreadCounts = await fetchUnreadMessageCounts();
+
+            // Deduplicate notifications using composite key
+            const latestNotificationsMap = {};
+            notifications.forEach(notif => {
+                if (notif.sender_id && notif.type) {
+                    let key = `${notif.sender_id}_${notif.type}`;
+                    if (notif.type === 'buy_request' && notif.content) {
+                        key += `_${notif.content.trim().toLowerCase()}`;
+                    }
+                    if (!latestNotificationsMap[key] || new Date(notif.created_at) > new Date(latestNotificationsMap[key].created_at)) {
+                        latestNotificationsMap[key] = notif;
+                    }
+                } else {
+                    const key = `no_sender_${notif.notification_id}`;
+                    latestNotificationsMap[key] = notif;
+                }
+            });
+
+            const filteredNotifications = Object.values(latestNotificationsMap);
+            filteredNotifications.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+            // Fetch all unique sender_ids in batch
+            const senderIds = [...new Set(filteredNotifications.map(n => n.sender_id).filter(id => id != null))];
+            let sendersMap = {};
+            if (senderIds.length > 0) {
+                const { data: senders, error } = await supabaseClient
+                    .from('student')
+                    .select('stud_id, stud_fname, stud_lname, stud_picture')
+                    .in('stud_id', senderIds);
+                if (!error && senders) {
+                    sendersMap = senders.reduce((acc, sender) => {
+                        acc[sender.stud_id] = sender;
+                        return acc;
+                    }, {});
+                }
+            }
+
+            // Render all notifications immediately without delay
+            for (const notification of filteredNotifications) {
+                let sender = sendersMap[notification.sender_id] || {
+                    stud_fname: 'Someone',
+                    stud_lname: '',
+                    stud_picture: 'Homepage_images/circle-user.png'
+                };
+                const unreadCount = notification.type === 'message' ? (unreadCounts[notification.sender_id] || 0) : 0;
+                // Skip message notifications if no unread messages
+                if (notification.type === 'message' && unreadCount === 0) {
+                    continue;
+                }
+                const notifElement = createNotificationElement(notification, sender, unreadCount);
+                list.appendChild(notifElement);
+            }
+
+            list.style.display = 'block';
+        }
+
+        // Helper function to check if a message notification is read within a timeout (ms)
+        async function checkMessageReadWithinTimeout(notification, timeoutMs) {
+            // Since notification does not have message_id, we check messages in the conversation from sender to loggedInStudId
+            // We check if the latest message from sender to loggedInStudId is read within timeoutMs from its creation time
+
+            try {
+                const { data: messages, error } = await supabaseClient
+                    .from('message')
+                    .select('mess_id, is_read, mess_created')
+                    .eq('sender_id', notification.sender_id)
+                    .eq('receiver_id', loggedInStudId)
+                    .order('mess_created', { ascending: false })
+                    .limit(1);
+
+                if (error || !messages || messages.length === 0) {
+                    if (error) console.error('Error fetching messages for read check:', error);
+                    return false;
+                }
+
+                const latestMessage = messages[0];
+                if (!latestMessage.is_read) {
+                    return false;
+                }
+
+                const createdTime = new Date(latestMessage.mess_created);
+                const readTime = new Date(); // Approximate read time as now since is_read is true
+
+                const diffMs = readTime - createdTime;
+                return diffMs <= timeoutMs;
+            } catch (err) {
+                console.error('Exception in checkMessageReadWithinTimeout:', err);
+                return false;
+            }
+        }
+        async function handleMarkAsReceived(notification) {
+            try {
+                const itemId = notification.item_id || notification.item_uuid || null;
+                if (!itemId) {
+                    alert('Invalid notification: missing item ID.');
+                    return;
+                }
+                const buyerId = notification.sender_id;
+
+                // Get the user's JWT token
+                const { data: { session } } = await supabaseClient.auth.getSession();
+                const token = session?.access_token;
+
+                // Call backend endpoint
+                const response = await fetch('/complete-transaction', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ item_id: itemId, buyer_id: buyerId })
+                });
+                const result = await response.json();
+
+                if (!result.success) {
+                    alert('Failed to complete transaction: ' + result.message);
+                    return;
+                }
+
+                alert('Transaction marked as completed and item marked as sold.');
+                await loadNotifications();
+            } catch (err) {
+                console.error('Unexpected error in handleMarkAsReceived:', err);
+                alert('Failed to mark as received due to unexpected error.');
+            }
+        }
+
+        async function handleMarkAsSent(notification) {
+            try {
+                const itemId = notification.item_id || notification.item_uuid || null;
+                if (!itemId) {
+                    alert('Invalid notification: missing item ID.');
+                    return;
+                }
+                const buyerId = notification.sender_id;
+
+                // Get the user's JWT token
+                const { data: { session } } = await supabaseClient.auth.getSession();
+                const token = session?.access_token;
+
+                // Call backend endpoint
+                const response = await fetch('/complete-transaction', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ item_id: itemId, buyer_id: buyerId })
+                });
+                const result = await response.json();
+
+                if (!result.success) {
+                    alert('Failed to complete transaction: ' + result.message);
+                    return;
+                }
+
+                alert('Transaction marked as completed and item marked as sold.');
+                await loadNotifications();
+            } catch (err) {
+                console.error('Unexpected error in handleMarkAsSent:', err);
+                alert('Failed to mark as sent due to unexpected error.');
+            }
+        }
+</script>
+</body>
+</html>

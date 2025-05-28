@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Feedback</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: rgba(0,0,0,0.5);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        #feedbackPopup {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            position: relative;
+        }
+        #feedbackPopup h2 {
+            margin-top: 0;
+            color: #084F6A;
+            text-align: center;
+        }
+        .stars {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+        .star {
+            font-size: 30px;
+            color: #ccc;
+            cursor: pointer;
+            margin: 0 5px;
+            transition: color 0.2s;
+        }
+        .star.selected,
+        .star.hovered {
+            color: #FFD700;
+        }
+        textarea {
+            width: 100%;
+            height: 80px;
+            resize: none;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            padding: 8px;
+            font-size: 14px;
+            margin-bottom: 15px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #084F6A;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        #closeBtn {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #084F6A;
+        }
+        #message {
+            text-align: center;
+            margin-top: 10px;
+            color: green;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div id="feedbackPopup">
+        <button id="closeBtn" title="Close">&times;</button>
+        <h2>Submit Feedback</h2>
+        <div class="stars" id="starContainer">
+            <span class="star" data-value="1">&#9733;</span>
+            <span class="star" data-value="2">&#9733;</span>
+            <span class="star" data-value="3">&#9733;</span>
+            <span class="star" data-value="4">&#9733;</span>
+            <span class="star" data-value="5">&#9733;</span>
+        </div>
+        <textarea id="comment" placeholder="Write your comment here..."></textarea>
+        <button id="submitBtn" disabled>Submit</button>
+        <div id="message"></div>
+    </div>
+
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+        const supabaseUrl = 'https://wuhgqjeijmxsgvnykttj.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind1aGdxamVpam14c2d2bnlrdHRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI4MjkzMDQsImV4cCI6MjA1ODQwNTMwNH0._lZy7CE2A8HM1hatjGYrMR8QAUi8nk4L_EuV7Fojhwg';
+
+        const supabase = createClient(supabaseUrl, supabaseKey);
+
+        let selectedStars = 0;
+        const stars = document.querySelectorAll('.star');
+        const submitBtn = document.getElementById('submitBtn');
+        const commentInput = document.getElementById('comment');
+        const messageDiv = document.getElementById('message');
+        const closeBtn = document.getElementById('closeBtn');
+
+        // Parse URL params for item_id and seller_id
+        const urlParams = new URLSearchParams(window.location.search);
+        const itemId = urlParams.get('item_id');
+        let sellerId = urlParams.get('seller_id');
+
+        if (!itemId || !sellerId || sellerId === 'undefined' || isNaN(parseInt(sellerId))) {
+            alert('Missing or invalid item or seller information.');
+            window.close();
+        } else {
+            sellerId = parseInt(sellerId);
+        }
+
+        function updateStarsDisplay() {
+            stars.forEach(star => {
+                const value = parseInt(star.getAttribute('data-value'));
+                if (value <= selectedStars) {
+                    star.classList.add('selected');
+                } else {
+                    star.classList.remove('selected');
+                }
+            });
+            submitBtn.disabled = selectedStars === 0;
+        }
+
+        stars.forEach(star => {
+            star.addEventListener('click', () => {
+                selectedStars = parseInt(star.getAttribute('data-value'));
+                updateStarsDisplay();
+            });
+            star.addEventListener('mouseover', () => {
+                const hoverValue = parseInt(star.getAttribute('data-value'));
+                stars.forEach(s => {
+                    const value = parseInt(s.getAttribute('data-value'));
+                    if (value <= hoverValue) {
+                        s.classList.add('hovered');
+                    } else {
+                        s.classList.remove('hovered');
+                    }
+                });
+            });
+            star.addEventListener('mouseout', () => {
+                stars.forEach(s => s.classList.remove('hovered'));
+            });
+        });
+
+        submitBtn.addEventListener('click', async () => {
+            submitBtn.disabled = true;
+            messageDiv.textContent = '';
+            const comment = commentInput.value.trim();
+
+            const studId = localStorage.getItem('stud_id');
+            if (!studId) {
+                alert('User not logged in. Redirecting to login page.');
+                window.location.href = 'Login_page.html';
+                return;
+            }
+
+            try {
+                // Insert feedback into feedback table
+                const { error } = await supabase
+                    .from('feedback')
+                    .insert({
+                        item_id: itemId,
+                        buyer_id: studId,
+                        seller_id: sellerId,
+                        stars: selectedStars,
+                        comment: comment,
+                        created_at: new Date().toISOString()
+                    });
+
+                if (error) {
+                    console.error('Error submitting feedback:', error);
+                    messageDiv.style.color = 'red';
+                    messageDiv.textContent = 'Failed to submit feedback. Please try again.';
+                    submitBtn.disabled = false;
+                    return;
+                }
+
+                messageDiv.style.color = 'green';
+                messageDiv.textContent = 'Feedback submitted successfully!';
+
+                // Notify opener window (transaction.html) about feedback submission
+                if (window.opener && !window.opener.closed) {
+                    window.opener.postMessage({ type: 'feedbackSubmitted', itemId: itemId }, '*');
+                }
+
+                // Optionally close the popup after a delay
+                setTimeout(() => {
+                    window.close();
+                }, 1500);
+            } catch (err) {
+                console.error('Unexpected error submitting feedback:', err);
+                messageDiv.style.color = 'red';
+                messageDiv.textContent = 'Failed to submit feedback due to unexpected error.';
+                submitBtn.disabled = false;
+            }
+        });
+
+        closeBtn.addEventListener('click', () => {
+            window.close();
+        });
+    </script>
+</body>
+</html>

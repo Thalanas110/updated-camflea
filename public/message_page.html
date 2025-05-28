@@ -1,0 +1,1166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Message Seller</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <style>
+        .message-container {
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+        }
+
+        /* Hide default file input filename display */
+        #messagePhotos::-webkit-file-upload-button {
+            visibility: hidden;
+        }
+        #messagePhotos::before {
+            content: 'Choose files';
+            display: inline-block;
+            background: #084F6A;
+            color: white;
+            border-radius: 4px;
+            padding: 6px 12px;
+            outline: none;
+            white-space: nowrap;
+            -webkit-user-select: none;
+            user-select: none;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            line-height: 1.2;
+        }
+        #messagePhotos:hover::before {
+            background-color: #063d52;
+        }
+        #messagePhotos:active::before {
+            background-color: #042a3a;
+        }
+        #messagePhotos:focus::before {
+            outline: 1px solid #063d52;
+            outline-offset: 2px;
+        }
+        #messagePhotos {
+            position: relative;
+            width: 120px;
+            height: 36px;
+            cursor: pointer;
+            color: transparent;
+        }
+
+        .message {
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 8px;
+        }
+
+        .message.sent {
+            background-color: #084F6A;
+            color: white;
+            text-align: right;
+        }
+
+        .message.received {
+            background-color: #e5e5e5;
+            color: black;
+            text-align: left;
+        }
+        .message img {
+    max-width: 100%;
+    max-height: 180px;
+    width: auto;
+    height: auto;
+    display: block;
+    margin: 6px 0 0 0;
+    border-radius: 8px;
+    object-fit: cover;
+}
+.message-container {
+    max-width: 100%;
+    /* ...existing styles... */
+}
+.message {
+    word-break: break-word;
+    max-width: 100%;
+}
+    </style>
+    <style>
+        /* Notification bell and dropdown styles */
+        #notificationBell {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            cursor: pointer;
+            font-size: 24px;
+            color: #084F6A;
+            z-index: 1000;
+        }
+        #notificationCount {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            background: red;
+            color: white;
+            border-radius: 50%;
+            padding: 2px 6px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        #notificationDropdown {
+            position: fixed;
+            top: 50px;
+            right: 20px;
+            width: 320px;
+            max-height: 400px;
+            overflow-y: auto;
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            display: none;
+            z-index: 1000;
+        }
+        .notification-item {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+        }
+        .notification-item.unread {
+            background-color: #e6f0f7;
+            font-weight: bold;
+        }
+        .notification-item:last-child {
+            border-bottom: none;
+        }
+        .notification-text {
+            color: #084F6A;
+            font-weight: 600;
+        }
+        .notification-time {
+            font-size: 12px;
+            color: #999;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="max-w-4xl mx-auto p-6">
+        <!-- Return to Conversations Button -->
+        <button id="returnToConversationsBtn" class="mb-4 bg-[#084F6A] text-white px-4 py-2 rounded-lg shadow-md hover:bg-[#063d52]">
+            Return to Conversations
+        </button>
+
+        <!-- Seller Profile -->
+        <!-- Removed the floating 'Return to Detailed Post' button as requested -->
+        <div class="flex items-center mb-4">
+            <img id="sellerProfilePicture" alt="Seller Profile Picture" class="h-16 w-16 rounded-full mr-4" src="Homepage_images/circle-user.png">
+            <div>
+                <h2 id="sellerName" class="text-xl font-semibold">Seller Name</h2>
+                <p id="sellerSchool" class="text-gray-600">School Name</p>
+            </div>
+        </div>
+
+        <!-- Removed re-authenticate button as per request -->
+
+
+        <!-- Messages Section -->
+        <div id="messageContainer" class="message-container mb-4"></div>
+
+        <!-- Message Input Section -->
+        <form id="messageForm" class="flex flex-col space-y-4">
+            <textarea id="messageContent" class="w-full p-2 border border-gray-300 rounded-lg" rows="3" placeholder="Type your message..."></textarea>
+            <input id="messagePhotos" type="file" class="p-2 border border-gray-300 rounded-lg" multiple accept="image/*">
+            <div id="fileCountDisplay" class="text-gray-600 mt-1"></div>
+            <div id="photoPreviewContainer" class="flex flex-wrap gap-2 mt-2"></div>
+            <button type="submit" class="bg-[#084F6A] text-white px-4 py-2 rounded-lg shadow-md hover:bg-[#063d52]">
+                Send Message
+            </button>
+        </form>
+    </div>
+
+    <!-- Notification Bell -->
+
+<!-- Image Zoom Modal -->
+<div id="imageZoomModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.85); justify-content:center; align-items:center; z-index:9999;">
+  <img id="zoomedImage" src="" style="max-width:90vw; max-height:90vh; border-radius:12px; box-shadow:0 4px 24px rgba(0,0,0,0.4);">
+</div>
+
+    <script type="module">
+        const supabaseUrl = 'https://wuhgqjeijmxsgvnykttj.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind1aGdxamVpam14c2d2bnlrdHRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI4MjkzMDQsImV4cCI6MjA1ODQwNTMwNH0._lZy7CE2A8HM1hatjGYrMR8QAUi8nk4L_EuV7Fojhwg';
+        const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+
+        // Show or hide the "Return to Detailed Post" button based on URL parameter "from"
+        function handleReturnButtonVisibility() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const fromParam = urlParams.get('from');
+            const returnBtn = document.getElementById('returnToConversationsBtn');
+            if (fromParam === 'detailedpost' || fromParam === 'viewother' || fromParam === 'myconversation') {
+                returnBtn.style.display = 'inline-block';
+                if (fromParam === 'detailedpost') {
+                    returnBtn.textContent = 'Return to Detailed Post';
+                } else if (fromParam === 'viewother') {
+                    returnBtn.textContent = 'Return to Profile';
+                } else if (fromParam === 'myconversation') {
+                    returnBtn.textContent = 'Return to Conversations';
+                } else {
+                    returnBtn.textContent = 'Return to Previous Page';
+                }
+            } else {
+                returnBtn.style.display = 'none';
+            }
+        }
+
+        // Call sendCurrentConversationId on page load and whenever sellerId changes
+        window.addEventListener('load', () => {
+            sendCurrentConversationId();
+        });
+
+        // If sellerId can change dynamically, add observer or event to call sendCurrentConversationId again
+        // For now, call it once on load is sufficient
+
+        // Send current conversation ID to notification window
+        function sendCurrentConversationId() {
+            const conversationId = sellerId;
+            if (!conversationId) return;
+
+            // Try sending message to parent window (if notification.html is iframe)
+            if (window.parent && window.parent !== window) {
+                window.parent.postMessage({ type: 'currentConversation', conversationId }, '*');
+                console.log('Sent currentConversation message to parent:', conversationId);
+            }
+
+            // Try sending message to opener window (if notification.html is opened in new window)
+            if (window.opener && !window.opener.closed) {
+                window.opener.postMessage({ type: 'currentConversation', conversationId }, '*');
+                console.log('Sent currentConversation message to opener:', conversationId);
+            }
+        }
+
+        // Call the function on page load to set button visibility
+        window.addEventListener('DOMContentLoaded', () => {
+            handleReturnButtonVisibility();
+        });
+
+            async function initializePage() {
+                const { data: session, error: sessionError } = await supabaseClient.auth.getSession();
+
+                if (sessionError || !session) {
+                    console.error('User is not authenticated:', sessionError);
+                    alert('You must be logged in to access this page.');
+                    window.location.href = 'Login_page.html'; // Redirect to login page
+                    return;
+                }
+
+                console.log('Session:', session);
+            }
+
+/* Removed reauthenticateUser function and its event listener as per request */
+/*
+async function reauthenticateUser() {
+    alert('Your session has expired. Please log in again.');
+    window.location.href = 'Login_page.html'; // Redirect to login page
+}
+
+document.getElementById('reauth-btn').addEventListener('click', reauthenticateUser);
+*/
+
+let senderUid = null; // Authenticated user's UID
+let loggedInStudId = null; // Authenticated user's student ID
+
+let presenceChannel = null;
+let otherUserIsPresent = false;
+
+function subscribeToMessages(sellerId) {
+    // Create a unique channel name for the conversation between loggedInStudId and sellerId
+    const channelName = `conversation-${[loggedInStudId, sellerId].sort().join('-')}`;
+
+    const channel = supabaseClient
+        .channel(channelName)
+        .on(
+            'postgres_changes',
+            {
+                event: 'INSERT',
+                schema: 'public',
+                table: 'message'
+            },
+            (payload) => {
+                console.log('New message inserted:', payload);
+                const newMessage = payload.new;
+
+                const fromMe = String(newMessage.sender_id) === String(loggedInStudId);
+                const fromThem = String(newMessage.sender_id) === String(sellerId);
+
+                if (fromMe || fromThem) {
+                    console.log('Appending to UI:', newMessage);
+                    appendMessageToUI(newMessage, loggedInStudId);
+                } else {
+                    console.log('Message not for this conversation.');
+                }
+            }
+        )
+        .on(
+            'postgres_changes',
+            {
+                event: 'UPDATE',
+                schema: 'public',
+                table: 'message'
+            },
+            (payload) => {
+                console.log('Message updated:', payload);
+                const updatedMessage = payload.new;
+
+                // Check if the updated message is relevant to the current conversation
+                const fromMe = String(updatedMessage.sender_id) === String(loggedInStudId);
+                const fromThem = String(updatedMessage.sender_id) === String(sellerId);
+                const toMe = String(updatedMessage.receiver_id) === String(loggedInStudId);
+                const toThem = String(updatedMessage.receiver_id) === String(sellerId);
+
+                if (fromMe || fromThem || toMe || toThem) {
+                    console.log('Refreshing messages due to update:', updatedMessage);
+                    fetchMessages(sellerId);
+
+                    // If the update is a read receipt (is_read changed to true), update UI checkmark immediately
+                        if (updatedMessage.is_read === true) {
+                            // Optionally, you can add more specific logic here if needed
+                            console.log('Message read status updated to true, updating UI checkmark.');
+
+                            // Send read status update with timestamp to notification window
+                            const readTimestamp = new Date().toISOString();
+                            const messageReadUpdate = {
+                                type: 'messageReadUpdate',
+                                messageId: updatedMessage.mess_id,
+                                senderId: updatedMessage.sender_id,
+                                receiverId: updatedMessage.receiver_id,
+                                readTimestamp: readTimestamp
+                            };
+
+                            // Send to parent window if exists
+                            if (window.parent && window.parent !== window) {
+                                window.parent.postMessage(messageReadUpdate, '*');
+                                console.log('Sent messageReadUpdate to parent:', messageReadUpdate);
+                            }
+
+                            // Send to opener window if exists
+                            if (window.opener && !window.opener.closed) {
+                                window.opener.postMessage(messageReadUpdate, '*');
+                                console.log('Sent messageReadUpdate to opener:', messageReadUpdate);
+                            }
+
+                            // Re-render messages or update specific message UI elements
+                            fetchMessages(sellerId);
+                        }
+                } else {
+                    console.log('Update not relevant to this conversation.');
+                }
+            }
+        )
+        .subscribe();
+
+    // Handle subscription errors
+    channel.on('error', (error) => {
+        console.error('Realtime subscription error:', error);
+    });
+
+    // Debugging: Log subscription status
+    channel.on('open', () => {
+        console.log('Realtime subscription opened successfully.');
+    });
+}
+
+// Presence tracking for conversation viewing
+function setupPresenceChannel(loggedInStudId, sellerId) {
+    // Ensure IDs are strings for consistent comparison
+    const loggedInIdStr = String(loggedInStudId);
+    const sellerIdStr = String(sellerId);
+
+    presenceChannel = supabaseClient.channel('presence-conversation-' + [loggedInIdStr, sellerIdStr].sort().join('-'));
+
+    presenceChannel.on('presence', { event: 'sync' }, () => {
+        const state = presenceChannel.presenceState();
+        otherUserIsPresent = Object.keys(state).some(userId => userId === sellerIdStr);
+        console.log('Presence sync:', state, 'Other user present:', otherUserIsPresent);
+
+        if (otherUserIsPresent) {
+            markMessagesAsRead();
+        }
+    });
+
+    presenceChannel.on('presence', { event: 'join' }, (payload) => {
+        console.log('User joined presence channel:', payload);
+        if (payload.key === sellerIdStr) {
+            otherUserIsPresent = true;
+            markMessagesAsRead();
+        }
+    });
+
+    presenceChannel.on('presence', { event: 'leave' }, (payload) => {
+        console.log('User left presence channel:', payload);
+        if (payload.key === sellerIdStr) {
+            otherUserIsPresent = false;
+        }
+    });
+
+    presenceChannel.subscribe(async (status) => {
+        console.log('Presence channel subscription status:', status);
+        if (status === 'SUBSCRIBED') {
+            try {
+                await presenceChannel.track(loggedInIdStr, { last_active: new Date().toISOString() });
+                console.log('Presence channel subscribed and tracked user:', loggedInIdStr);
+            } catch (error) {
+                console.error('Error tracking presence:', error);
+            }
+        }
+    });
+}
+
+async function markMessagesAsRead() {
+    if (!otherUserIsPresent) return;
+
+    const { data: messages, error } = await supabaseClient
+        .from('message')
+        .select('mess_id')
+        .eq('sender_id', sellerId)
+        .eq('receiver_id', loggedInStudId)
+        .eq('is_read', false);
+
+    if (error) {
+        console.error('Error fetching unread messages to mark as read:', error);
+        return;
+    }
+
+    if (messages.length === 0) return;
+
+    const messageIds = messages.map(msg => msg.mess_id);
+
+    const { error: updateError } = await supabaseClient
+        .from('message')
+        .update({ is_read: true })
+        .in('mess_id', messageIds);
+
+    if (updateError) {
+        console.error('Error updating message read status:', updateError);
+    } else {
+        console.log('Marked messages as read:', messageIds);
+        // Refresh messages to update UI
+        await fetchMessages(sellerId);
+    }
+}
+
+// Call setupPresenceChannel after user and seller IDs are known
+
+
+let sellerId = null; // Declare sellerId globally
+
+    (async () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        sellerId = urlParams.get('seller_id'); // Assign value to the global sellerId
+
+        if (!sellerId) {
+            alert('Seller ID is missing.');
+            window.location.href = 'index.html';
+            return;
+        }
+
+        // New code to pre-fill message content from URL parameter
+        const prefillMessage = urlParams.get('message');
+        if (prefillMessage) {
+            const messageContentElem = document.getElementById('messageContent');
+            if (messageContentElem) {
+                messageContentElem.value = decodeURIComponent(prefillMessage);
+            }
+        }
+
+        console.log('Seller ID:', sellerId);
+
+        const { data: session, error: sessionError } = await supabaseClient.auth.getSession();
+
+        if (sessionError || !session || !session.session) {
+            console.error('User is not authenticated:', sessionError);
+            alert('You must be logged in to send a message.');
+            window.location.href = 'Login_page.html'; // Redirect to login page
+            return;
+        }
+
+        const user = session.session.user;
+        senderUid = user.id;
+        console.log('Sender UID:', senderUid);
+
+        const { data: student, error: studentError } = await supabaseClient
+            .from('student')
+            .select('stud_id')
+            .eq('stud_email', user.email)
+            .single();
+
+        if (studentError || !student) {
+            console.error('Error fetching student ID:', studentError);
+            alert('Unable to fetch your student information.');
+            return;
+        }
+
+        loggedInStudId = student.stud_id; // Assign the student's ID
+        console.log('Authenticated user:', { senderUid, loggedInStudId });
+
+        // Fetch or create conversation between loggedInStudId and sellerId
+        let currentConversationId = null;
+        console.log('loggedInStudId:', loggedInStudId, 'sellerId:', sellerId);
+
+                // Order user IDs to satisfy user_order check constraint (user1_id < user2_id)
+                let user1_id = parseInt(loggedInStudId, 10);
+                let user2_id = parseInt(sellerId, 10);
+
+                // Handle case where user1_id equals user2_id (same user)
+                if (user1_id === user2_id) {
+                    // Use existing conversation if any or alert and return
+                    const { data: existingConversations, error: existingError } = await supabaseClient
+                        .from('conversation')
+                        .select('conversation_id')
+                        .or(`and(user1_id.eq.${user1_id},user2_id.eq.${user2_id})`)
+                        .limit(1);
+
+                    if (existingError) {
+                        console.error('Error checking existing conversation:', existingError);
+                        alert('Failed to load conversation.');
+                        return;
+                    }
+
+                    if (existingConversations && existingConversations.length > 0) {
+                        currentConversationId = existingConversations[0].conversation_id;
+                        return;
+                    } else {
+                        alert('Cannot create conversation with yourself.');
+                        return;
+                    }
+                }
+
+                // Ensure user1_id < user2_id to satisfy check constraint
+                if (user1_id > user2_id) {
+                    [user1_id, user2_id] = [user2_id, user1_id];
+                }
+
+                // Fetch UUIDs for user1 and user2
+                const { data: user1Data, error: user1Error } = await supabaseClient
+                    .from('student')
+                    .select('user_id')
+                    .eq('stud_id', user1_id)
+                    .single();
+
+                const { data: user2Data, error: user2Error } = await supabaseClient
+                    .from('student')
+                    .select('user_id')
+                    .eq('stud_id', user2_id)
+                    .single();
+
+                if (user1Error || user2Error) {
+                    console.error('Error fetching user UUIDs:', user1Error || user2Error);
+                    alert('Failed to fetch user UUIDs.');
+                    return;
+                }
+
+                const user1_uuid = user1Data.user_id;
+                const user2_uuid = user2Data.user_id;
+
+                try {
+                    const { data: existingConversations, error: existingError } = await supabaseClient
+                        .from('conversation')
+                        .select('conversation_id')
+                        .or(`and(user1_id.eq.${user1_id},user2_id.eq.${user2_id})`)
+                        .limit(1);
+
+                    if (existingError) {
+                        console.error('Error checking existing conversation:', existingError);
+                        alert('Failed to load conversation.');
+                        return;
+                    }
+
+                    if (existingConversations && existingConversations.length > 0) {
+                        currentConversationId = existingConversations[0].conversation_id;
+                    } else {
+                        // Create new conversation
+                        console.log('Creating new conversation with user1_id:', user1_id, 'user2_id:', user2_id);
+                        // Ensure user1_id < user2_id and user1_uuid and user2_uuid correspond accordingly
+                        let insertData;
+                        if (user1_id < user2_id) {
+                            insertData = { user1_id, user2_id, user1_uuid, user2_uuid };
+                        } else {
+                            insertData = { user1_id: user2_id, user2_id: user1_id, user1_uuid: user2_uuid, user2_uuid: user1_uuid };
+                        }
+                        // Log insertData for debugging
+                        console.log('Insert data for new conversation:', insertData);
+                        // Validate that user1_id < user2_id before insert to avoid check constraint violation
+                        if (insertData.user1_id >= insertData.user2_id) {
+                            console.error('Invalid insertData: user1_id must be less than user2_id');
+                            alert('Failed to create conversation due to invalid user order.');
+                            return;
+                        }
+                        const { data: newConversation, error: createError } = await supabaseClient
+                            .from('conversation')
+                            .insert([insertData])
+                            .select()
+                            .single();
+
+                        if (createError) {
+                            console.error('Error creating conversation:', createError);
+                            alert('Failed to create conversation.');
+                            return;
+                        }
+                        currentConversationId = newConversation.conversation_id;
+                    }
+                } catch (err) {
+                    console.error('Unexpected error:', err);
+                    alert('An unexpected error occurred.');
+                    return;
+                }
+
+        // Proceed with fetching seller profile and messages
+        await fetchSellerProfile(sellerId);
+        await fetchMessages(sellerId);
+        subscribeToMessages(sellerId);
+        setupPresenceChannel(loggedInStudId, sellerId);
+
+        console.log('Session:', session);
+        console.log('User:', session.session.user);
+
+        const sendButton = document.querySelector('#messageForm button[type="submit"]');
+        let isSending = false;
+
+        document.getElementById('messageForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            if (isSending) {
+                console.log('Message is already being sent. Please wait.');
+                return;
+            }
+
+            isSending = true;
+            sendButton.disabled = true;
+
+            const messageContent = document.getElementById('messageContent').value.trim();
+            const messagePhotosInput = document.getElementById('messagePhotos');
+            let messagePhotoUrls = [];
+
+            if (messagePhotosInput.files.length > 0) {
+                const files = Array.from(messagePhotosInput.files);
+                const uploadedUrls = [];
+
+                for (const file of files) {
+                    const fileName = `${Date.now()}-${file.name}`;
+                    const { data, error } = await supabaseClient.storage
+                        .from('message-photos')
+                        .upload(fileName, file);
+                    if (error) {
+                        console.error('Error uploading photo:', error);
+                        isSending = false;
+                        sendButton.disabled = false;
+                        return;
+                    }
+                    uploadedUrls.push(`${supabaseUrl}/storage/v1/object/public/message-photos/${fileName}`);
+                }
+                messagePhotoUrls = uploadedUrls;
+            }
+
+            if (!senderUid || !loggedInStudId) {
+                console.error('Sender UID or Student ID is not defined.');
+                alert('Unable to send the message. Please try again.');
+                isSending = false;
+                sendButton.disabled = false;
+                return;
+            }
+
+            console.log('Preparing to send message with data:', {
+                senderUid,
+                loggedInStudId,
+                sellerId,
+                messageContent,
+                messagePhotoUrls,
+                currentConversationId,
+            });
+
+            const { data: seller, error: sellerError } = await supabaseClient
+                .from('student')
+                .select('user_id')
+                .eq('stud_id', sellerId)
+                .single();
+
+            if (sellerError || !seller) {
+                console.error('Error fetching seller UID:', sellerError);
+                alert('Unable to find seller UID. Please contact support.');
+                isSending = false;
+                sendButton.disabled = false;
+                return;
+            }
+
+            const receiverUid = seller.user_id;
+
+            console.log('Inserting message with receiverUid:', receiverUid);
+
+            const { data: newMessage, error: insertError } = await supabaseClient
+                .from('message')
+                .insert({
+                    sender_id: loggedInStudId,
+                    receiver_id: sellerId,
+                    sender_uid: senderUid,
+                    receiver_uid: receiverUid,
+                    mess_content: messageContent || null,
+                    mess_photo: messagePhotoUrls.length > 0 ? messagePhotoUrls.join(',') : null,
+                    conversation_id: currentConversationId,
+                })
+                .select()
+                .single();
+
+            if (insertError) {
+                console.error('Error sending message:', insertError);
+                isSending = false;
+                sendButton.disabled = false;
+                return;
+            }
+
+            console.log('Message sent successfully:', newMessage);
+
+            // Insert notification for the receiver
+            const notificationContent = messageContent ? messageContent : 'Sent you a message';
+
+            // Use already fetched sellerUuid and senderUuid if available to avoid duplicate fetches
+            let receiverUuid = null;
+            let senderUuid = null;
+
+            // Attempt to reuse sellerUuid and senderUuid from earlier if possible
+            if (typeof sellerUserId !== 'undefined') {
+                receiverUuid = sellerUserId;
+            } else {
+                const { data: seller, error: sellerError } = await supabaseClient
+                    .from('student')
+                    .select('user_id')
+                    .eq('stud_id', sellerId)
+                    .single();
+
+                if (sellerError || !seller) {
+                    console.error('Error fetching seller UID:', sellerError);
+                    alert('Unable to find seller UID. Please contact support.');
+                    isSending = false;
+                    sendButton.disabled = false;
+                    return;
+                }
+                receiverUuid = seller.user_id;
+            }
+
+            if (typeof senderUserId !== 'undefined') {
+                senderUuid = senderUserId;
+            } else {
+                const { data: sender, error: senderError } = await supabaseClient
+                    .from('student')
+                    .select('user_id')
+                    .eq('stud_id', loggedInStudId)
+                    .single();
+
+                if (senderError || !sender) {
+                    console.error('Error fetching sender UID:', senderError);
+                    alert('Unable to find sender UID. Please contact support.');
+                    isSending = false;
+                    sendButton.disabled = false;
+                    return;
+                }
+                senderUuid = sender.user_id;
+            }
+
+            const { data: newNotification, error: notificationError } = await supabaseClient
+                .from('notifications')
+                .insert({
+                    receiver_id: sellerId,
+                    sender_id: loggedInStudId,
+                    receiver_uuid: receiverUuid,
+                    sender_uuid: senderUuid,
+                    type: 'message',
+                    content: notificationContent,
+                });
+
+            if (notificationError) {
+                console.error('Error inserting notification:', notificationError);
+            } else {
+                console.log('Notification inserted:', newNotification);
+            }
+
+            console.log('Updating conversation with conversation_id:', currentConversationId, 'last_message_id mess_id:', newMessage.mess_id);
+
+            // Update conversation table's last_message_id and updated_at fields
+            const { data: updateData, error: updateConvError } = await supabaseClient
+                .from('conversation')
+                .update({
+                    last_message_id: newMessage.mess_id,
+                    updated_at: new Date().toISOString()
+                })
+                .eq('conversation_id', currentConversationId)
+                .select();
+
+            console.log('Update conversation response data:', updateData, 'error:', updateConvError);
+
+            if (updateConvError) {
+                console.error('Error updating conversation last_message_id:', updateConvError);
+            } else {
+                // Force a small delay to ensure DB update propagates for real-time
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
+
+            // Clear the input fields
+            document.getElementById('messageContent').value = '';
+            document.getElementById('messagePhotos').value = '';
+            document.getElementById('photoPreviewContainer').innerHTML = '';
+            document.getElementById('fileCountDisplay').textContent = '';
+
+            // Only refresh messages after sending
+            await fetchMessages(sellerId);
+
+            isSending = false;
+            sendButton.disabled = false;
+        });
+
+    // Preview selected images
+    const messagePhotosInput = document.getElementById('messagePhotos');
+    const photoPreviewContainer = document.getElementById('photoPreviewContainer');
+
+    function updateFileCountDisplay(files) {
+        const fileCountDisplay = document.getElementById('fileCountDisplay');
+        if (files.length === 0) {
+            fileCountDisplay.textContent = 'No files selected';
+        } else if (files.length === 1) {
+            fileCountDisplay.textContent = '1 file selected';
+        } else {
+            fileCountDisplay.textContent = `${files.length} files selected`;
+        }
+    }
+
+    messagePhotosInput.addEventListener('change', () => {
+        photoPreviewContainer.innerHTML = '';
+        const files = Array.from(messagePhotosInput.files);
+
+        files.forEach((file, index) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const imgWrapper = document.createElement('div');
+                imgWrapper.className = 'relative inline-block';
+
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                img.className = 'h-20 w-20 object-cover rounded-lg border border-gray-300';
+
+                const deleteBtn = document.createElement('button');
+                deleteBtn.textContent = '×';
+                deleteBtn.className = 'absolute top-0 right-0 bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center cursor-pointer';
+                deleteBtn.title = 'Remove image';
+
+                deleteBtn.addEventListener('click', () => {
+                    // Remove the image preview
+                    imgWrapper.remove();
+
+                    // Remove the file from the input.files by matching file name
+                    const dt = new DataTransfer();
+                    const currentFiles = Array.from(messagePhotosInput.files);
+                    currentFiles.forEach((file) => {
+                        if (file.name !== files[index].name) {
+                            dt.items.add(file);
+                        }
+                    });
+                    messagePhotosInput.files = dt.files;
+
+                    // Update file count display after deletion
+                    updateFileCountDisplay(Array.from(messagePhotosInput.files));
+                });
+
+                imgWrapper.appendChild(img);
+                imgWrapper.appendChild(deleteBtn);
+                photoPreviewContainer.appendChild(imgWrapper);
+            };
+            reader.readAsDataURL(file);
+        });
+
+        // Update file count display on change
+        updateFileCountDisplay(files);
+
+        // Clear the default file input filename display
+        // Removing this line as it may interfere with file input state
+        // messagePhotosInput.value = '';
+    });
+
+    // Send message on Enter key press (without Shift)
+    document.getElementById('messageContent').addEventListener('keydown', function(event) {
+        if (event.key === 'Enter' && !event.shiftKey) {
+            event.preventDefault();
+            document.getElementById('messageForm').dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+        }
+    });
+
+    // Auto-send message if prefillMessage exists
+    if (prefillMessage) {
+        const form = document.getElementById('messageForm');
+        if (form) {
+            form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+        }
+    }
+        
+    })();
+
+
+
+    async function fetchSellerProfile(sellerId) {
+        const { data: seller, error } = await supabaseClient
+            .from('student')
+            .select('stud_fname, stud_lname, stud_school, stud_picture')
+            .eq('stud_id', sellerId)
+            .single();
+
+        if (error) {
+            console.error('Error fetching seller profile:', error);
+            return;
+        }
+
+        document.getElementById('sellerName').innerText = `${seller.stud_fname} ${seller.stud_lname}`;
+        document.getElementById('sellerSchool').innerText = seller.stud_school;
+        document.getElementById('sellerProfilePicture').src = seller.stud_picture || 'Homepage_images/circle-user.png';
+    }
+
+async function fetchMessages(sellerId) {
+    const messageContainer = document.getElementById('messageContainer');
+    // Allow a threshold of 5px to consider user at bottom
+    const threshold = 5;
+    const isAtBottom = (messageContainer.scrollHeight - messageContainer.scrollTop - messageContainer.clientHeight) <= threshold;
+
+    const previousScrollTop = messageContainer.scrollTop;
+
+    const { data: messages, error } = await supabaseClient
+        .from('message')
+        .select('*')
+        .or(
+            `and(sender_id.eq.${loggedInStudId},receiver_id.eq.${sellerId}),and(sender_id.eq.${sellerId},receiver_id.eq.${loggedInStudId})`
+        )
+        .order('mess_created', { ascending: true });
+
+    if (error) {
+        console.error('Error fetching messages:', error);
+        return;
+    }
+
+    messageContainer.innerHTML = '';
+
+    messages.forEach(message => {
+        appendMessageToUI(message, loggedInStudId);
+    });
+
+    // After rendering messages, mark unread messages as read for messages received by loggedInStudId
+    const unreadMessageIds = messages
+        .filter(msg => msg.receiver_id === loggedInStudId && !msg.is_read)
+        .map(msg => msg.mess_id);
+
+    if (unreadMessageIds.length > 0) {
+        const { error: updateError } = await supabaseClient
+            .from('message')
+            .update({ is_read: true })
+            .in('mess_id', unreadMessageIds);
+
+        if (updateError) {
+            console.error('Error updating message read status:', updateError);
+        }
+    }
+
+    // Fallback: mark messages as read immediately after fetching regardless of presence
+    await markMessagesAsRead();
+
+    // Adjust scroll position to preserve user's view if not at bottom
+    if (!isAtBottom) {
+        // Restore previous scrollTop to prevent jump when user scrolls up
+        messageContainer.scrollTop = previousScrollTop;
+    } else {
+        // If user is at bottom, scroll to bottom after rendering
+        messageContainer.scrollTop = messageContainer.scrollHeight;
+    }
+}
+
+
+function appendMessageToUI(message, loggedInStudId) {
+    const messageContainer = document.getElementById('messageContainer');
+    const isAtBottom = messageContainer.scrollHeight - messageContainer.scrollTop === messageContainer.clientHeight;
+
+    const messageDiv = document.createElement('div');
+    // Add a class for unread messages received by loggedInStudId
+    const isUnread = message.receiver_id === loggedInStudId && !message.is_read;
+    messageDiv.className = `message ${message.sender_id === loggedInStudId ? 'sent' : 'received'}${isUnread ? ' unread' : ''}`;
+
+    // Convert message.mess_created to Philippine Standard Time string
+    let messageTime = '';
+    if (message.mess_created) {
+        const date = new Date(message.mess_created + 'Z'); // Ensure UTC parsing
+        // Convert to Philippine Standard Time (UTC+8)
+        const pstDate = new Date(date.toLocaleString('en-US', { timeZone: 'Asia/Manila' }));
+        messageTime = pstDate.toLocaleString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true,
+        });
+    }
+
+    // Check mark icons for read/unread status with color adjustment
+    // Use CSS classes instead of inline styles for better control
+    // Use distinct symbols for debugging color issue
+    const checkMarkLight = '<span class="checkmark-unread">✗</span>'; // light gray cross mark for unread
+    const checkMarkDark = '<span class="checkmark-read">✔️</span>'; // dark blue check mark for read
+
+    // Determine if the message is sent by the logged-in user
+    const isSender = message.sender_id === loggedInStudId;
+
+    // Debug log for is_read value
+    console.log(`Message ID: ${message.mess_id}, is_read: ${message.is_read}, type: ${typeof message.is_read}`);
+
+    // For messages sent by the logged-in user, check if the receiver has read it (is_read true)
+    // Simplify to boolean check since is_read is boolean in DB
+    const rawIsRead = message.is_read;
+    const isReadBool = rawIsRead === true;
+    console.log(`Message ID: ${message.mess_id}, raw is_read: ${rawIsRead}, coerced isReadBool: ${isReadBool}`);
+    const checkMarkIcon = isSender
+        ? (isReadBool ? checkMarkDark : checkMarkLight)
+        : '';
+
+    // Handle multiple images separated by commas
+    let imagesHtml = '';
+    if (message.mess_photo) {
+        const photoUrls = message.mess_photo.split(',');
+        imagesHtml = photoUrls.map(url => `<img src="${url.trim()}" class="mt-2 max-w-xs rounded-lg mr-2">`).join('');
+    }
+
+    messageDiv.innerHTML = `
+        ${message.mess_content || ''}
+        ${imagesHtml}
+        <div style="font-size: 0.75rem; color: #999; margin-top: 4px; display: flex; justify-content: space-between; align-items: center;">
+            <span>${messageTime}</span>
+            <span class="checkmark" style="margin-left: 8px;">${checkMarkIcon}</span>
+        </div>
+    `;
+    messageContainer.appendChild(messageDiv);
+
+    // Remove auto scroll to bottom on new message append to prevent scroll jump when user scrolls up
+    // if (isAtBottom) {
+    //     messageContainer.scrollTop = messageContainer.scrollHeight;
+    // }
+}
+
+
+console.log('Subscribing to real-time updates for sellerId:', sellerId);
+
+// Add periodic polling to fetch messages and mark as read every 5 seconds
+setInterval(() => {
+    if (sellerId && loggedInStudId) {
+        fetchMessages(sellerId);
+        markMessagesAsRead();
+    }
+}, 5000);
+
+document.addEventListener('click', function(e) {
+    if (e.target.matches('.message img')) {
+        // Send message to parent to open fullscreen zoom
+        if (window.parent && window.parent !== window) {
+            window.parent.postMessage({
+                type: 'zoomImage',
+                src: e.target.src
+            }, '*');
+        } else {
+            // Fallback: open modal in this window with zoom animation
+
+            const modal = document.getElementById('imageZoomModal');
+            const zoomed = document.getElementById('zoomedImage');
+
+            // Set initial position and size of zoomed image to match clicked image
+            const rect = e.target.getBoundingClientRect();
+
+            zoomed.style.transition = 'none';
+            zoomed.style.position = 'fixed';
+            zoomed.style.top = rect.top + 'px';
+            zoomed.style.left = rect.left + 'px';
+            zoomed.style.width = rect.width + 'px';
+            zoomed.style.height = rect.height + 'px';
+            zoomed.style.maxWidth = 'none';
+            zoomed.style.maxHeight = 'none';
+            zoomed.style.borderRadius = '8px';
+            zoomed.style.boxShadow = '0 4px 24px rgba(0,0,0,0.4)';
+            zoomed.src = e.target.src;
+
+            modal.style.display = 'flex';
+            modal.style.justifyContent = 'center';
+            modal.style.alignItems = 'center';
+
+            // Force reflow to apply initial styles before transition
+            zoomed.getBoundingClientRect();
+
+            // Animate to center with max size
+            zoomed.style.transition = 'all 0.3s ease';
+            zoomed.style.top = '50%';
+            zoomed.style.left = '50%';
+            zoomed.style.width = '90vw';
+            zoomed.style.height = 'auto';
+            zoomed.style.maxWidth = '90vw';
+            zoomed.style.maxHeight = '90vh';
+            zoomed.style.borderRadius = '12px';
+            zoomed.style.boxShadow = '0 4px 24px rgba(0,0,0,0.4)';
+            zoomed.style.transform = 'translate(-50%, -50%)';
+        }
+    }
+});
+
+document.getElementById('imageZoomModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        // Animate zoom out before closing
+        const zoomed = document.getElementById('zoomedImage');
+
+        // Get original image position from dataset if available
+        const originalRect = zoomed.dataset.originalRect ? JSON.parse(zoomed.dataset.originalRect) : null;
+
+        if (originalRect) {
+            zoomed.style.transition = 'all 0.3s ease';
+            zoomed.style.top = originalRect.top + 'px';
+            zoomed.style.left = originalRect.left + 'px';
+            zoomed.style.width = originalRect.width + 'px';
+            zoomed.style.height = originalRect.height + 'px';
+            zoomed.style.transform = 'translate(0, 0)';
+            zoomed.style.borderRadius = '8px';
+
+            // After transition ends, hide modal and clear src
+            zoomed.addEventListener('transitionend', function handler() {
+                const modal = document.getElementById('imageZoomModal');
+                modal.style.display = 'none';
+                zoomed.src = '';
+                zoomed.style.transition = 'none';
+                zoomed.style.position = '';
+                zoomed.style.top = '';
+                zoomed.style.left = '';
+                zoomed.style.width = '';
+                zoomed.style.height = '';
+                zoomed.style.maxWidth = '';
+                zoomed.style.maxHeight = '';
+                zoomed.style.borderRadius = '';
+                zoomed.style.boxShadow = '';
+                zoomed.style.transform = '';
+                zoomed.removeEventListener('transitionend', handler);
+            });
+        } else {
+            // No original position, just hide modal
+            this.style.display = 'none';
+            zoomed.src = '';
+        }
+    }
+});
+
+
+    </script>
+    <script>
+        // Add event listener for return button to navigate to conversations page myconversation.html
+        document.getElementById('returnToConversationsBtn').addEventListener('click', () => {
+            window.location.href = 'myconversation.html';
+        });
+    </script>
+</body>
+</html>

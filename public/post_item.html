@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Post Item</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+    />
+    <style>
+        .image-preview {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .image-preview img {
+            width: 100px;
+            height: auto;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .loading-spinner {
+            background: white;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            text-align: center;
+        }
+        .loading-spinner i {
+            font-size: 2rem;
+            color: #084F6A;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <!-- Add loading overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner">
+            <i class="fas fa-spinner"></i>
+            <p class="mt-2 text-gray-700">Uploading files...</p>
+        </div>
+    </div>
+    <header class="bg-[#084F6A] p-8 flex justify-between items-center">
+        <div class="flex flex-col items-center space-y-2 -mt-4">
+            <div class="flex items-center space-x-2 text-sm">
+                <i class="fas fa-user-circle text-white text-xl"></i>
+                <a class="text-white" href="ViewProfile.html">Visit your profile</a>
+            </div>
+            <div class="ml-16">
+                <img
+                    src="Homepage_images/LOGO_WHITE.png"
+                    alt="CampLea Logo"
+                    class="mx-auto"
+                    width="152"
+                    height="42"
+                />
+            </div>
+        </div>
+        <div class="flex items-center space-x-4 -mt-16 text-sm">
+            <a class="text-white flex items-center" href="#"
+                ><i class="fas fa-bell mr-2"></i>Notifications</a
+            >
+            <a class="text-white" href="Login_page.html">Logout</a>
+        </div>
+    </header>
+    <main class="max-w-4xl mx-auto p-6 bg-white mt-6 shadow-md rounded-md">
+        <form>
+            <div class="mb-4">
+                <label
+                    class="block text-gray-700 text-sm font-bold mb-2"
+                    for="title"
+                    >Title</label
+                >
+                <p class="text-gray-600 text-xs italic">
+                    Use words people would search for when looking for your item.
+                </p>
+                <input
+                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                    id="title"
+                    type="text"
+                    placeholder="Add title here."
+                    required
+                />
+            </div>
+            <div class="mb-4">
+                <label
+                    class="block text-gray-700 text-sm font-bold mb-2"
+                    for="meeting_place"
+                    >Meeting Place</label
+                >
+                <p class="text-gray-600 text-xs italic">
+                    Specific location should not be shared and should be discuss with
+                    the buyer instead for safety.
+                </p>
+                <input
+                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                    id="meeting_place"
+                    type="text"
+                    placeholder="Provide meeting place here."
+                    required
+                />
+            </div>
+            <div class="mb-4">
+                <label
+                    class="block text-gray-700 text-sm font-bold mb-2"
+                    >Item Specifics</label
+                >
+                <p class="text-gray-600 text-xs italic">
+                    Please be honest about the details of the item to avoid conflicts.
+                </p>
+
+                <div class="mb-2">
+                    <label
+                        class="block text-gray-700 text-sm mb-2"
+                        for="condition"
+                        >Item Condition</label
+                    >
+                    <select
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        id="condition"
+                        required
+                    >
+                        <option value="">Select ungraded condition</option>
+                        <option value="brand new">Brand New</option>
+                        <option value="gently used">Gently Used</option>
+                        <option value="heavily used">Heavily Used</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label
+                        class="block text-gray-700 text-sm mb-2"
+                        for="item_type"
+                        >Item Type</label
+                    >
+                    <select
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        id="item_type"
+                        required
+                    >
+                        <option value="">Select Item Type</option>
+                        <option value="books & school supplies">
+                            Books & School Supplies
+                        </option>
+                        <option value="clothes & accessories">Clothes & Accessories</option>
+                        <option value="gadgets & electronics">Gadgets & Electronics</option>
+                        <option value="instruments & recreations">
+                            Instruments & Recreations
+                        </option>
+                        <option value="crafted & collectibles">Crafted & Collectibles</option>
+                        <option value="sports & fitness">Sports & Fitness</option>
+                    </select>
+                </div>
+            </div>
+            <div class="mb-4">
+                <label
+                    class="block text-gray-700 text-sm font-bold mb-2"
+                    for="description"
+                    >Photos & Video</label
+                >
+                <p class="text-gray-600 text-xs italic mb-2">
+                    You can add photos and a 1-minute video. Buyers want to see all
+                    details and angles.
+                </p>
+
+                <div
+                    class="border-2 border-dashed border-gray-400 rounded-lg p-6 text-center"
+                >
+                    <p class="text-gray-600 mb-2">Drag and drop files</p>
+                    <input
+                        type="file"
+                        id="file-upload"
+                        accept="image/*,video/mp4"
+                        multiple
+                        class="hidden"
+                    />
+                    <label
+                        for="file-upload"
+                        class="bg-gray-200 text-gray-700 py-2 px-4 rounded cursor-pointer"
+                        >Upload from Computer</label
+                    >
+                    <div class="image-preview" id="image-preview"></div>
+                </div>
+            </div>
+            <div class="mb-4">
+                <label
+                    class="block text-gray-700 text-sm font-bold mb-2"
+                    for="description"
+                    >Item Description</label
+                >
+                <p class="text-gray-600 text-xs italic">
+                    Include all the necessary details of the product, reason for
+                    selling, etc.
+                </p>
+                <textarea
+                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                    id="description"
+                    rows="5"
+                    placeholder="Add detailed description here."
+                    required
+                ></textarea>
+            </div>
+            <div class="mb-4">
+                <label
+                    class="block text-gray-700 text-sm font-bold mb-2"
+                    >Pricing</label
+                >
+                <p class="text-gray-600 text-xs italic mb-2">Set the price of your item.</p>
+
+                <div class="mb-2">
+                    <label class="inline-flex items-center mr-4">
+                        <input
+                            type="radio"
+                            name="price_type"
+                            value="single"
+                            checked
+                            class="form-radio"
+                        />
+                        <span class="ml-2">Single Price</span>
+                    </label>
+                    <label class="inline-flex items-center mr-4">
+                        <input
+                            type="radio"
+                            name="price_type"
+                            value="range"
+                            class="form-radio"
+                        />
+                        <span class="ml-2">Price Range</span>
+                    </label>
+                    <label class="inline-flex items-center">
+                        <input
+                            type="radio"
+                            name="price_type"
+                            value="hidden"
+                            class="form-radio"
+                        />
+                        <span class="ml-2">Hidden Price</span>
+                    </label>
+                </div>
+
+                <div id="single-price-container" class="mb-2">
+                    <input
+                        class="shadow appearance-none border rounded w-1/3 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        id="price"
+                        type="number"
+                        placeholder="PHP"
+                    />
+                </div>
+
+                <div id="range-price-container" class="mb-2 hidden">
+                    <input
+                        class="shadow appearance-none border rounded w-1/4 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline mr-2"
+                        id="price_min"
+                        type="number"
+                        placeholder="Min Price PHP"
+                    />
+                    <input
+                        class="shadow appearance-none border rounded w-1/4 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        id="price_max"
+                        type="number"
+                        placeholder="Max Price PHP"
+                    />
+                </div>
+            </div>
+            <div id="error-message" style="
+                position: fixed;
+                top: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                z-index: 1000;
+                background-color: #e74c3c;
+                color: white;
+                padding: 12px 24px;
+                border-radius: 5px;
+                font-weight: bold;
+                display: none;
+                box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+                max-width: 90%;
+                text-align: center;
+                            "></div>
+            <div class="flex justify-between">
+                <button
+                    type="button"
+                    class="bg-[#084F6A] text-white py-2 px-16 rounded"
+                    onclick="closePostItemPopup()"
+                >
+                    Cancel
+                </button>
+
+                <button
+                    type="submit"
+                    class="bg-[#084F6A] text-white py-2 px-16 rounded"
+                >
+                    Post
+                </button>
+            </div>
+        </form>
+    </main>
+
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+        import imageCompression from 'https://cdn.jsdelivr.net/npm/browser-image-compression/+esm';
+
+        const supabase = createClient(
+            'https://wuhgqjeijmxsgvnykttj.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind1aGdxamVpam14c2d2bnlrdHRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI4MjkzMDQsImV4cCI6MjA1ODQwNTMwNH0._lZy7CE2A8HM1hatjGYrMR8QAUi8nk4L_EuV7Fojhwg'
+        );
+
+        // Toggle price input fields based on price type selection
+        function togglePriceInputs() {
+            const priceType = document.querySelector('input[name="price_type"]:checked').value;
+            const singlePriceContainer = document.getElementById('single-price-container');
+            const rangePriceContainer = document.getElementById('range-price-container');
+
+            if (priceType === 'single') {
+                singlePriceContainer.classList.remove('hidden');
+                rangePriceContainer.classList.add('hidden');
+                document.getElementById('price').required = true;
+                document.getElementById('price_min').required = false;
+                document.getElementById('price_max').required = false;
+            } else if (priceType === 'range') {
+                singlePriceContainer.classList.add('hidden');
+                rangePriceContainer.classList.remove('hidden');
+                document.getElementById('price').required = false;
+                document.getElementById('price_min').required = true;
+                document.getElementById('price_max').required = true;
+            } else if (priceType === 'hidden') {
+                singlePriceContainer.classList.add('hidden');
+                rangePriceContainer.classList.add('hidden');
+                document.getElementById('price').required = false;
+                document.getElementById('price_min').required = false;
+                document.getElementById('price_max').required = false;
+            }
+        }
+
+        // Add event listeners to price type radio buttons
+        document.querySelectorAll('input[name="price_type"]').forEach((elem) => {
+            elem.addEventListener('change', togglePriceInputs);
+        });
+
+        // Initialize price inputs visibility on page load
+        togglePriceInputs();
+
+        // ✅ Image Preview
+        let uploadedPhotos = [];
+        document.getElementById('file-upload').addEventListener('change', async function (event) {
+            const files = event.target.files;
+            const previewContainer = document.getElementById('image-preview');
+            const loadingOverlay = document.getElementById('loadingOverlay');
+
+            // Show loading overlay
+            loadingOverlay.style.display = 'flex';
+
+            try {
+                // Append new files to uploadedPhotos array
+                uploadedPhotos = uploadedPhotos.concat(Array.from(files));
+
+                previewContainer.innerHTML = '';
+
+                // Show all photos in uploadedPhotos array
+                for (const file of uploadedPhotos) {
+                    const filePath = `${Date.now()}_${file.name}`;
+
+                    // Check if filePath already uploaded to avoid duplicate uploads
+                    if (!file.uploadedPath) {
+                        const { data, error } = await supabase.storage
+                            .from('item-photos')
+                            .upload(filePath, file);
+
+                        if (error) {
+                            console.error('Error uploading file:', error);
+                            alert('Failed to upload file.');
+                            return;
+                        }
+                        file.uploadedPath = filePath; // Mark file as uploaded with path
+                    }
+
+                    const publicURL = `https://wuhgqjeijmxsgvnykttj.supabase.co/storage/v1/object/public/item-photos/${file.uploadedPath}`;
+
+                    // Add the uploaded photo to the preview
+                    const imgContainer = document.createElement('div');
+                    imgContainer.className = 'relative inline-block';
+
+                    const img = document.createElement('img');
+                    img.src = publicURL;
+                    img.className = 'w-24 h-24 object-cover rounded border border-gray-300';
+
+                    const deleteButton = document.createElement('button');
+                    deleteButton.className =
+                        'absolute top-0 right-0 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center';
+                    deleteButton.innerHTML = '&times;';
+
+                    // Delete functionality for newly uploaded photo
+                    deleteButton.onclick = async (event) => {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        // Remove file from uploadedPhotos array
+                        uploadedPhotos = uploadedPhotos.filter(f => f !== file);
+                        await deleteFileFromSupabase(file.uploadedPath); // Delete from Supabase
+                        imgContainer.remove(); // Remove from DOM preview
+                        // Prevent form submission on delete button click
+                        return false;
+                    };
+
+                    imgContainer.appendChild(img);
+                    imgContainer.appendChild(deleteButton);
+                    previewContainer.appendChild(imgContainer);
+                }
+            } finally {
+                // Hide loading overlay
+                loadingOverlay.style.display = 'none';
+            }
+        });
+
+        function showBanner(message, type = "error") {
+    const errorMessage = document.getElementById("error-message");
+
+    errorMessage.style.display = "block";
+    errorMessage.textContent = (type === "success" ? "✅ " : "❌ ") + message;
+
+    if (type === "success") {
+        errorMessage.style.backgroundColor = "#2ecc71"; // green
+    } else {
+        errorMessage.style.backgroundColor = "#e74c3c"; // red
+    }
+
+    // Auto-hide after 3 seconds
+    setTimeout(() => {
+        errorMessage.style.display = "none";
+    }, 3000);
+}
+
+        // Function to delete a file from Supabase storage
+        async function deleteFileFromSupabase(filePath) {
+            const { error } = await supabase.storage.from('item-photos').remove([filePath]);
+
+            if (error) {
+                console.error('Error deleting file from Supabase:', error);
+                alert('Failed to delete file from storage.');
+            } else {
+                console.log('File deleted successfully from Supabase:', filePath);
+            }
+        }
+
+        // ✅ Form Submission
+        document.querySelector('form').addEventListener('submit', async function (event) {
+            event.preventDefault();
+
+            const files = document.getElementById('file-upload').files;
+            if (files.length === 0) {
+                alert('Please upload at least one image or video before posting.');
+                return;
+            }
+
+            const studId = sessionStorage.getItem('stud_id');
+            if (!studId) {
+                alert('Student ID not found. Please log in again.');
+                return;
+            }
+
+            const submitButton = event.target.querySelector('button[type="submit"]');
+            submitButton.disabled = true;
+            submitButton.innerText = 'Posting...';
+
+            let photos = [];
+
+            for (let file of files) {
+                try {
+                    // ✅ Compress the image
+                    const options = {
+                        maxSizeMB: 1,
+                        maxWidthOrHeight: 1920,
+                        useWebWorker: true,
+                    };
+                    const compressedFile = await imageCompression(file, options);
+
+                    const filePath = `${Date.now()}_${file.name}`;
+                    const { data, error } = await supabase.storage
+                        .from('item-photos')
+                        .upload(filePath, compressedFile);
+
+                    if (error) {
+                        alert('Image upload failed: ' + error.message);
+                        submitButton.disabled = false;
+                        submitButton.innerText = 'Post';
+                        return;
+                    }
+
+                    const publicURL = `https://wuhgqjeijmxsgvnykttj.supabase.co/storage/v1/object/public/item-photos/${filePath}`;
+                    photos.push(publicURL);
+                } catch (err) {
+                    alert('Compression or upload error: ' + err.message);
+                    submitButton.disabled = false;
+                    submitButton.innerText = 'Post';
+                    return;
+                }
+            }
+
+            const priceType = document.querySelector('input[name="price_type"]:checked').value;
+
+            let itemPrice = null;
+            let itemPriceMin = null;
+            let itemPriceMax = null;
+
+            if (priceType === 'single') {
+                itemPrice = document.getElementById('price').value.trim();
+                if (itemPrice === '' || isNaN(itemPrice)) {
+                    alert('Please enter a valid price.');
+                    submitButton.disabled = false;
+                    submitButton.innerText = 'Post';
+                    return;
+                }
+            } else if (priceType === 'range') {
+                itemPriceMin = document.getElementById('price_min').value.trim();
+                itemPriceMax = document.getElementById('price_max').value.trim();
+                if (
+                    itemPriceMin === '' ||
+                    isNaN(itemPriceMin) ||
+                    itemPriceMax === '' ||
+                    isNaN(itemPriceMax)
+                ) {
+                    alert('Please enter valid minimum and maximum prices.');
+                    submitButton.disabled = false;
+                    submitButton.innerText = 'Post';
+                    return;
+                }
+                if (parseFloat(itemPriceMin) > parseFloat(itemPriceMax)) {
+                    alert('Minimum price cannot be greater than maximum price.');
+                    submitButton.disabled = false;
+                    submitButton.innerText = 'Post';
+                    return;
+                }
+            } else if (priceType === 'hidden') {
+                // No price needed
+            }
+
+        // Get authenticated user's UUID from Supabase auth session
+        const {
+            data: { session },
+            error: sessionError,
+        } = await supabase.auth.getSession();
+
+        if (sessionError || !session) {
+            alert('You must be logged in to post an item.');
+            submitButton.disabled = false;
+            submitButton.innerText = 'Post';
+            return;
+        }
+
+        const userId = session.user.id;
+
+        // Log auth.role, user_id, and auth.uid for debugging
+        console.log('auth.role():', session.user.role);
+        console.log('user_id sent in payload:', userId);
+        console.log('auth.uid():', userId);
+
+        // Removed alert popup for cleaner UX
+        // alert(`auth.role(): ${session.user.role}\nuser_id sent in payload: ${userId}\nauth.uid(): ${userId}`);
+
+        const payload = {
+            user_id: userId,  // Add user_id for RLS ownership
+            stud_id: studId,
+            item_name: document.getElementById('title').value,
+            meeting_place: document.getElementById('meeting_place').value,
+            item_description: document.getElementById('description').value,
+            item_price_type: priceType,
+            item_price: itemPrice,
+            item_price_min: itemPriceMin,
+            item_price_max: itemPriceMax,
+            item_condition: document.getElementById('condition').value,
+            item_type: document.getElementById('item_type').value,
+            photos: photos,
+            item_status: 'available'
+        };
+
+            try {
+    const response = await fetch('http://localhost:5000/post-item', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify(payload),
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+        showBanner('Item posted successfully!', 'success');
+        event.target.reset();
+        document.getElementById('image-preview').innerHTML = '';
+        photos = [];
+    } else {
+        showBanner('Failed to post item: ' + result.message, 'error');
+    }
+} catch (err) {
+    showBanner('Error: ' + err.message, 'error');
+}
+
+submitButton.disabled = false;
+submitButton.innerText = 'Post';
+        });
+    </script>
+<script>
+  // Hide the header if loaded inside an iframe
+  if (window.self !== window.top) {
+    const header = document.querySelector('header');
+    if (header) {
+      header.style.display = 'none';
+    }
+  }
+
+  // Function to close the post item popup
+  function closePostItemPopup() {
+    // Assuming this page is loaded in a modal or iframe, hide or close it
+    // If this page is embedded in an iframe or modal, you can hide the modal container
+    // For example, if this page is in an iframe inside a modal div with id 'postItemModal':
+    const modal = window.parent.document.getElementById('postItemModal');
+    if (modal) {
+      modal.style.display = 'none';
+    } else {
+      // If no modal container found, fallback to resetting form and hiding content
+      document.querySelector('form').reset();
+      document.getElementById('image-preview').innerHTML = '';
+    }
+  }
+</script>
+</body>
+</html>

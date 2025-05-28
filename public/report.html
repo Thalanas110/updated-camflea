@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Report User</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f2f2f2;
+      margin: 0;
+      padding: 0;
+    }
+    .profile-header {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: flex-start;
+      background: #084F6A;
+      border-radius: 16px;
+      padding: 12px 28px 12px 18px;
+      margin-bottom: 28px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+      max-width: 370px;
+      margin-left: auto;
+      margin-right: auto;
+      height: 80px;
+      min-width: 260px;
+    }
+    .profile-header img {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid #fff;
+      margin-right: 18px;
+      background: #fff;
+      flex-shrink: 0;
+    }
+    .profile-header .profile-details {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .profile-header .profile-name {
+      color: #fff;
+      font-size: 1.13rem;
+      font-weight: bold;
+      margin-bottom: 2px;
+      text-align: left;
+      line-height: 1.1;
+    }
+    .profile-header .profile-school {
+      color: #e0e0e0;
+      font-size: 0.97rem;
+      text-align: left;
+      line-height: 1.1;
+    }
+    .report-title, h1 {
+      text-align: center;
+      font-size: 1.1rem;
+      font-weight: bold;
+      margin-bottom: 24px;
+      margin-top: 0;
+      color: #222;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto 40px auto;
+      background: white;
+      padding: 32px 32px 24px 32px;
+      border-radius: 18px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+    }
+    .violation-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px 24px;
+      margin-bottom: 28px;
+    }
+    .violation-option {
+      background: #f4f4f4;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 12px 18px;
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 500;
+      color: #222;
+      transition: border 0.2s, background 0.2s;
+      user-select: none;
+    }
+    .violation-option.selected, .violation-option:hover {
+      border: 2px solid #084F6A;
+      background: #e6f0f7;
+      color: #084F6A;
+    }
+    .violation-radio {
+      margin-right: 12px;
+      accent-color: #084F6A;
+    }
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: bold;
+      color: #084F6A;
+      font-size: 1rem;
+    }
+    .input-row {
+      margin-bottom: 22px;
+    }
+    select, textarea, input[type="text"] {
+      width: 100%;
+      padding: 10px 12px;
+      margin-bottom: 0;
+      border: 1.5px solid #ccc;
+      border-radius: 6px;
+      font-size: 15px;
+      box-sizing: border-box;
+      resize: vertical;
+      background: #fafbfc;
+      margin-top: 4px;
+    }
+    textarea {
+      min-height: 110px;
+    }
+    .drag-drop-area {
+      border: 2.5px dashed #222;
+      border-radius: 16px;
+      padding: 36px 0 32px 0;
+      text-align: center;
+      background: #faf9f7;
+      margin-bottom: 18px;
+      margin-top: 8px;
+      transition: border-color 0.2s, background 0.2s;
+      position: relative;
+      min-width: 240px;
+      min-height: 180px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      box-sizing: border-box;
+    }
+    .drag-drop-area.dragover {
+      border-color: #084F6A;
+      background: #e6f0f7;
+    }
+    .drag-drop-area input[type="file"] {
+      display: none;
+    }
+    .drag-drop-area .upload-icon {
+      font-size: 2.2rem;
+      color: #444;
+      margin-bottom: 10px;
+      display: block;
+    }
+    .drag-drop-area .upload-label {
+      font-size: 1.1rem;
+      color: #222;
+      font-weight: 500;
+      margin-bottom: 18px;
+      display: block;
+    }
+    .drag-drop-area .upload-btn {
+      margin-top: 0;
+      background: #f4f1ed;
+      color: #222;
+      border: 1.5px solid #bbb;
+      border-radius: 22px;
+      padding: 10px 28px;
+      font-size: 1rem;
+      cursor: pointer;
+      font-weight: 500;
+      transition: background 0.2s, border 0.2s;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+    }
+    .drag-drop-area .upload-btn:hover {
+      background: #ececec;
+      border: 1.5px solid #888;
+    }
+    .photo-preview-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 10px;
+      margin-top: 18px;
+      justify-content: center;
+    }
+    .photo-preview-list .preview-img-wrapper {
+      position: relative;
+      display: inline-block;
+    }
+    .photo-preview-list img {
+      width: 70px;
+      height: 70px;
+      object-fit: cover;
+      border-radius: 8px;
+      border: 1.5px solid #ccc;
+    }
+    .photo-preview-list button {
+      position: absolute;
+      top: -7px;
+      right: -7px;
+      background: #d9534f;
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      width: 22px;
+      height: 22px;
+      font-size: 15px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      z-index: 2;
+    }
+    .photo-preview-list button:hover {
+      background: #c9302c;
+    }
+    button[type="submit"] {
+      background-color: #084F6A;
+      color: white;
+      border: none;
+      padding: 13px 0;
+      font-size: 17px;
+      border-radius: 7px;
+      cursor: pointer;
+      width: 100%;
+      font-weight: bold;
+      margin-top: 10px;
+      transition: background 0.2s;
+    }
+    button[type="submit"]:hover:not(:disabled) {
+      background-color: #063d52;
+    }
+    button[type="submit"]:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+    .message {
+      margin-top: 15px;
+      font-weight: bold;
+      text-align: center;
+    }
+    label[for="violationDetails"] {
+      margin-top: 28px;
+    }
+    label[for="violationPhotos"] {
+      margin-top: 28px;
+    }
+    /* Add modal styles for image zoom */
+    .image-modal {
+      display: none;
+      position: fixed;
+      z-index: 9999;
+      left: 0;
+      top: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0,0,0,0.7);
+      justify-content: center;
+      align-items: center;
+    }
+    .image-modal.active {
+      display: flex;
+    }
+    .image-modal-content {
+      position: relative;
+      background: transparent;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .image-modal-img {
+      max-width: 80vw;
+      max-height: 80vh;
+      border-radius: 10px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.4);
+      transition: transform 0.2s;
+    }
+    .image-modal-controls {
+      margin-top: 12px;
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+    }
+    .image-modal-btn {
+      background: #fff;
+      border: 1.5px solid #bbb;
+      border-radius: 6px;
+      padding: 6px 16px;
+      font-size: 1.1rem;
+      cursor: pointer;
+      font-weight: 500;
+      transition: background 0.2s, border 0.2s;
+    }
+    .image-modal-btn:hover {
+      background: #f4f4f4;
+      border: 1.5px solid #888;
+    }
+    .image-modal-close {
+      position: fixed;
+      top: 32px;
+      right: 40px;
+      background: #d9534f;
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      width: 32px;
+      height: 32px;
+      font-size: 1.5rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+    }
+    .image-modal-close:hover {
+      background: #c9302c;
+    }
+    /* Add back button styles */
+    .back-btn {
+      position: absolute;
+      top: 32px;
+      left: 32px;
+      background: #084F6A;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 8px 18px;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+      transition: background 0.2s;
+      z-index: 10001;
+    }
+    .back-btn:hover {
+      background: #063d52;
+    }
+    
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="profile-header">
+      <img id="profilePicture" src="Homepage_images/circle-user.png" alt="Profile Picture" />
+      <div class="profile-details">
+        <div class="profile-name" id="userName">User Name</div>
+        <div class="profile-school" id="userSchool">School Name</div>
+      </div>
+    </div>
+    <h1>Report This User</h1>
+    <form id="reportForm">
+      <label for="violationType">Select Violation Type</label>
+      <select id="violationType" required>
+        <option value="" disabled selected>Select a violation</option>
+        <option value="fake listings">Fake Listings</option>
+        <option value="price manipulation">Price Manipulation</option>
+        <option value="identity theft">Identity Theft</option>
+        <option value="misinformation">Misinformation</option>
+        <option value="non-compliance with transaction protocol">Non-compliance with Transaction Protocol</option>
+        <option value="chargeback abuse">Chargeback Abuse</option>
+        <option value="other">Other</option>
+      </select>
+
+      <label for="violationDetails">Describe the Violation (optional)</label>
+      <textarea id="violationDetails" placeholder="Provide additional details here..."></textarea>
+
+      <label for="violationPhotos">Add Photos (optional)</label>
+      <div class="drag-drop-area" id="customDropArea">
+        <span class="upload-icon"><i class="fa-regular fa-file-arrow-up"></i></span>
+        <span class="upload-label">Drag and drop files</span>
+        <button type="button" class="upload-btn" id="customUploadBtn">Upload from Computer</button>
+        <input type="file" id="violationPhotos" accept="image/*" multiple style="display:none;" />
+        <div id="photoPreviewContainer" class="photo-preview-list"></div>
+      </div>
+      <div id="fileCountDisplay" class="text-gray-600 mt-1"></div>
+
+      <button type="submit" id="submitBtn" disabled>Submit Report</button>
+      <div class="message" id="message"></div>
+
+
+    </form>
+  </div>
+
+  <div class="image-modal" id="imageModal">
+    <div class="image-modal-content">
+      <button class="image-modal-close" id="closeImageModal">×</button>
+      <img id="modalImg" class="image-modal-img" src="" alt="Zoomed Preview" />
+    </div>
+  </div>
+
+  <script>
+    const supabaseUrl = 'https://wuhgqjeijmxsgvnykttj.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind1aGdxamVpam14c2d2bnlrdHRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI4MjkzMDQsImV4cCI6MjA1ODQwNTMwNH0._lZy7CE2A8HM1hatjGYrMR8QAUi8nk4L_EuV7Fojhwg';
+    const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+    // Get user id from URL query parameter
+const urlParams = new URLSearchParams(window.location.search);
+const reportedUserId = parseInt(urlParams.get('stud_id'), 10); // <-- Add this
+const reporterUserId = parseInt(localStorage.getItem('stud_id'), 10);
+
+    // Elements
+    const profilePicture = document.getElementById('profilePicture');
+    const userNameElem = document.getElementById('userName');
+    const userSchoolElem = document.getElementById('userSchool');
+    const violationType = document.getElementById('violationType');
+    const violationDetails = document.getElementById('violationDetails');
+    const violationPhotos = document.getElementById('violationPhotos');
+    const submitBtn = document.getElementById('submitBtn');
+    const messageDiv = document.getElementById('message');
+
+    // Enable submit button only if violation type is selected
+    violationType.addEventListener('change', () => {
+      submitBtn.disabled = violationType.value === '';
+    });
+
+    // Fetch reported user info and populate
+    async function fetchReportedUser() {
+      if (!reportedUserId) {
+        alert('No user specified to report.');
+        window.location.href = 'index.html';
+        return;
+      }
+      const { data, error } = await supabaseClient
+        .from('student')
+        .select('stud_fname, stud_lname, stud_school, stud_picture')
+        .eq('stud_id', reportedUserId)
+        .single();
+
+      if (error || !data) {
+        console.error('Error fetching reported user info:', error);
+        alert('Failed to load user info.');
+        return;
+      }
+
+      userNameElem.textContent = `${data.stud_fname} ${data.stud_lname}`;
+      userSchoolElem.textContent = data.stud_school || 'No school info';
+      profilePicture.src = data.stud_picture || 'Homepage_images/circle-user.png';
+    }
+
+    // Upload photos to Supabase Storage and return array of URLs
+    async function uploadPhotos(files) {
+      if (!files || files.length === 0) return [];
+
+      const uploadedUrls = [];
+      for (const file of files) {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
+        const filePath = `reports/${reportedUserId}/${fileName}`;
+
+        const { data, error } = await supabaseClient.storage
+          .from('report-photo')
+          .upload(filePath, file);
+
+        if (error) {
+          console.error('Error uploading photo:', error);
+          throw error;
+        }
+
+const { publicURL, error: urlError } = supabaseClient.storage
+  .from('report-photo')
+  .getPublicUrl(filePath);
+
+        if (urlError) {
+          console.error('Error getting public URL:', urlError);
+          throw urlError;
+        }
+
+        uploadedUrls.push(publicURL);
+      }
+      return uploadedUrls;
+    }
+
+    // Handle form submission
+document.getElementById('reportForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  submitBtn.disabled = true;
+  messageDiv.textContent = '';
+  messageDiv.style.color = 'black';
+
+  try {
+    const violation = violationType.value;
+    const details = violationDetails.value.trim();
+    const photos = violationPhotos.files;
+
+    // Get reporter's user ID
+    const reporterUserId = parseInt(localStorage.getItem('stud_id'), 10);
+
+    // Upload photos and get URLs
+    const photoUrls = await uploadPhotos(photos);
+
+    // Insert report record into Supabase
+    const { error } = await supabaseClient
+      .from('report')
+      .insert({
+        reporter_user_id: reporterUserId,
+        reported_user_id: reportedUserId,
+        violation_type: violation,
+        violation_details: details,
+        photo_urls: photoUrls,
+        created_at: new Date().toISOString()
+      });
+
+    if (error) {
+      console.error('Error submitting report:', error);
+      messageDiv.style.color = 'red';
+      messageDiv.textContent = 'Failed to submit report. Please try again.';
+      submitBtn.disabled = false;
+      return;
+    }
+
+    messageDiv.style.color = 'green';
+    messageDiv.textContent = 'Report submitted successfully. Thank you.';
+    setTimeout(() => {
+      window.location.href = 'index.html';
+    }, 3000);
+
+  } catch (err) {
+    console.error('Unexpected error:', err);
+    messageDiv.style.color = 'red';
+    messageDiv.textContent = 'An unexpected error occurred. Please try again.';
+    submitBtn.disabled = false;
+  }
+});
+// Preview selected images and show file count for report photo upload
+const photoPreviewContainer = document.getElementById('photoPreviewContainer');
+const fileCountDisplay = document.getElementById('fileCountDisplay');
+const violationPhotosInput = document.getElementById('violationPhotos');
+
+function updateFileCountDisplay(files) {
+    if (files.length === 0) {
+        fileCountDisplay.textContent = 'No files selected';
+    } else if (files.length === 1) {
+        fileCountDisplay.textContent = '1 file selected';
+    } else {
+        fileCountDisplay.textContent = `${files.length} files selected`;
+    }
+}
+
+violationPhotosInput.addEventListener('change', () => {
+    photoPreviewContainer.innerHTML = '';
+    const files = Array.from(violationPhotosInput.files);
+
+    files.forEach((file, index) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const imgWrapper = document.createElement('div');
+            imgWrapper.className = 'preview-img-wrapper';
+
+            const img = document.createElement('img');
+            img.src = e.target.result;
+            img.className = '';
+
+            const deleteBtn = document.createElement('button');
+            deleteBtn.textContent = '×';
+            deleteBtn.className = '';
+            deleteBtn.title = 'Remove image';
+
+            deleteBtn.addEventListener('click', () => {
+                // Remove the image preview
+                imgWrapper.remove();
+
+                // Remove the file from the input.files by matching file name
+                const dt = new DataTransfer();
+                const currentFiles = Array.from(violationPhotosInput.files);
+                currentFiles.forEach((f, i) => {
+                    if (i !== index) {
+                        dt.items.add(f);
+                    }
+                });
+                violationPhotosInput.files = dt.files;
+
+                // Update file count display after deletion
+                updateFileCountDisplay(Array.from(violationPhotosInput.files));
+
+                // Re-render previews
+                violationPhotosInput.dispatchEvent(new Event('change'));
+            });
+
+            imgWrapper.appendChild(img);
+            imgWrapper.appendChild(deleteBtn);
+            photoPreviewContainer.appendChild(imgWrapper);
+        };
+        reader.readAsDataURL(file);
+    });
+
+    // Update file count display on change
+    updateFileCountDisplay(files);
+});
+
+    // Initialize page
+    fetchReportedUser();
+
+    // Add this JS after the DOM loads to trigger file input from the button:
+    document.getElementById('customUploadBtn').onclick = function() {
+      document.getElementById('violationPhotos').click();
+    };
+
+    let currentZoom = 1;
+    const imageModal = document.getElementById('imageModal');
+    const modalImg = document.getElementById('modalImg');
+    const closeImageModal = document.getElementById('closeImageModal');
+
+    photoPreviewContainer.addEventListener('click', function(e) {
+      if (e.target.tagName === 'IMG') {
+        modalImg.src = e.target.src;
+        currentZoom = 1;
+        modalImg.style.transform = 'scale(1)';
+        imageModal.classList.add('active');
+      }
+    });
+    closeImageModal.onclick = function() {
+      imageModal.classList.remove('active');
+    };
+    // Zoom with scroll wheel
+    modalImg.addEventListener('wheel', function(e) {
+      e.preventDefault();
+      if (e.deltaY < 0) {
+        currentZoom += 0.1;
+      } else {
+        currentZoom = Math.max(0.2, currentZoom - 0.1);
+      }
+      modalImg.style.transform = `scale(${currentZoom})`;
+    });
+    // Optional: close modal when clicking outside image
+    imageModal.addEventListener('click', function(e) {
+      if (e.target === imageModal) {
+        imageModal.classList.remove('active');
+      }
+    });
+  </script>
+</body>
+</html>

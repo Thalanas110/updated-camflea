@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Admin Post & Item Management - CamFlea</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #F2F2F2;
+            overflow-x: hidden;
+        }
+        .navbar {
+            background-color: #084F6A;
+            padding: 10px 40px;
+            height: 100px;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            left: 0;
+            z-index: 9999;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        .navbar h1 {
+            margin: 0;
+            font-size: 1.5rem;
+        }
+        .content-container {
+            display: flex;
+            gap: 20px;
+            padding: 20px;
+            margin-top: 120px;
+        }
+        .search-filter-sidebar {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            width: 280px;
+        }
+        .search-filter-sidebar h2 {
+            text-align: center;
+            font-size: 1.25rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            color: #084F6A;
+        }
+        .search-filter-sidebar label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        .search-filter-sidebar select {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0;
+            appearance: none;
+            margin-bottom: 1rem;
+            background: none;
+            text-align: center;
+        }
+        #items-container {
+            flex-grow: 1;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            align-items: flex-start;
+            max-width: 900px;
+            padding-right: 10px;
+            overflow-y: auto;
+            max-height: 700px;
+        }
+        .item-card {
+            background: #fff;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            width: 220px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            font-size: 0.9rem;
+        }
+        .item-card img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 4px;
+            margin-bottom: 8px;
+        }
+        .item-card h3 {
+            margin: 0 0 5px 0;
+            font-size: 1rem;
+            color: #333;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .price-time {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        .price {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #084F6A;
+        }
+        .time-ago {
+            font-size: 0.7rem;
+            color: gray;
+        }
+        .condition {
+            display: inline-block;
+            background-color: #e0e0e0;
+            padding: 3px 6px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            color: #333;
+            margin-bottom: 5px;
+            text-align: center;
+            border: 1px solid #ccc;
+        }
+        .rating-status {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        .rating {
+            font-size: 0.8rem;
+            color: #555;
+        }
+        .status {
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: green;
+        }
+        .school-location {
+            display: flex;
+            align-items: center;
+            font-size: 0.8rem;
+            color: #555;
+            margin-top: auto;
+        }
+        .school-location i {
+            margin-right: 4px;
+            color: #084F6A;
+        }
+        #pagination-controls {
+            margin-top: 10px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+        #pagination-controls button {
+            padding: 8px 12px;
+            background-color: #084F6A;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #pagination-controls button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        #pagination-controls span {
+            font-weight: bold;
+            min-width: 120px;
+            text-align: center;
+            line-height: 32px;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <h1>Post & Item Management</h1>
+        <button id="backToAdminBtn" style="margin-left: auto; padding: 8px 16px; background-color: #084F6A; color: white; border: none; border-radius: 5px; cursor: pointer;">Back to Admin</button>
+    </div>
+    <div class="content-container">
+        <aside class="search-filter-sidebar">
+            <h2>Filters</h2>
+            <label for="school-filter">School From</label>
+            <select id="school-filter">
+                <option value="">All Schools</option>
+                <option value="Gordon College">Gordon College</option>
+                <option value="Columban College">Columban College</option>
+            </select>
+            <label for="item-type-filter">Item Type</label>
+            <select id="item-type-filter" multiple size="6" style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 0; background: none; text-align: center; margin-bottom: 1rem;">
+                <option value="books & school supplies">Books & School Supplies</option>
+                <option value="clothes & accessories">Clothes & Accessories</option>
+                <option value="gadgets & electronics">Gadgets & Electronics</option>
+                <option value="instruments & recreations">Instruments & Recreations</option>
+                <option value="crafted & collectibles">Crafted & Collectibles</option>
+                <option value="sports & fitness">Sports & Fitness</option>
+            </select>
+            <label for="transaction-status-filter">Transaction Status</label>
+            <select id="transaction-status-filter" multiple size="4" style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 0; background: none; text-align: center;">
+                <option value="available">Available</option>
+                <option value="reserved">Reserved</option>
+                <option value="sold">Sold</option>
+                <option value="cancelled">Cancelled</option>
+            </select>
+            <button id="clear-filters-btn" style="width: 100%; padding: 10px; background-color: #084F6A; color: white; border: none; border-radius: 5px; cursor: pointer;">Clear Filters</button>
+        </aside>
+        <main>
+            <div id="pinned-items-container" style="margin-bottom: 20px;">
+                <h2 style="color: #084F6A; text-align: center;">Pinned Items</h2>
+                <div id="pinned-items" style="display: flex; flex-wrap: wrap; gap: 20px; justify-content: center;"></div>
+            </div>
+            <div id="items-container"></div>
+            <div id="pagination-controls"></div>
+        </main>
+    </div>
+
+    <script>
+        const supabaseUrl = 'https://wuhgqjeijmxsgvnykttj.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind1aGdxamVpam14c2d2bnlrdHRqIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MjgyOTMwNCwiZXhwIjoyMDU4NDA1MzA0fQ.z25Bc1YxdBjWo5b9ezMW7noMSTehSNzTtzOCLFNm-o4';
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+        const itemsContainer = document.getElementById('items-container');
+        const schoolFilter = document.getElementById('school-filter');
+        const itemTypeFilter = document.getElementById('item-type-filter');
+        const transactionStatusFilter = document.getElementById('transaction-status-filter');
+        const clearFiltersBtn = document.getElementById('clear-filters-btn');
+        const paginationControls = document.getElementById('pagination-controls');
+        const backToAdminBtn = document.getElementById('backToAdminBtn');
+
+        let currentPage = 1;
+        const itemsPerPage = 15;
+
+        backToAdminBtn.addEventListener('click', () => {
+            window.location.href = 'admin.html';
+        });
+
+        clearFiltersBtn.addEventListener('click', () => {
+            schoolFilter.value = '';
+            Array.from(itemTypeFilter.options).forEach(option => option.selected = false);
+            Array.from(transactionStatusFilter.options).forEach(option => option.selected = false);
+            currentPage = 1;
+            fetchAndDisplayItems();
+        });
+
+        [schoolFilter, itemTypeFilter, transactionStatusFilter].forEach(filter => {
+            filter.addEventListener('change', () => {
+                currentPage = 1;
+                fetchAndDisplayItems();
+            });
+        });
+
+        function getSelectedOptions(selectElement) {
+            return Array.from(selectElement.selectedOptions).map(option => option.value);
+        }
+
+        async function fetchAndDisplayItems() {
+            let query = supabase
+                .from('item')
+                .select(`
+                    item_id,
+                    item_name,
+                    item_description,
+                    item_condition,
+                    item_status,
+                    item_type,
+                    item_price_type,
+                    item_price_min,
+                    item_price_max,
+                    item_price,
+                    photos,
+                    created_at,
+                    stud_id,
+                    student:stud_id (
+                        stud_school
+                    )
+                `, { count: 'exact' });
+
+            // Apply filters
+            const school = schoolFilter.value;
+            if (school) {
+                // Get student IDs for the selected school
+                const { data: students, error: studentError } = await supabase
+                    .from('student')
+                    .select('stud_id')
+                    .eq('stud_school', school);
+                if (studentError) {
+                    console.error('Error fetching students for school filter:', studentError);
+                    itemsContainer.innerHTML = '<p>Error loading items.</p>';
+                    return;
+                }
+                const studentIds = students.map(s => s.stud_id);
+                if (studentIds.length === 0) {
+                    itemsContainer.innerHTML = '<p>No items found for the selected school.</p>';
+                    paginationControls.innerHTML = '';
+                    return;
+                }
+                query = query.in('stud_id', studentIds);
+            }
+
+            const itemTypes = getSelectedOptions(itemTypeFilter);
+            if (itemTypes.length > 0) {
+                query = query.in('item_type', itemTypes);
+            }
+
+            const transactionStatuses = getSelectedOptions(transactionStatusFilter);
+            if (transactionStatuses.length > 0) {
+                query = query.in('item_status', transactionStatuses);
+            }
+
+            // Pagination
+            const from = (currentPage - 1) * itemsPerPage;
+            const to = from + itemsPerPage - 1;
+            query = query.range(from, to).order('created_at', { ascending: false });
+
+            const { data, error, count } = await query;
+
+            if (error) {
+                console.error('Error fetching items:', error);
+                itemsContainer.innerHTML = '<p>Error loading items.</p>';
+                paginationControls.innerHTML = '';
+                return;
+            }
+
+            if (!data || data.length === 0) {
+                itemsContainer.innerHTML = '<p>No items found matching your filters.</p>';
+                paginationControls.innerHTML = '';
+                return;
+            }
+// ...existing code...
+
+// Separate pinned items to show at top
+const pinnedItems = getPinnedItems();
+const pinnedData = [];
+const unpinnedData = [];
+
+// Always keep pinned items in the order they were pinned
+pinnedItems.forEach(pinnedId => {
+    const found = data.find(item => item.item_id === pinnedId);
+    if (found) pinnedData.push(found);
+});
+data.forEach(item => {
+    if (!pinnedItems.includes(item.item_id)) {
+        unpinnedData.push(item);
+    }
+});
+
+// Display pinned items at the top, then unpinned items
+const combinedData = [...pinnedData, ...unpinnedData];
+displayItems(combinedData);
+displayPagination(count);
+
+// ...existing code...
+            // Separate pinned items to show at top
+v
+        }
+
+        function displayItems(items, container = itemsContainer) {
+            container.innerHTML = '';
+            items.forEach(item => {
+                const photoUrl = item.photos?.[0] || 'https://via.placeholder.com/250x200?text=No+Image';
+                const school = item.student?.stud_school || 'No School Found';
+                const timeAgoText = timeAgo(item.created_at);
+
+                let priceDisplay = '';
+                if (item.item_price_type === 'single') {
+                    priceDisplay = `₱${item.item_price}`;
+                } else if (item.item_price_type === 'range') {
+                    priceDisplay = `₱${item.item_price_min} - ₱${item.item_price_max}`;
+                } else if (item.item_price_type === 'hidden') {
+                    priceDisplay = 'Price hidden';
+                } else {
+                    priceDisplay = 'Price not available';
+                }
+
+                const card = document.createElement('div');
+                card.className = 'item-card';
+                card.innerHTML = `
+                    <img src="${photoUrl}" alt="${item.item_name}" />
+                    <h3>${item.item_name}</h3>
+                    <div class="price-time">
+                        <span class="price">${priceDisplay}</span>
+                        <span class="time-ago">${timeAgoText}</span>
+                    </div>
+                    <div class="condition">${item.item_condition}</div>
+                    <div class="rating-status">
+                        <span class="status" style="color: ${item.item_status === 'available' ? 'green' : item.item_status === 'reserved' ? 'orange' : item.item_status === 'sold' ? 'blue' : 'gray'}; font-weight: bold;">
+                            ${item.item_status.charAt(0).toUpperCase() + item.item_status.slice(1)}
+                        </span>
+                        <button class="pin-btn" data-item-id="${item.item_id}" style="background-color: transparent; border: none; cursor: pointer; font-size: 1rem; color: #084F6A; display: flex; align-items: center; gap: 5px;" title="Pin/Unpin">
+                            <i class="fa-regular fa-thumbtack"></i>
+                            <span>Pin</span>
+                        </button>
+                    </div>
+                    <div class="school-location">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>${school}</span>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function displayPagination(totalItems) {
+            const totalPages = Math.ceil(totalItems / itemsPerPage);
+            paginationControls.innerHTML = '';
+
+            const prevButton = document.createElement('button');
+            prevButton.textContent = '← Previous';
+            prevButton.disabled = currentPage === 1;
+            prevButton.addEventListener('click', () => {
+                if (currentPage > 1) {
+                    currentPage--;
+                    fetchAndDisplayItems();
+                }
+            });
+
+            const pageIndicator = document.createElement('span');
+            pageIndicator.textContent = `Page ${currentPage} of ${totalPages}`;
+
+            const nextButton = document.createElement('button');
+            nextButton.textContent = 'Next →';
+            nextButton.disabled = currentPage === totalPages;
+            nextButton.addEventListener('click', () => {
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    fetchAndDisplayItems();
+                }
+            });
+
+            paginationControls.appendChild(prevButton);
+            paginationControls.appendChild(pageIndicator);
+            paginationControls.appendChild(nextButton);
+        }
+
+        function timeAgo(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const seconds = Math.floor((now - date) / 1000);
+
+            if (seconds < 60) return `${seconds} sec${seconds !== 1 ? 's' : ''} ago`;
+            const minutes = Math.floor(seconds / 60);
+            if (minutes < 60) return `${minutes} min${minutes !== 1 ? 's' : ''} ago`;
+            const hours = Math.floor(minutes / 60);
+            if (hours < 24) return `${hours} hr${hours !== 1 ? 's' : ''} ago`;
+            const days = Math.floor(hours / 24);
+            return `${days} day${days !== 1 ? 's' : ''} ago`;
+        }
+
+        // Store pinned item IDs in localStorage
+        function getPinnedItems() {
+            const pinned = localStorage.getItem('pinnedItems');
+            return pinned ? JSON.parse(pinned) : [];
+        }
+
+        function setPinnedItems(pinnedItems) {
+            localStorage.setItem('pinnedItems', JSON.stringify(pinnedItems));
+        }
+
+        function togglePinItem(itemId, button) {
+            let pinnedItems = getPinnedItems();
+            const index = pinnedItems.indexOf(itemId);
+            if (index === -1) {
+                // Pin item
+                pinnedItems.push(itemId);
+                button.innerHTML = '<i class="fa-solid fa-thumbtack"></i><span>Pinned</span>';
+                button.title = 'Pinned';
+            } else {
+                // Unpin item
+                pinnedItems.splice(index, 1);
+                button.innerHTML = '<i class="fa-regular fa-thumbtack"></i><span>Pin</span>';
+                button.title = 'Pin';
+            }
+            setPinnedItems(pinnedItems);
+            fetchAndDisplayItems();
+        }
+
+        async function fetchAndDisplayItems() {
+let query = supabase
+    .from('item')
+    .select(`
+        item_id,
+        item_name,
+        item_description,
+        item_condition,
+        item_status,
+        item_type,
+        item_price_type,
+        item_price_min,
+        item_price_max,
+        item_price,
+        photos,
+        created_at,
+        stud_id,
+        student:stud_id (
+            stud_school
+        )
+    `, { count: 'exact' });
+
+            // Apply filters
+            const school = schoolFilter.value;
+            if (school) {
+                // Get student IDs for the selected school
+                const { data: students, error: studentError } = await supabase
+                    .from('student')
+                    .select('stud_id')
+                    .eq('stud_school', school);
+                if (studentError) {
+                    console.error('Error fetching students for school filter:', studentError);
+                    itemsContainer.innerHTML = '<p>Error loading items.</p>';
+                    return;
+                }
+                const studentIds = students.map(s => s.stud_id);
+                if (studentIds.length === 0) {
+                    itemsContainer.innerHTML = '<p>No items found for the selected school.</p>';
+                    paginationControls.innerHTML = '';
+                    return;
+                }
+                query = query.in('stud_id', studentIds);
+            }
+
+            const itemTypes = getSelectedOptions(itemTypeFilter);
+            if (itemTypes.length > 0) {
+                query = query.in('item_type', itemTypes);
+            }
+
+            const transactionStatuses = getSelectedOptions(transactionStatusFilter);
+            if (transactionStatuses.length > 0) {
+                query = query.in('item_status', transactionStatuses);
+            }
+
+            // Pagination
+            const from = (currentPage - 1) * itemsPerPage;
+            const to = from + itemsPerPage - 1;
+            query = query.range(from, to).order('created_at', { ascending: false });
+
+            const { data, error, count } = await query;
+
+            if (error) {
+                console.error('Error fetching items:', error);
+                itemsContainer.innerHTML = '<p>Error loading items.</p>';
+                paginationControls.innerHTML = '';
+                return;
+            }
+
+            if (!data || data.length === 0) {
+                itemsContainer.innerHTML = '<p>No items found matching your filters.</p>';
+                paginationControls.innerHTML = '';
+                return;
+            }
+
+            // Separate pinned items to show at top
+            const pinnedItems = getPinnedItems();
+            const pinnedData = [];
+            const unpinnedData = [];
+
+            data.forEach(item => {
+                if (pinnedItems.includes(item.item_id)) {
+                    pinnedData.push(item);
+                } else {
+                    unpinnedData.push(item);
+                }
+            });
+
+            // Combine pinned items at top followed by unpinned
+            const combinedData = [...pinnedData, ...unpinnedData];
+
+            displayItems(combinedData);
+            displayPagination(count);
+        }
+
+        // Initial fetch
+        fetchAndDisplayItems();
+
+        // Delegate pin button clicks to container
+        document.addEventListener('click', (event) => {
+            if (event.target.closest('.pin-btn')) {
+                const button = event.target.closest('.pin-btn');
+                const itemId = button.getAttribute('data-item-id');
+                togglePinItem(itemId, button);
+            }
+        });
+    </script>
+</body>
+</html>

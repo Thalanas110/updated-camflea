@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Supabase Initialization -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <title>Sign Up - CamFlea</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+
+        body {
+            background-color: #F5F5F5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            position: relative;
+            padding: 20px;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 600px;
+        }
+
+        .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background-color: #074F6A;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+
+        .back-btn:hover {
+            background-color: #05394E;
+        }
+
+        .signup-box {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 550px;
+            text-align: center;
+        }
+
+        .logo {
+            width: 80%;
+            max-width: 250px;
+            margin-bottom: 15px;
+        }
+
+        h2 {
+            color: #074F6A;
+            font-size: 22px;
+            margin-bottom: 10px;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+
+        label {
+            font-weight: bold;
+            align-self: flex-start;
+            margin-top: 10px;
+        }
+
+        .name-field {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .name-field input {
+            flex: 1;
+        }
+
+        small {
+            font-size: 12px;
+            color: #666;
+            text-align: left;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .email-password-container {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .email-password-container div {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        .terms-container {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .terms {
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+            margin-bottom: 5px;
+            width: 100%;
+        }
+
+        .terms input {
+            margin-right: 8px;
+            width: 18px;
+            height: 18px;
+        }
+
+        .terms label {
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+        }
+
+        .terms a {
+            color: #007BFF;
+            text-decoration: none;
+            font-weight: bold;
+            margin-left: 4px;
+        }
+
+        .signup-btn {
+            width: 100%;
+            padding: 12px;
+            background-color: #074F6A;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+            cursor: pointer;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+
+        .signup-btn:hover {
+            background-color: #05394E;
+        }
+
+        @media (max-width: 600px) {
+            .signup-box {
+                padding: 30px;
+            }
+            .logo {
+                width: 70%;
+            }
+            .name-field {
+                flex-direction: column;
+            }
+            .email-password-container {
+                flex-direction: column;
+            }
+            .back-btn {
+                padding: 10px 20px;
+                font-size: 14px;
+            }
+            .signup-btn {
+                font-size: 16px;
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <button class="back-btn" onclick="location.href='Login_page.html'">Back</button>
+        <div class="signup-box">
+            <img src="Login_images/LOGO.png" alt="CamFlea Logo" class="logo" />
+            <h2>Create Your Account</h2>
+            <form id="signupForm" onsubmit="handleSignup(event)">
+                <label>Name</label>
+                <div class="name-field">
+                    <input
+                        type="text"
+                        id="firstName"
+                        placeholder="First"
+                        required
+                        oninput="this.value = this.value.replace(/[^a-zA-Z\s]/g, '')"
+                    />
+                    <input
+                        type="text"
+                        id="lastName"
+                        placeholder="Last"
+                        required
+                        oninput="this.value = this.value.replace(/[^a-zA-Z\s]/g, '')"
+                    />
+                </div>
+                <small
+                    ><strong>Note:</strong> Please use your real name when signing up,
+                    as it cannot be changed after registration.</small
+                >
+
+                                <label>Select Your School/Campus</label>
+                <select id="school" required style="appearance: none; -webkit-appearance: none; -moz-appearance: none; background: url('data:image/svg+xml;utf8,<svg fill=\'none\' stroke=\'%23000\' stroke-width=\'3\' viewBox=\'0 0 24 24\' xmlns=\'http://www.w3.org/2000/svg\'><path stroke-linecap=\'round\' stroke-linejoin=\'round\' d=\'M19 9l-7 7-7-7\'></path></svg>') no-repeat right 12px center/20px 20px, #fff; padding-right: 38px; border: 1px solid #ccc; border-radius: 5px;">
+                    <option value="" disabled selected>Select Your School</option>
+                    <option value="Gordon College">Gordon College</option>
+                    <option value="Columban College">Columban College</option>
+                </select>
+
+                <div class="email-password-container">
+                    <div style="flex: 1.8;">
+                        <label>Student ID</label>
+                        <input
+                            type="text"
+                            id="studentID"
+                            required
+                            pattern="202[1-5]\d{5}"
+                        />
+                    </div>
+                    <div style="flex: 1.7; margin-left: 25px;">
+                        <label>Phone Number</label>
+                        <div style="display: flex; flex-direction: row; align-items: center; margin-top: 5px;">
+                            <span style="display: inline-flex; align-items: center; padding: 0 12px; background: #eee; border: 1px solid #ccc; border-right: none; border-radius: 5px 0 0 5px; font-weight: bold; height: 40px;">+63</span><input type="tel" id="phoneNumber" placeholder="Enter your phone number" required style="flex: 1; border-radius: 0 5px 5px 0; border: 1px solid #ccc; border-left: none; padding: 0 10px; height: 40px; margin: 0;" />
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: flex; justify-content: flex-start; width: 100%;">
+                    <div style="max-width: 600px; position: relative; margin-left: 0; width: 100%; text-align: left; margin-top: 10px;">
+                        <label>Password</label>
+                        <div style="position: relative; width: 100%;">
+                            <input
+                                type="password"
+                                id="password"
+                                required
+                                style="padding-right: 40px; width: 100%; box-sizing: border-box;"
+                            />
+                            <span
+                                id="togglePassword"
+                                style="
+                                    position: absolute;
+                                    right: 10px;
+                                    top: 60%;
+                                    transform: translateY(-50%);
+                                    cursor: pointer;
+                                    z-index: 2;
+                                "
+                            >
+                                <img
+                                    src="Login_images/eye-icon.png"
+                                    alt="Toggle Password"
+                                    style="width: 20px; height: 20px; user-select: none;"
+                                />
+                            </span>
+                        </div>
+                        <small style="display:block; margin-top:8px;"><strong>Note:</strong> Password must be at least 8 characters long and include at least 1 uppercase letter, 1 special character, and 1 digit.</small>
+                    </div>
+                </div>
+
+                <div class="terms-container">
+                    <div class="terms">
+                        <input type="checkbox" required />
+                        <label for="terms1">I agree to the <a href="terms.html">Terms and Conditions</a></label>
+                    </div>
+                    <div class="terms">
+                        <input type="checkbox" required />
+                        <label for="terms2">I agree to the <a href="privacypolicy.html">Privacy Policy</a></label>
+                    </div>
+                </div>
+
+                <button type="submit" class="signup-btn">Sign Up</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const supabaseClient = supabase.createClient(
+            'https://wuhgqjeijmxsgvnykttj.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind1aGdxamVpam14c2d2bnlrdHRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI4MjkzMDQsImV4cCI6MjA1ODQwNTMwNH0._lZy7CE2A8HM1hatjGYrMR8QAUi8nk4L_EuV7Fojhwg'
+        );
+
+        // ADDED: showMessage() function
+        function showMessage(message, type = 'success') {
+            const box = document.getElementById('messageBox');
+            const text = document.getElementById('messageText');
+
+            box.style.display = 'block';
+            text.textContent = message;
+
+            if (type === 'success') {
+                box.style.backgroundColor = '#28a745'; // green
+                box.style.borderColor = '#218838';
+            } else {
+                box.style.backgroundColor = '#dc3545'; // red
+                box.style.borderColor = '#c82333';
+            }
+
+            setTimeout(() => {
+                box.style.display = 'none';
+            }, 4000);
+        }
+
+        function isValidPassword(password) {
+            const pattern = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/;
+            return pattern.test(password);
+        }
+
+        function isValidEmail(email) {
+            const pattern = /^(202[1-5]\d{5})@(gordoncollege|columbancollege)\.edu\.ph$/;
+            return pattern.test(email);
+        }
+
+        function isValidPhoneNumber(phone) {
+            // Updated regex to validate exactly 10 digits (without +63 prefix as it's fixed in UI)
+            const pattern = /^\d{10}$/;
+            return pattern.test(phone);
+        }
+
+        async function handleSignup(event) {
+            event.preventDefault(); // Prevent form submission
+
+            const firstName = document.getElementById('firstName').value;
+            const lastName = document.getElementById('lastName').value;
+            const studentID = document.getElementById('studentID').value.trim();
+            const password = document.getElementById('password').value;
+            let phoneNumber = document.getElementById('phoneNumber').value;
+            const school = document.getElementById('school').value;
+
+            // Validate phone number before prepending +63
+            if (!isValidPhoneNumber(phoneNumber)) {
+                showMessage('Phone number must be exactly 10 digits.', 'error');
+                return;
+            }
+            // Prepend +63 to phone number before storing
+            phoneNumber = '+63' + phoneNumber;
+
+            // Map school to domain
+            let domain = '';
+            if (school === 'Gordon College') {
+                domain = 'gordoncollege.edu.ph';
+            } else if (school === 'Columban College') {
+                domain = 'columbancollege.edu.ph';
+            } else {
+                showMessage('Please select a valid school.', 'error');
+                return;
+            }
+
+            // Construct email from studentID and domain
+            const email = `${studentID}@${domain}`;
+
+            if (!isValidEmail(email)) {
+                showMessage(
+                    'Please use your student domain account provided by your academic institution.',
+                    'error'
+                );
+                return;
+            }
+
+            if (!isValidPassword(password)) {
+                showMessage(
+                    'Password must be at least 8 characters long and include at least 1 uppercase letter, 1 special character, and 1 digit.',
+                    'error'
+                );
+                return;
+            }
+
+            // Register the user with Supabase Auth
+            const { data: authData, error: authError } = await supabaseClient.auth.signUp({
+                email,
+                password,
+            });
+
+            if (authError) {
+                console.error('Registration error:', authError);
+                showMessage('Registration failed. Please try again.', 'error');
+                return;
+            }
+
+            // Get the user object from authData
+            const user = authData.user;
+
+            if (!user) {
+                console.error('No user returned from signUp.');
+                showMessage('Signup failed. Please check your email for confirmation.', 'error');
+                return;
+            }
+
+            const { data: student, error: studentError } = await supabaseClient
+                .from('student')
+                .insert({
+                    user_id: user.id,
+                    stud_fname: firstName,
+                    stud_lname: lastName,
+                    stud_email: email,
+                    stud_password: password,
+                    stud_phone: phoneNumber,
+                    stud_school: school,
+                    is_role: 0,
+                });
+
+            if (studentError) {
+                console.error('Error inserting student details:', studentError);
+                showMessage('Registration failed. Please try again.', 'error');
+                return;
+            }
+
+            showMessage('Signup successful! Redirecting...', 'success');
+            setTimeout(() => {
+                window.location.href = 'Login_page.html';
+            }, 2000);
+        }
+
+        // Add toggle password visibility functionality
+        document.getElementById('togglePassword').addEventListener('click', function () {
+            const passwordField = document.getElementById('password');
+            const toggleIcon = this.querySelector('img');
+            if (passwordField.type === 'password') {
+                passwordField.type = 'text';
+                toggleIcon.src = 'Login_images/eye-off-icon.png';
+            } else {
+                passwordField.type = 'password';
+                toggleIcon.src = 'Login_images/eye-icon.png';
+            }
+        });
+
+        // Show password note while typing in password field
+        const passwordInput = document.getElementById('password');
+        const passwordNote = document.getElementById('passwordNote');
+
+        passwordInput.addEventListener('input', () => {
+            if (passwordInput.value.length > 0) {
+                passwordNote.style.display = 'block';
+            } else {
+                passwordNote.style.display = 'none';
+            }
+        });
+    </script>
+
+    <div
+        id="messageBox"
+        style="
+            display: none;
+            padding: 15px;
+            margin: 20px auto 0;
+            max-width: 500px;
+            text-align: center;
+            color: white;
+            font-weight: bold;
+            border-radius: 8px;
+            border: 2px solid transparent;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 9999;
+        "
+    >
+        <span id="messageText"></span>
+    </div>
+</body>
+</html>

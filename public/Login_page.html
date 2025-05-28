@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CamFlea Login</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+        
+        body {
+            background-color: #F5F5F5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            padding: 20px;
+        }
+        .login-container {
+            background: #FFFFFF;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 100%;
+            max-width: 400px;
+        }
+        .logo {
+            width: 80%;
+            max-width: 300px;
+            margin-bottom: 20px;
+        }
+        .login-container h2 {
+            color: #074F6A;
+            font-size: 22px;
+        }
+        .input-container {
+            position: relative;
+            width: 100%;
+        }
+        .login-container input {
+            width: 100%;
+            padding: 12px 40px 12px 12px; /* Add right padding to accommodate eye icon */
+            margin: 12px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+            transition: padding-right 0.2s ease; /* Smooth transition for padding */
+        }
+        .toggle-password {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            pointer-events: auto;
+            z-index: 10; /* Ensure icon is above other elements */
+            background-color: transparent; /* Avoid background overlap */
+            transition: right 0.2s ease; /* Smooth transition for position */
+        }
+        .toggle-password img {
+            width: 20px;
+            height: 20px;
+            display: block; /* Prevent inline element spacing issues */
+            user-select: none; /* Prevent selection highlighting */
+            pointer-events: none; /* Let clicks pass to parent span */
+            position: relative;
+            z-index: 20;
+        }
+        /* Style for lighter eye icon positioned exactly behind the dark eye icon */
+        .toggle-password::before {
+            content: none; /* Remove the lighter eye icon completely */
+        }
+        .login-container button {
+            width: 100%;
+            padding: 12px;
+            background-color: #074F6A;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .login-container button:hover {
+            background-color: #05394E;
+        }
+        .login-container .links {
+            text-align: right;
+            font-size: 12px;
+            margin-top: 20px;
+        }
+        .login-container .links a {
+            color: #333;
+            text-decoration: none;
+            display: block;
+            margin-top: 5px;
+        }
+
+        /* Error message styling */
+        .error-message {
+            display: none;
+            background-color: #ffdddd;
+            color: #d8000c;
+            padding: 10px;
+            border: 1px solid #d8000c;
+            border-radius: 5px;
+            font-size: 0.9em;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        #error-message {
+    margin-top: 10px;
+    padding: 10px;
+    border-radius: 5px;
+    color: white;
+    background-color: #e74c3c; /* red by default */
+    display: none;
+}
+
+#error-message.success {
+    background-color: #2ecc71; /* green for success */
+    border: 1px solid #27ae60; /* green border for success */
+}
+
+
+        @media (max-width: 480px) {
+            .login-container {
+                padding: 30px;
+            }
+            .logo {
+                width: 70%;
+            }
+            .login-container input {
+                padding: 10px;
+            }
+            .login-container button {
+                font-size: 16px;
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body> 
+    <div class="login-container">
+        <img src="Login_images/LOGO.png" class="logo">
+        <h2>Welcome back!</h2>
+
+        <!-- Error message box -->
+        <div class="error-message" id="error-message"></div>
+
+        <input type="email" id="email" placeholder="School Email">
+        <div class="input-container">
+            <input type="password" id="password" placeholder="Password">
+            <span class="toggle-password" onclick="togglePassword()">
+                <img src="Login_images/eye-icon.png" alt="Toggle Password">
+            </span>
+        </div>
+        <button onclick="validateLogin()">Log In</button>
+        <div class="links">
+            <a href="forgot_password.html">Forgot Password?</a>
+            <a href="SignUp_page.html">Don't have an account?</a> 
+        </div>
+    </div>
+
+    <!-- ✅ Script as a module -->
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+
+        const supabaseUrl = 'https://wuhgqjeijmxsgvnykttj.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind1aGdxamVpam14c2d2bnlrdHRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI4MjkzMDQsImV4cCI6MjA1ODQwNTMwNH0._lZy7CE2A8HM1hatjGYrMR8QAUi8nk4L_EuV7Fojhwg';
+        const supabase = createClient(supabaseUrl, supabaseKey);
+
+        // ✅ Make functions globally accessible
+        window.togglePassword = function () {
+            const passwordField = document.getElementById("password");
+            const toggleIcon = document.querySelector(".toggle-password img");
+
+            if (passwordField.type === "password") {
+                passwordField.type = "text";
+                toggleIcon.src = "Login_images/eye-off-icon.png";
+            } else {
+                passwordField.type = "password";
+                toggleIcon.src = "Login_images/eye-icon.png";
+            }
+        };
+
+        // Add event listener to monitor input in password field and log icon state for debugging
+        const passwordField = document.getElementById("password");
+        passwordField.addEventListener("input", () => {
+            const toggleIcon = document.querySelector(".toggle-password img");
+            console.log("Password input event detected. Current icon src:", toggleIcon.src);
+            // Optional: You can add logic here to check for duplicated icons or toggle icon state if needed
+        });
+
+        // Add event listeners to trigger login on Enter key press in email and password fields
+        const emailField = document.getElementById("email");
+        emailField.addEventListener("keydown", (event) => {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                validateLogin();
+            }
+        });
+        passwordField.addEventListener("keydown", (event) => {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                validateLogin();
+            }
+        });
+
+    window.validateLogin = async function () {
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value.trim();
+    const errorMessage = document.getElementById("error-message");
+
+    // Clear any previous error message
+    errorMessage.style.display = "none";
+    errorMessage.classList.remove("success");
+
+    // Check if fields are empty
+    if (email === "" || password === "") {
+        errorMessage.innerHTML = "Please enter your email and password.";
+        errorMessage.style.display = "block";
+        return;
+    }
+
+    // Use Supabase Auth to sign in
+    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        email,
+        password
+    });
+
+    if (authError) {
+        // Check if error is due to invalid credentials
+        if (authError.status === 400 || authError.status === 401) {
+            errorMessage.innerHTML = "Email or password is incorrect.";
+        } else {
+            errorMessage.innerHTML = "An error occurred during authentication.";
+        }
+        errorMessage.style.display = "block";
+        return;
+    }
+
+    if (!authData.user) {
+        errorMessage.innerHTML = "Email or password is incorrect.";
+        errorMessage.style.display = "block";
+        return;
+    }
+
+    // After successful login with Supabase Auth, fetch the additional user details from your `student` table
+    const { data: user, error: userError } = await supabase
+        .from('student')
+        .select('*')
+        .eq('user_id', authData.user.id)  // Here we use authData.user.id to link to the student table
+        .single();
+
+    if (userError) {
+        errorMessage.innerHTML = "An error occurred while fetching user data.";
+        errorMessage.style.display = "block";
+        return;
+    }
+
+    if (!user) {
+        errorMessage.innerHTML = "User not found in the student table.";
+        errorMessage.style.display = "block";
+        return;
+    }
+
+    // Store user info
+    console.log("User logged in:", user); // Debugging: Log the user object
+    console.log("Storing stud_id:", user.stud_id); // Debugging: Log the stud_id being stored
+
+    localStorage.setItem("stud_id", user.stud_id);
+    localStorage.setItem("senderUid", authData.user.id); // Use Supabase Auth's user ID for senderUid
+    localStorage.setItem("stud_fname", user.stud_fname);
+    localStorage.setItem("stud_lname", user.stud_lname);
+    localStorage.setItem("stud_email", user.stud_email);
+    localStorage.setItem("userSchool", user.stud_school);
+    localStorage.setItem("isLoggedIn", "true");
+
+    // Store access token in localStorage for authenticated requests
+    if (authData.session && authData.session.access_token) {
+        localStorage.setItem("access_token", authData.session.access_token);
+        console.log("Stored access_token in localStorage");
+    } else {
+        console.warn("No access_token found in authData.session");
+    }
+
+    // Optional session data
+    sessionStorage.setItem("stud_id", user.stud_id);
+
+    // Show success message
+    errorMessage.classList.add("success");
+    errorMessage.innerHTML = "Login successful! Redirecting to homepage...";
+    errorMessage.style.display = "block";
+
+    console.log("Stored senderUid:", authData.user.id);
+    console.log("Stored stud_id:", user.stud_id);
+
+    // Redirect based on is_role after short delay
+    setTimeout(() => {
+        if (user.is_role === 1) {
+            window.location.href = "admin.html";
+        } else {
+            window.location.href = "index.html";
+        }
+    }, 1500); // Adjust delay if needed
+};
+
+
+    </script>
+</body>
+
+
+
+</html>

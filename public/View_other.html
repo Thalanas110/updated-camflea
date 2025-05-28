@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Profile Visitor View</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
+    <style>
+        /* Bio display styling */
+        #bioDisplay {
+            width: 100%;
+            min-height: 40px;
+            padding: 8px;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            word-break: break-word;
+            background-color: #D9D9D9;
+            color: #084F6A;
+        }
+        #bioDisplay:empty::before {
+            content: "No bio provided.";
+            color: #808080;
+        }
+        .bio-container {
+            position: relative;
+            min-height: 40px;
+            height: 105px;
+            background-color: #D9D9D9;
+            border-radius: 5px;
+            padding: 8px;
+            overflow: hidden;
+        }
+        .bio-outer-container {
+            background-color: #D9D9D9;
+            border-radius: 5px;
+        }
+        @media (max-width: 1024px) {
+            .max-w-6xl.flex.space-x-6 {
+                flex-direction: column !important;
+                gap: 1.5rem !important;
+            }
+            .max-w-6xl.flex.space-x-6 > div {
+                width: 100% !important;
+            }
+        }
+        .items-section-row {
+            display: flex !important;
+            flex-direction: row !important;
+            gap: 1.5rem !important;
+        }
+        .items-section-row > div {
+            width: 33.3333% !important;
+        }
+        @media (max-width: 1024px) {
+            .items-section-row {
+                flex-direction: column !important;
+                gap: 1.5rem !important;
+            }
+            .items-section-row > div {
+                width: 100% !important;
+            }
+        }
+        #currentlySellingItemsContainer,
+        #userItemsContainer,
+        #soldItemsContainer {
+            display: flex;
+            flex-direction: row;
+            gap: 1.5rem;
+            overflow-x: auto;
+            padding-bottom: 8px;
+        }
+        #currentlySellingItemsContainer > div,
+        #userItemsContainer > div,
+        #soldItemsContainer > div {
+            min-width: 260px;
+            max-width: 260px;
+            flex: 0 0 auto;
+        }
+        .item-card {
+            background: #fff;
+            border: 1.5px solid #e5e7eb;
+            border-radius: 0;
+            width: 260px;
+            margin: 0 auto 32px auto;
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            overflow: hidden;
+            box-shadow: none;
+            padding: 0;
+        }
+        .item-card-img {
+            width: 100%;
+            height: 170px;
+            object-fit: cover;
+            border-radius: 0;
+            margin-bottom: 0;
+        }
+        .item-card-body {
+            padding: 16px 14px 18px 14px;
+            display: flex;
+            flex-direction: column;
+            flex: 1 1 auto;
+            align-items: flex-start;
+        }
+        .item-card-title {
+            font-size: 1.15rem;
+            font-weight: 400;
+            margin-bottom: 12px;
+            color: #222;
+            line-height: 1.2;
+            word-break: break-word;
+        }
+        .item-card-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            margin-bottom: 14px;
+        }
+        .item-card-price {
+            color: #0a4f6a;
+            font-size: 1.4rem;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+        }
+        .item-card-time {
+            color: #0a4f6a;
+            font-size: 1rem;
+            font-weight: 700;
+        }
+        .item-card-condition {
+            border: 2px solid #222;
+            color: #0a4f6a;
+            font-weight: 700;
+            font-size: 1.1rem;
+            border-radius: 0;
+            padding: 7px 0;
+            margin-bottom: 16px;
+            background: #fff;
+            text-align: center;
+            width: 100%;
+            transition: background 0.2s;
+            box-sizing: border-box;
+        }
+        .item-card-status {
+            font-weight: 700;
+            font-size: 1.1rem;
+            text-align: left;
+            color: #0a4f6a;
+            margin-top: 0;
+        }
+        .item-card-status.sold {
+            color: #f44336;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+<nav class="bg-[#084F6A] p-6 flex justify-between items-center">
+    <div class="flex items-center space-x-6">
+        <a id="navHome" class="text-white text-sm" href="index.html">Home</a>
+    </div>
+    <div class="flex flex-col items-center space-y-2">
+        <img alt="Logo" class="h-16 w-35" src="Homepage_images/LOGO_WHITE.png"/>
+    </div>
+    <div class="flex items-center space-x-6">
+        <a class="text-white text-sm" href="Login_page.html">Login</a>
+    </div>
+</nav>
+
+<!-- Profile Section -->
+<div class="max-w-6xl mx-auto p-6 flex">
+    <div class="bg-[#084F6A] p-3 rounded-lg shadow-lg flex items-center w-1/3 h-48 relative text-white">
+        <img
+            id="profilePicture"
+            alt="Profile Picture"
+            class="h-24 w-24 rounded-full mr-4 ml-8"
+            src="Homepage_images/circle-user.png"
+        />
+        <div class="ml-0 mt-2">
+            <h2 id="userName" class="text-xl font-semibold">User Name</h2>
+            <p id="userSchool" style="display: flex; align-items: center; gap: 6px;">School Name</p>
+            <div class="flex items-center space-x-2 mt-2">
+                <i class="fas fa-star text-yellow-500"></i>
+                <span id="visitorStars">0.0 (0)</span>
+            </div>
+            <!-- Added message and report buttons -->
+            <div class="mt-4 flex space-x-4">
+                <button id="messageButton" class="bg-[#084F6A] text-white px-4 py-2 rounded-lg hover:bg-[#063d52] transition duration-200">
+                    Message
+                </button>
+                <button id="reportButton" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition duration-200">
+                    Report
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="flex-1 ml-6">
+        <!-- Bio Section -->
+        <div class="p-6 rounded-lg shadow-lg bio-outer-container">
+            <div class="bio-container">
+                <div id="bioDisplay"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Items Posted Section -->
+<div class="max-w-6xl mx-auto p-6 space-y-6">
+    <div class="w-full p-3">
+        <h3 class="text-xl font-semibold bg-[#084F6A] text-white p-2 rounded-lg text-center">Currently Selling Items</h3>
+        <div id="currentlySellingItemsContainer" class="bg-white p-6 rounded-lg shadow-lg">
+            <p id="noCurrentlySellingItemsMessage" class="text-gray-500">No currently selling items...</p>
+        </div>
+    </div>
+    <div class="w-full p-3">
+        <h3 class="text-xl font-semibold bg-[#084F6A] text-white p-2 rounded-lg text-center">Items Posted</h3>
+        <div id="userItemsContainer" class="bg-white p-6 rounded-lg shadow-lg">
+            <p id="noItemsMessage" class="text-gray-500">No posted items yet...</p>
+        </div>
+    </div>
+    <div class="w-full p-3">
+        <h3 class="text-xl font-semibold bg-[#084F6A] text-white p-2 rounded-lg text-center">Sold Items</h3>
+        <div id="soldItemsContainer" class="bg-white p-6 rounded-lg shadow-lg">
+            <p id="noSoldItemsMessage" class="text-gray-500">No sold items yet...</p>
+        </div>
+    </div>
+</div>
+<div class="max-w-6xl mx-auto p-6">
+    <h3 class="text-xl font-semibold bg-[#084F6A] text-white p-2 rounded-lg text-center">Buyer's Feedback</h3>
+    <div class="bg-white p-6 rounded-lg shadow-lg">
+        <ul id="feedbackList">
+            <li class="empty-message">No feedback received yet.</li>
+        </ul>
+    </div>
+</div>
+
+<script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+    // --- Visitor Mode: you must provide the user id as a query param like ?stud_id=123 ---
+    function getQueryParam(param) {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get(param);
+    }
+
+    const supabaseUrl = 'https://wuhgqjeijmxsgvnykttj.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind1aGdxamVpam14c2d2bnlrdHRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI4MjkzMDQsImV4cCI6MjA1ODQwNTMwNH0._lZy7CE2A8HM1hatjGYrMR8QAUi8nk4L_EuV7Fojhwg';
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    function timeAgo(createdAt) {
+        const now = new Date();
+        const createdDate = new Date(createdAt);
+        const diffInSeconds = Math.floor((now - createdDate) / 1000);
+
+        if (diffInSeconds < 60) {
+            return `${diffInSeconds} second${diffInSeconds === 1 ? '' : 's'} ago`;
+        }
+        const diffInMinutes = Math.floor(diffInSeconds / 60);
+        if (diffInMinutes < 60) {
+            return `${diffInMinutes} minute${diffInMinutes === 1 ? '' : 's'} ago`;
+        }
+        const diffInHours = Math.floor(diffInMinutes / 60);
+        if (diffInHours < 24) {
+            return `${diffInHours} hour${diffInHours === 1 ? '' : 's'} ago`;
+        }
+        const diffInDays = Math.floor(diffInHours / 24);
+        if (diffInDays < 7) {
+            return `${diffInDays} day${diffInDays === 1 ? '' : 's'} ago`;
+        }
+        const diffInWeeks = Math.floor(diffInDays / 7);
+        if (diffInWeeks < 4) {
+            return `${diffInWeeks} week${diffInWeeks === 1 ? '' : 's'} ago`;
+        }
+        const diffInMonths = Math.floor(diffInDays / 30);
+        return `${diffInMonths} month${diffInMonths === 1 ? '' : 's'} ago`;
+    }
+
+    async function fetchProfile(studId) {
+        const { data: user, error } = await supabase
+            .from('student')
+            .select('stud_fname, stud_lname, stud_school, stud_bio, stud_picture')
+            .eq('stud_id', studId)
+            .single();
+
+        if (error || !user) {
+            document.getElementById('userName').innerText = "Unknown User";
+            document.getElementById('userSchool').innerText = "";
+            document.getElementById('bioDisplay').textContent = "";
+            document.getElementById('profilePicture').src = "Homepage_images/circle-user.png";
+            return;
+        }
+
+        document.getElementById('userName').innerText = `${user.stud_fname} ${user.stud_lname}`;
+        document.getElementById('userSchool').innerText = user.stud_school;
+        document.getElementById('bioDisplay').textContent = user.stud_bio || '';
+
+        // Display the profile picture
+        const profilePicture = document.getElementById('profilePicture');
+        profilePicture.src = user.stud_picture || 'Homepage_images/circle-user.png';
+
+        // Append school logo after setting school name
+        const userSchoolElem = document.getElementById('userSchool');
+        if (userSchoolElem) {
+            const schoolName = userSchoolElem.textContent.trim().toLowerCase();
+            let logoImg = null;
+            if (schoolName === 'gordon college') {
+                logoImg = document.createElement('img');
+                logoImg.src = 'Profie_images/gc_new_logo_2018-Copy-1.png';
+                logoImg.alt = 'Gordon College Logo';
+            } else if (schoolName === 'columban college') {
+                logoImg = document.createElement('img');
+                logoImg.src = 'Profie_images/7e6bca-ColumbanCollegeLogo.png';
+                logoImg.alt = 'Columban College Logo';
+            }
+            if (logoImg) {
+                logoImg.style.height = '3em';
+                logoImg.style.width = 'auto';
+                logoImg.style.display = 'inline-block';
+                logoImg.style.verticalAlign = 'middle';
+                const existingLogo = userSchoolElem.querySelector('img');
+                if (existingLogo) userSchoolElem.removeChild(existingLogo);
+                userSchoolElem.appendChild(logoImg);
+            }
+        }
+    }
+
+    async function fetchUserPostedItems(studId) {
+        // Fetch user's posted items from Supabase
+        const { data: items, error } = await supabase
+            .from('item')
+            .select('item_id, item_name, item_price, item_price_type, item_price_min, item_price_max, item_condition, item_type, item_status, photos, created_at')
+            .eq('stud_id', studId);
+
+        const sellingContainer = document.getElementById('currentlySellingItemsContainer');
+        const postedContainer = document.getElementById('userItemsContainer');
+        const soldContainer = document.getElementById('soldItemsContainer');
+        sellingContainer.innerHTML = '';
+        postedContainer.innerHTML = '';
+        soldContainer.innerHTML = '';
+
+        let noSellingMessage = document.getElementById('noCurrentlySellingItemsMessage');
+        let noItemsMessage = document.getElementById('noItemsMessage');
+        let noSoldMessage = document.getElementById('noSoldItemsMessage');
+        if (!noSellingMessage) {
+            noSellingMessage = document.createElement('p');
+            noSellingMessage.id = 'noCurrentlySellingItemsMessage';
+            noSellingMessage.className = 'text-gray-500';
+            noSellingMessage.textContent = "No currently selling items...";
+            sellingContainer.appendChild(noSellingMessage);
+        }
+        if (!noItemsMessage) {
+            noItemsMessage = document.createElement('p');
+            noItemsMessage.id = 'noItemsMessage';
+            noItemsMessage.className = 'text-gray-500';
+            noItemsMessage.textContent = "No posted items yet...";
+            postedContainer.appendChild(noItemsMessage);
+        }
+        if (!noSoldMessage) {
+            noSoldMessage = document.createElement('p');
+            noSoldMessage.id = 'noSoldItemsMessage';
+            noSoldMessage.className = 'text-gray-500';
+            noSoldMessage.textContent = "No sold items yet...";
+            soldContainer.appendChild(noSoldMessage);
+        }
+
+        if (!items || items.length === 0) {
+            noSellingMessage.style.display = 'block';
+            noItemsMessage.style.display = 'block';
+            noSoldMessage.style.display = 'block';
+            return;
+        }
+
+        // Separate items by status
+        const reservedItems = items.filter(item => item.item_status === 'reserved');
+        const otherItems = items.filter(item => item.item_status === 'available');
+        const soldItems = items.filter(item => item.item_status === 'sold');
+
+        // Render reserved items in currently selling section
+        if (reservedItems.length === 0) {
+            noSellingMessage.style.display = 'block';
+        } else {
+            noSellingMessage.style.display = 'none';
+reservedItems.forEach(item => {
+    const photoUrl = item.photos?.[0] || 'https://via.placeholder.com/250x200?text=No+Image';
+    const timePosted = timeAgo(item.created_at);
+
+    let priceDisplay = '';
+    if (item.item_price_type === 'single') {
+        priceDisplay = `₱${item.item_price}`;
+    } else if (item.item_price_type === 'range') {
+        priceDisplay = `₱${item.item_price_min} - ₱${item.item_price_max}`;
+    } else if (item.item_price_type === 'hidden') {
+        priceDisplay = 'Price hidden';
+    } else {
+        priceDisplay = 'Price not available';
+    }
+
+    const itemCard = document.createElement('div');
+    itemCard.className = 'p-4 border border-gray-300 rounded-lg mb-4 shadow-sm';
+    itemCard.style.cursor = 'pointer';
+
+    itemCard.innerHTML = `
+        <img src="${photoUrl}" alt="${item.item_name}" class="item-card-img">
+        <div class="item-card-body">
+            <div class="item-card-title">${item.item_name}</div>
+            <div class="item-card-row">
+                <span class="item-card-price">${priceDisplay}</span>
+                <span class="item-card-time">${timePosted}</span>
+            </div>
+            <div class="item-card-condition">${item.item_condition}</div>
+            <div class="item-card-status${item.item_status === 'sold' ? ' sold' : ''}">${item.item_status.charAt(0).toUpperCase() + item.item_status.slice(1)}</div>
+        </div>
+    `;
+                itemCard.addEventListener('click', () => {
+                    // Open modal and load detailed post in iframe
+                    const modal = document.getElementById('detailedPostModal');
+                    const iframe = document.getElementById('detailedPostIframe');
+                    iframe.src = `Detailed_post.html?item_id=${encodeURIComponent(item.item_id)}&embedded=1`;
+                    modal.style.display = 'flex';
+                });
+    sellingContainer.appendChild(itemCard);
+});
+        }
+
+        // Render other items in items posted section
+        if (otherItems.length === 0) {
+            noItemsMessage.style.display = 'block';
+        } else {
+            noItemsMessage.style.display = 'none';
+otherItems.forEach(item => {
+    const photoUrl = item.photos?.[0] || 'https://via.placeholder.com/250x200?text=No+Image';
+    const timePosted = timeAgo(item.created_at);
+
+    let priceDisplay = '';
+    if (item.item_price_type === 'single') {
+        priceDisplay = `₱${item.item_price}`;
+    } else if (item.item_price_type === 'range') {
+        priceDisplay = `₱${item.item_price_min} - ₱${item.item_price_max}`;
+    } else if (item.item_price_type === 'hidden') {
+        priceDisplay = 'Price hidden';
+    } else {
+        priceDisplay = 'Price not available';
+    }
+
+    const itemCard = document.createElement('div');
+    itemCard.className = 'p-4 border border-gray-300 rounded-lg mb-4 shadow-sm';
+    itemCard.style.cursor = 'pointer';
+    itemCard.setAttribute('data-item-id', item.item_id);
+
+    itemCard.innerHTML = `
+        <img src="${photoUrl}" alt="${item.item_name}" class="w-full h-40 object-cover rounded-lg mb-2">
+        <h4 class="text-lg font-semibold">${item.item_name}</h4>
+        <p class="text-sm text-gray-600">Condition: ${item.item_condition}</p>
+        <p class="text-sm text-gray-600">Type: ${item.item_type}</p>
+        <p class="text-sm text-gray-600">Status: ${item.item_status}</p>
+        <p class="text-sm text-gray-600 font-bold">Price: ${priceDisplay}</p>
+        <p class="text-sm text-gray-500">Posted: ${timePosted}</p>
+    `;
+    itemCard.addEventListener('click', () => {
+        // Open modal and load detailed post in iframe
+        const modal = document.getElementById('detailedPostModal');
+        const iframe = document.getElementById('detailedPostIframe');
+        iframe.src = `Detailed_post.html?item_id=${encodeURIComponent(item.item_id)}&embedded=1`;
+        modal.style.display = 'flex';
+    });
+    postedContainer.appendChild(itemCard);
+});
+        }
+
+        // Render sold items in sold items section
+        if (soldItems.length === 0) {
+            noSoldMessage.style.display = 'block';
+        } else {
+            noSoldMessage.style.display = 'none';
+soldItems.forEach(item => {
+    const photoUrl = item.photos?.[0] || 'https://via.placeholder.com/250x200?text=No+Image';
+    const timePosted = timeAgo(item.created_at);
+
+    let priceDisplay = '';
+    if (item.item_price_type === 'single') {
+        priceDisplay = `₱${item.item_price}`;
+    } else if (item.item_price_type === 'range') {
+        priceDisplay = `₱${item.item_price_min} - ₱${item.item_price_max}`;
+    } else if (item.item_price_type === 'hidden') {
+        priceDisplay = 'Price hidden';
+    } else {
+        priceDisplay = 'Price not available';
+    }
+
+    const itemCard = document.createElement('div');
+    itemCard.className = 'p-4 border border-gray-300 rounded-lg mb-4 shadow-sm';
+    itemCard.style.cursor = 'pointer';
+    itemCard.setAttribute('data-item-id', item.item_id);
+
+    itemCard.innerHTML = `
+        <img src="${photoUrl}" alt="${item.item_name}" class="w-full h-40 object-cover rounded-lg mb-2">
+        <h4 class="text-lg font-semibold">${item.item_name}</h4>
+        <p class="text-sm text-gray-600">Condition: ${item.item_condition}</p>
+        <p class="text-sm text-gray-600">Type: ${item.item_type}</p>
+        <p class="text-sm text-gray-600">Status: ${item.item_status}</p>
+        <p class="text-sm text-gray-600 font-bold">Price: ${priceDisplay}</p>
+        <p class="text-sm text-gray-500">Posted: ${timePosted}</p>
+    `;
+    itemCard.addEventListener('click', () => {
+        // Open modal and load detailed post in iframe
+        const modal = document.getElementById('detailedPostModal');
+        const iframe = document.getElementById('detailedPostIframe');
+        iframe.src = `Detailed_post.html?item_id=${encodeURIComponent(item.item_id)}&embedded=1`;
+        modal.style.display = 'flex';
+    });
+    soldContainer.appendChild(itemCard);
+});
+        }
+    }
+
+    async function fetchFeedback(studId) {
+        const { data, error } = await supabase
+            .from('feedback')
+            .select(`
+                feedback_id,
+                item:item_id (
+                    item_name
+                ),
+                stars,
+                comment,
+                created_at,
+                buyer:buyer_id (
+                    stud_fname,
+                    stud_lname
+                )
+            `)
+            .eq('seller_id', studId)
+            .order('created_at', { ascending: false });
+
+        return error ? [] : data;
+    }
+
+    async function renderFeedback(studId) {
+        const feedbackList = document.getElementById('feedbackList');
+        feedbackList.innerHTML = '';
+        const feedbacks = await fetchFeedback(studId);
+
+        // Calculate average stars
+        let totalStars = 0;
+        let count = 0;
+        if (feedbacks && feedbacks.length > 0) {
+            feedbacks.forEach(fb => {
+                totalStars += fb.stars;
+                count++;
+            });
+        }
+        const avgStars = count > 0 ? (totalStars / count) : 0;
+
+        // Update average star rating display in profile section
+        const ratingSpan = document.getElementById('visitorStars');
+        if (ratingSpan) {
+            ratingSpan.textContent = `${avgStars.toFixed(1)} (${count})`;
+        }
+
+        if (!feedbacks || feedbacks.length === 0) {
+            const emptyMsg = document.createElement('li');
+            emptyMsg.className = 'empty-message';
+            emptyMsg.textContent = 'No feedback received yet.';
+            feedbackList.appendChild(emptyMsg);
+            return;
+        }
+
+        feedbacks.forEach(fb => {
+            const li = document.createElement('li');
+            li.style.borderBottom = '1px solid #eee';
+            li.style.padding = '8px 5px';
+
+            const starsSpan = document.createElement('span');
+            starsSpan.style.color = '#FFD700';
+            starsSpan.style.fontSize = '18px';
+            starsSpan.style.marginRight = '10px';
+            starsSpan.textContent = '★'.repeat(fb.stars) + '☆'.repeat(5 - fb.stars);
+
+            const buyerSpan = document.createElement('span');
+            buyerSpan.style.fontWeight = 'bold';
+            buyerSpan.textContent = `${fb.buyer.stud_fname} ${fb.buyer.stud_lname}`;
+
+            const itemSpan = document.createElement('span');
+            itemSpan.style.fontStyle = 'italic';
+            itemSpan.style.marginLeft = '10px';
+            itemSpan.textContent = `on "${fb.item ? fb.item.item_name : 'Unknown item'}"`;
+
+            const commentP = document.createElement('p');
+            commentP.textContent = fb.comment || '';
+            commentP.style.margin = '5px 0 0 0';
+
+            li.appendChild(starsSpan);
+            li.appendChild(buyerSpan);
+            li.appendChild(itemSpan);
+            li.appendChild(commentP);
+            feedbackList.appendChild(li);
+        });
+    }
+
+    // Main visitor mode entrypoint
+    window.addEventListener('DOMContentLoaded', async () => {
+        const studId = getQueryParam('stud_id');
+        if (!studId) {
+            alert("No user id provided.");
+            return;
+        }
+        await fetchProfile(studId);
+        await fetchUserPostedItems(studId);
+        await renderFeedback(studId);
+    });
+    </script>
+    <style>
+        /* Modal styles for report popup */
+        #reportModalOverlay {
+            display: none;
+            position: fixed;
+            z-index: 10000;
+            left: 0;
+            top: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+        }
+        #reportModalOverlay.active {
+            display: flex;
+        }
+        /* Added CSS to center message modal overlay */
+        #messageModalOverlay {
+            display: none;
+            position: fixed;
+            z-index: 10000;
+            left: 0;
+            top: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+        }
+        #messageModalOverlay.active {
+            display: flex;
+        }
+        #reportModalContent {
+            position: relative;
+            width: 90vw;
+            max-width: 600px;
+            height: 90vh;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.4);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        #reportModalCloseBtn {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: #d9534f;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            font-size: 20px;
+            cursor: pointer;
+            z-index: 10001;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #reportModalCloseBtn:hover {
+            background: #c9302c;
+        }
+        #reportModalIframe {
+            flex: 1 1 auto;
+            border: none;
+            border-radius: 12px;
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+
+    <!-- Modal container for report popup -->
+    <div id="reportModalOverlay">
+        <div id="reportModalContent">
+            <button id="reportModalCloseBtn" aria-label="Close report popup">&times;</button>
+            <iframe id="reportModalIframe" src="" title="Report User"></iframe>
+        </div>
+    </div>
+
+<script>
+    // Add event listeners for message and report buttons to navigate with stud_id query param
+    document.addEventListener('DOMContentLoaded', () => {
+        function getQueryParam(param) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(param);
+        }
+        const studId = getQueryParam('stud_id');
+        const messageButton = document.getElementById('messageButton');
+        const reportButton = document.getElementById('reportButton');
+        const reportModalOverlay = document.getElementById('reportModalOverlay');
+        const reportModalCloseBtn = document.getElementById('reportModalCloseBtn');
+        const reportModalIframe = document.getElementById('reportModalIframe');
+
+        const messageModalOverlay = document.getElementById('messageModalOverlay');
+        const messageModalCloseBtn = document.getElementById('messageModalCloseBtn');
+        const messageModalIframe = document.getElementById('messageModalIframe');
+
+if (messageButton) {
+    messageButton.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (studId) {
+            messageModalIframe.src = `message_page.html?seller_id=${encodeURIComponent(studId)}`;
+            messageModalOverlay.classList.add('active');
+            messageModalOverlay.classList.remove('hidden'); // <-- Add this
+        } else {
+            alert('User ID not found.');
+        }
+    });
+}
+if (messageModalCloseBtn) {
+    messageModalCloseBtn.addEventListener('click', () => {
+        messageModalOverlay.classList.remove('active');
+        messageModalOverlay.classList.add('hidden'); // <-- Add this
+        messageModalIframe.src = '';
+    });
+}
+
+        if (reportButton) {
+            reportButton.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (studId) {
+                    // Set iframe src to report.html with stud_id query param
+                    reportModalIframe.src = `report.html?stud_id=${encodeURIComponent(studId)}`;
+                    // Show modal
+                    reportModalOverlay.classList.add('active');
+                } else {
+                    alert('User ID not found.');
+                }
+            });
+        }
+
+        // Close report modal on close button click
+        reportModalCloseBtn.addEventListener('click', () => {
+            reportModalOverlay.classList.remove('active');
+            // Clear iframe src to stop loading and reset state
+            reportModalIframe.src = '';
+        });
+
+        // Close message modal on close button click
+        messageModalCloseBtn.addEventListener('click', () => {
+            messageModalOverlay.classList.remove('active');
+            // Clear iframe src to stop loading and reset state
+            messageModalIframe.src = '';
+        });
+
+        // Optional: close report modal when clicking outside modal content
+        reportModalOverlay.addEventListener('click', (e) => {
+            if (e.target === reportModalOverlay) {
+                reportModalOverlay.classList.remove('active');
+                reportModalIframe.src = '';
+            }
+        });
+
+        // Optional: close message modal when clicking outside modal content
+        messageModalOverlay.addEventListener('click', (e) => {
+            if (e.target === messageModalOverlay) {
+                messageModalOverlay.classList.remove('active');
+                messageModalIframe.src = '';
+            }
+        });
+    });
+</script>
+<!-- Modal container for message popup -->
+<div id="messageModalOverlay" class="fixed inset-0 bg-black bg-opacity-50 hidden justify-center items-center z-50">
+    <div class="bg-white rounded-lg shadow-lg w-full max-w-xl relative flex flex-col" style="height: 80vh;">
+        <button id="messageModalCloseBtn" aria-label="Close message popup" class="absolute top-2 right-2 bg-[#084F6A] text-white rounded-full w-8 h-8 flex items-center justify-center text-lg z-10">&times;</button>
+        <iframe id="messageModalIframe" src="" title="Message User" class="flex-1 rounded-b-lg border-0 w-full" style="height: 100%;"></iframe>
+    </div>
+</div>
+<!-- Add image zoom modal to View_other.html -->
+<style>
+  #parentImageZoomModal {
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    background: rgba(0,0,0,0.85);
+    justify-content: center;
+    align-items: center;
+    z-index: 100000;
+  }
+  #parentZoomedImage {
+    max-width: 90vw;
+    max-height: 90vh;
+    border-radius: 12px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+    cursor: zoom-out;
+    transition: all 0.3s ease;
+    position: relative;
+  }
+</style>
+
+<div id="parentImageZoomModal" aria-hidden="true" role="dialog" aria-label="Zoomed image view">
+  <img id="parentZoomedImage" src="" alt="Zoomed image" />
+</div>
+
+<script>
+  // Listen for zoomImage messages from iframe
+  window.addEventListener('message', (event) => {
+    if (!event.data || event.data.type !== 'zoomImage') return;
+
+    const modal = document.getElementById('parentImageZoomModal');
+    const zoomedImg = document.getElementById('parentZoomedImage');
+
+    zoomedImg.src = event.data.src;
+    modal.style.display = 'flex';
+    modal.setAttribute('aria-hidden', 'false');
+
+    // Focus for accessibility
+    zoomedImg.focus();
+  });
+
+  // Close modal on click outside image or on image
+  document.getElementById('parentImageZoomModal').addEventListener('click', (e) => {
+    if (e.target.id === 'parentImageZoomModal' || e.target.id === 'parentZoomedImage') {
+      const modal = document.getElementById('parentImageZoomModal');
+      modal.style.display = 'none';
+      modal.setAttribute('aria-hidden', 'true');
+      document.getElementById('parentZoomedImage').src = '';
+    }
+  });
+
+  // Optional: close modal on Escape key
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      const modal = document.getElementById('parentImageZoomModal');
+      if (modal.style.display === 'flex') {
+        modal.style.display = 'none';
+        modal.setAttribute('aria-hidden', 'true');
+        document.getElementById('parentZoomedImage').src = '';
+      }
+    }
+  });
+</script>
+
+
+  <!-- Modal for Detailed Post -->
+  <div id="detailedPostModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background-color: rgba(0,0,0,0.7); z-index: 2000; justify-content: center; align-items: center;">
+    <div style="position: relative; width: 90%; max-width: 900px; height: 90%; background: white; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); display: flex; flex-direction: column;">
+      <button id="closeDetailedPostModal" style="position: absolute; top: 10px; right: 10px; background: #084F6A; color: white; border: none; border-radius: 5px; padding: 8px 12px; font-size: 16px; cursor: pointer; z-index: 2100;">Close</button>
+      <iframe id="detailedPostIframe" src="" style="flex-grow: 1; border: none; border-radius: 0 0 10px 10px;"></iframe>
+    </div>
+  </div>
+
+<script>
+  // Function to open detailed post modal with given item_id
+  function openDetailedPostModal(itemId) {
+    const modal = document.getElementById('detailedPostModal');
+    const iframe = document.getElementById('detailedPostIframe');
+    iframe.src = `Detailed_post.html?item_id=${encodeURIComponent(itemId)}&embedded=1`;
+    modal.style.display = 'flex';
+  }
+
+  // Function to close detailed post modal
+  function closeDetailedPostModal() {
+    const modal = document.getElementById('detailedPostModal');
+    const iframe = document.getElementById('detailedPostIframe');
+    iframe.src = '';
+    modal.style.display = 'none';
+  }
+
+  // Add event listener to close button
+  document.addEventListener('DOMContentLoaded', () => {
+    const closeBtn = document.getElementById('closeDetailedPostModal');
+    if (closeBtn) {
+      closeBtn.addEventListener('click', closeDetailedPostModal);
+    }
+  });
+
+  // Modify item card click handlers to open modal instead of navigating
+  document.addEventListener('DOMContentLoaded', () => {
+    const currentlySellingItemsContainer = document.getElementById('currentlySellingItemsContainer');
+    const userItemsContainer = document.getElementById('userItemsContainer');
+    const soldItemsContainer = document.getElementById('soldItemsContainer');
+
+    function attachClickHandlers(container) {
+      if (!container) return;
+      const itemCards = container.querySelectorAll('div.p-4.border');
+      itemCards.forEach(card => {
+        card.style.cursor = 'pointer';
+        card.onclick = (e) => {
+          e.preventDefault();
+          // Extract item_id from the click handler closure or from dataset if available
+          // Since the original code uses closure, we can store item_id in dataset attribute
+          const itemId = card.getAttribute('data-item-id');
+          if (itemId) {
+            openDetailedPostModal(itemId);
+          } else {
+            // Fallback: try to parse from innerHTML or alert error
+            alert('Item ID not found.');
+          }
+        };
+      });
+    }
+
+    // Wait a bit for items to be rendered, then attach handlers
+    setTimeout(() => {
+      attachClickHandlers(currentlySellingItemsContainer);
+      attachClickHandlers(userItemsContainer);
+      attachClickHandlers(soldItemsContainer);
+    }, 500);
+  });
+</script>
+
+  <!-- Modal for Detailed Post -->
+  <div id="detailedPostModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background-color: rgba(0,0,0,0.7); z-index: 2000; justify-content: center; align-items: center;">
+    <div style="position: relative; width: 90%; max-width: 900px; height: 90%; background: white; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); display: flex; flex-direction: column;">
+      <button id="closeDetailedPostModal" style="position: absolute; top: 10px; right: 10px; background: #084F6A; color: white; border: none; border-radius: 5px; padding: 8px 12px; font-size: 16px; cursor: pointer; z-index: 2100;">Close</button>
+      <iframe id="detailedPostIframe" src="" style="flex-grow: 1; border: none; border-radius: 0 0 10px 10px;"></iframe>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('closeDetailedPostModal').addEventListener('click', () => {
+      const modal = document.getElementById('detailedPostModal');
+      const iframe = document.getElementById('detailedPostIframe');
+      iframe.src = '';
+      modal.style.display = 'none';
+    });
+  </script>
+
+</body>
+</html>

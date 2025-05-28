@@ -1,0 +1,1541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Item Details</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .details-layout {
+            display: flex;
+            gap: 48px;
+            max-width: 1200px;
+            margin: 40px auto 0 auto;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            padding: 40px 40px 30px 40px;
+            align-items: flex-start;
+        }
+        .details-left {
+            flex: 1 1 380px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 320px;
+        }
+        .image-gallery {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            margin-bottom: 20px;
+        }
+        .image-gallery img {
+            width: 320px;
+            height: 220px;
+            object-fit: cover;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+        .image-gallery img:hover {
+            transform: scale(1.05);
+        }
+        .details-right {
+            flex: 2 1 600px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            min-width: 400px;
+            padding-right: 24px;
+        }
+        .item-title {
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: #1a232b;
+            margin-bottom: 6px;
+            letter-spacing: 0.2px;
+        }
+        .user-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+        .user-row img {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+        }
+        .user-row .poster-name {
+            font-weight: 600;
+            font-size: 0.98rem;
+            color: #2a3b4c;
+        }
+        .price-box {
+            background: #f3f6f8;
+            border-radius: 10px;
+            padding: 18px 24px;
+            font-size: 1.45rem;
+            color: #17607d;
+            margin: 16px 0 18px 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 350px;
+        }
+        .price-box .posted-time {
+            font-size: 0.93rem;
+            color: #888;
+            font-weight: 400;
+        }
+        .meta-table {
+            display: grid;
+            grid-template-columns: 150px 1fr;
+            row-gap: 8px;
+            column-gap: 18px;
+            margin-bottom: 18px;
+            width: 100%;
+            max-width: 500px;
+            font-size: 0.98rem;
+        }
+        .meta-table span:first-child {
+            color: #b0b0b0;
+            font-weight: 500;
+            letter-spacing: 0.1px;
+        }
+        .meta-table span:last-child {
+            color: #232323;
+            font-weight: 600;
+        }
+        .description {
+            margin-bottom: 18px;
+            color: #444;
+            width: 100%;
+            max-width: 500px;
+            font-size: 0.98rem;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 18px;
+            margin-top: 22px;
+            width: 100%;
+            max-width: 500px;
+        }
+        .action-buttons button {
+            flex: 1;
+            background-color: #084F6A;
+            color: white;
+            border: none;
+            padding: 12px 0;
+            border-radius: 7px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: background 0.18s, box-shadow 0.18s;
+            box-shadow: 0 2px 8px rgba(8,79,106,0.07);
+        }
+        .action-buttons button:hover:not(:disabled) {
+            background: #17607d;
+        }
+        .action-buttons button:disabled {
+            background: #b0b0b0;
+            cursor: not-allowed;
+        }
+        .back-button {
+            position: fixed;
+            left: 60px;
+            bottom: 40px;
+            z-index: 10;
+            width: 110px;
+            font-size: 1rem;
+            font-weight: 600;
+            padding: 10px 0;
+            border-radius: 7px;
+            background: #084F6A;
+            color: #fff;
+            border: none;
+            transition: background 0.18s;
+        }
+        .back-button:hover {
+            background: #17607d;
+        }
+        .carousel-container {
+            position: relative;
+            width: 320px;
+            height: 220px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .carousel-image {
+            width: 320px;
+            height: 220px;
+            object-fit: cover;
+            border-radius: 8px;
+            cursor: zoom-in;
+        }
+        .carousel-arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(8,79,106,0.7);
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.18s;
+        }
+        .carousel-arrow:hover {
+            background: #17607d;
+        }
+        .carousel-arrow.left {
+            left: 8px;
+        }
+        .carousel-arrow.right {
+            right: 8px;
+        }
+        .zoomed-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0,0,0,0.85);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+        .zoomed-modal {
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 8px 40px rgba(0,0,0,0.25);
+            padding: 32px 32px 24px 32px;
+            max-width: 90vw;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+        .zoomed-modal img {
+            max-width: 80vw;
+            max-height: 70vh;
+            border-radius: 10px;
+            background: #fff;
+            cursor: grab;
+            transition: transform 0.2s;
+            box-shadow: 0 2px 16px rgba(0,0,0,0.10);
+        }
+        .zoomed-modal .close-btn {
+            position: absolute;
+            top: 12px;
+            right: 16px;
+            font-size: 2rem;
+            color: #333;
+            background: #f3f3f3;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            z-index: 10001;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+        }
+        .zoomed-modal .close-btn:hover {
+            background: #e0e0e0;
+        }
+        /* --- Begin Carousel & Modal Styles --- */
+        .item-image-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            margin-bottom: 24px;
+        }
+        .main-image {
+            display: block;
+            margin: 0 auto 16px auto;
+            width: 320px;
+            height: 240px;
+            object-fit: contain;
+            border-radius: 14px;
+            background: #f9f9f9;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+            border: 2px solid #e0e7ef;
+            transition: box-shadow 0.2s;
+            cursor: zoom-in;
+        }
+        .main-image:hover {
+            box-shadow: 0 8px 24px rgba(8,84,106,0.18);
+        }
+        .carousel {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 0;
+            justify-content: center;
+        }
+        .carousel-btn {
+            background: #eee;
+            border: none;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+        .carousel-thumbs {
+            display: flex;
+            gap: 10px;
+        }
+        .carousel-thumbs img {
+            width: 48px;
+            height: 36px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: border 0.2s, box-shadow 0.2s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+        .carousel-thumbs img.selected {
+            border: 2px solid #084F6A;
+            box-shadow: 0 4px 12px rgba(8,84,106,0.12);
+        }
+        /* Modal for enlarged image */
+        #image-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0,0,0,0.7);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+        }
+        #close-image-modal {
+            position: absolute;
+            top: 32px;
+            right: 48px;
+            color: #fff;
+            font-size: 2.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 10001;
+        }
+        #modal-image {
+            max-width: 80vw;
+            max-height: 80vh;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+            background: #fff;
+            display: block;
+        }
+        /* --- End Carousel & Modal Styles --- */
+    </style>
+</head>
+<body>
+    <div class="details-layout" id="item-details"></div>
+    <a href="index.html" class="back-button" id="backButton">Back</a>
+    <div id="error-message" style="
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1000;
+  background-color: #2ecc71;
+  color: white;
+  padding: 16px 32px;
+  border-radius: 8px;
+  font-weight: bold;
+  display: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  max-width: 90%;
+  text-align: center;
+  font-size: 1rem;
+"></div>
+
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+        const supabaseUrl = 'https://wuhgqjeijmxsgvnykttj.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind1aGdxamVpam14c2d2bnlrdHRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI4MjkzMDQsImV4cCI6MjA1ODQwNTMwNH0._lZy7CE2A8HM1hatjGYrMR8QAUi8nk4L_EuV7Fojhwg';
+
+        const supabaseClient = createClient(supabaseUrl, supabaseKey);
+
+    // Hide back button if embedded in iframe modal
+    if (new URLSearchParams(window.location.search).get('embedded') === '1') {
+        const backButton = document.getElementById('backButton');
+        if (backButton) {
+            backButton.style.display = 'none';
+        }
+    }
+
+    async function fetchItemDetails() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const itemId = urlParams.get('item_id');
+
+    if (!itemId) {
+        alert('No item selected.');
+        window.location.href = 'index.html';
+        return;
+    }
+
+    // Retrieve the logged-in user's stud_id from localStorage
+    const loggedInStudId = localStorage.getItem('stud_id');
+    console.log('Logged-in stud_id:', loggedInStudId); // Debugging: Log the logged-in user's stud_id
+
+    const { data: items, error } = await supabaseClient
+        .from('item')
+        .select(`
+            item_name,
+            item_description,
+            item_price,
+            item_price_type,
+            item_price_min,
+            item_price_max,
+            item_condition,
+            item_type,
+            item_status,
+            meeting_place,
+            created_at,
+            photos,
+            student:stud_id (
+                stud_id,
+                stud_fname,
+                stud_lname,
+                stud_school,
+                stud_picture,
+                user_id
+            )
+        `)
+        .eq('item_id', itemId);
+
+    if (error) {
+        console.error('Error fetching item details:', error);
+        alert('Failed to load item details.');
+        return;
+    }
+
+    if (!items || items.length === 0) {
+        alert('Item not found.');
+        window.location.href = 'index.html';
+        return;
+    }
+
+    const item = items[0];
+
+    // Check if item is already in cart for this user
+    let isInCart = false;
+    let isInCurrentlyBuying = false;
+    let buyerIdForItem = null;
+
+        if (loggedInStudId) {
+            // Fetch buyer_id for this item from transactions with status 'requested' or 'reserved'
+            const { data: buyerData, error: buyerError } = await supabaseClient
+                .from('transactions')
+                .select('buyer_id')
+                .eq('item_uuid', itemId)
+                .eq('status', 'requested')
+                .limit(1);
+
+            if (buyerError) {
+                console.error('Error fetching buyer_id for item:', buyerError);
+            } else if (buyerData && buyerData.length > 0) {
+                buyerIdForItem = buyerData[0].buyer_id;
+            }
+
+        // Check cart items
+        const { data: cartItems, error: cartError } = await supabaseClient
+            .from('transactions')
+            .select('item_uuid')
+            .eq('buyer_id', loggedInStudId)
+            .eq('status', 'cart');
+
+        if (cartError) {
+            console.error('Error fetching cart items:', cartError);
+        } else if (cartItems) {
+            isInCart = cartItems.some(cartItem => String(cartItem.item_uuid) === String(itemId));
+        }
+
+        // Check currently buying items (status 'requested')
+        const { data: currentlyBuyingItems, error: currentlyBuyingError } = await supabaseClient
+            .from('transactions')
+            .select('item_uuid')
+            .eq('buyer_id', loggedInStudId)
+            .eq('status', 'requested');
+
+        if (currentlyBuyingError) {
+            console.error('Error fetching currently buying items:', currentlyBuyingError);
+        } else if (currentlyBuyingItems) {
+            isInCurrentlyBuying = currentlyBuyingItems.some(item => String(item.item_uuid) === String(itemId));
+        }
+    }
+
+    const timePosted = timeAgo(item.created_at);
+    const container = document.getElementById('item-details');
+
+    console.log('loggedInStudId:', loggedInStudId);
+    console.log('item.buyer_id:', item.buyer_id);
+
+    const photosHtml = item.photos
+        .map(photo => `
+            <img src="${photo}" alt="${item.item_name}" onclick="zoomImage(this)">
+        `)
+        .join('');
+
+    // Determine price display based on price type
+    let priceDisplay = '';
+    if (item.item_price_type === 'single') {
+        priceDisplay = `₱${item.item_price}`;
+    } else if (item.item_price_type === 'range') {
+        priceDisplay = `₱${item.item_price_min} - ₱${item.item_price_max}`;
+    } else if (item.item_price_type === 'hidden') {
+        priceDisplay = 'Price hidden';
+    } else {
+        priceDisplay = 'Price not available';
+    }
+
+    // Check if the logged-in user is the owner of the item
+    const isOwner = loggedInStudId && item.student && (String(loggedInStudId) === String(item.student.stud_id));
+
+    container.innerHTML = `
+        <div class="details-left">
+            <div class="carousel-container">
+                <button class="carousel-arrow left" style="display: ${item.photos && item.photos.length > 1 ? 'flex' : 'none'}">&#8592;</button>
+                <img class="carousel-image" src="${item.photos && item.photos[0] ? item.photos[0] : 'Homepage_images/circle-user.png'}" alt="${item.item_name}">
+                <button class="carousel-arrow right" style="display: ${item.photos && item.photos.length > 1 ? 'flex' : 'none'}">&#8594;</button>
+            </div>
+            <div class="carousel-thumbs">
+                ${
+                  item.photos && item.photos.length > 1
+                    ? item.photos.map((photo, index) => `
+                        <img src="${photo}" alt="${item.item_name} thumbnail ${index + 1}" class="${index === 0 ? 'selected' : ''}" data-index="${index}">
+                      `).join('')
+                    : ''
+                }
+            </div>
+                        </div>
+<div id="error-message" style="
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                z-index: 1000;
+                background-color: #e74c3c;
+                color: white;
+                padding: 16px 32px;
+                border-radius: 8px;
+                font-weight: bold;
+                display: none;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+                max-width: 90%;
+                text-align: center;
+                font-size: 1rem;
+                "></div>
+
+
+
+        <div class="details-right">
+            <div class="item-title">${item.item_name}</div>
+            <div class="user-row">
+                <img src="${item.student.stud_picture || 'Homepage_images/circle-user.png'}" 
+                    alt="Profile Picture" 
+                    class="poster-profile" 
+                    style="cursor: pointer;">
+                <span class="poster-name" style="cursor: pointer;">
+                    ${item.student.stud_fname} ${item.student.stud_lname} (${item.student.stud_school})
+                </span>
+                <!-- Add rating here if needed -->
+            </div>
+            <div class="price-box">
+                <span>${priceDisplay}</span>
+                <span class="posted-time">Posted: ${timePosted}</span>
+            </div>
+            <div class="meta-table">
+                <span>Meeting Place</span><span>${item.meeting_place || 'N/A'}</span>
+                <span>School Institution</span><span>${item.student.stud_school || 'N/A'}</span>
+                <span>Item Type</span><span>${item.item_type || 'N/A'}</span>
+                <span>Condition</span><span>${item.item_condition || 'N/A'}</span>
+                <span>Description</span><span>${item.item_description || ''}</span>
+            </div>
+            <div class="action-buttons">
+                ${
+                  item.item_status === 'sold'
+                  ? ''
+                  : !isOwner && item.item_status === 'reserved' && loggedInStudId !== String(item.student.stud_id) && loggedInStudId !== String(buyerIdForItem)
+                    ? `
+            <button id="notify-me-button">Notify Me</button>
+            <span id="notify-me-note" style="font-size: 0.9rem; color: #555; margin-left: 10px;">Item currently in transaction, you will be notified if it is cancelled</span>
+          `
+                    : !isOwner
+                    ? `<button id="buy-button" ${isInCurrentlyBuying ? 'disabled' : ''}>${isInCurrentlyBuying ? 'In Listing' : 'Buy'}</button>${isInCurrentlyBuying ? '' : `<button id="add-to-cart-button" ${isInCart ? 'disabled' : ''}>${isInCart ? 'Added to Cart' : 'Add to Cart'}</button>`}`
+                    : ''
+                }
+            </div>
+        </div>
+    `;
+
+    console.log('Poster stud_id:', item.student.stud_id);
+
+    // Add click event listeners after the HTML is added to the DOM
+    document.querySelector('.poster-profile').onclick = () => {
+    if (item.student && item.student.stud_id) {
+        redirectToProfile(item.student.stud_id);
+    } else {
+        console.error('stud_id is undefined for this post.');
+    }
+};
+
+document.querySelector('.poster-name').onclick = () => {
+    if (item.student && item.student.stud_id) {
+        redirectToProfile(item.student.stud_id);
+    } else {
+        console.error('stud_id is undefined for this post.');
+    }
+};
+
+// Carousel functionality for multiple photos
+const carouselImage = document.querySelector('.carousel-image');
+const leftArrow = document.querySelector('.carousel-arrow.left');
+const rightArrow = document.querySelector('.carousel-arrow.right');
+const thumbnails = document.querySelectorAll('.carousel-thumbs img');
+
+let currentPhotoIndex = 0;
+
+function updateCarousel(index) {
+    if (!item.photos || item.photos.length === 0) return;
+    currentPhotoIndex = index;
+    carouselImage.src = item.photos[currentPhotoIndex];
+    carouselImage.alt = `${item.item_name} image ${currentPhotoIndex + 1}`;
+    thumbnails.forEach((thumb, i) => {
+        if (i === currentPhotoIndex) {
+            thumb.classList.add('selected');
+        } else {
+            thumb.classList.remove('selected');
+        }
+    });
+}
+
+if (leftArrow && rightArrow && thumbnails.length > 0) {
+    leftArrow.addEventListener('click', () => {
+        currentPhotoIndex = (currentPhotoIndex - 1 + item.photos.length) % item.photos.length;
+        updateCarousel(currentPhotoIndex);
+    });
+
+    rightArrow.addEventListener('click', () => {
+        currentPhotoIndex = (currentPhotoIndex + 1) % item.photos.length;
+        updateCarousel(currentPhotoIndex);
+    });
+
+    thumbnails.forEach((thumb, index) => {
+        thumb.addEventListener('click', () => {
+            updateCarousel(index);
+        });
+    });
+}
+
+// Add zoom on main carousel image click with drag detection
+if (carouselImage) {
+    let mouseDownX = 0;
+    let mouseDownY = 0;
+    let mouseUpX = 0;
+    let mouseUpY = 0;
+    const dragThreshold = 5; // pixels
+
+    carouselImage.addEventListener('mousedown', (e) => {
+        mouseDownX = e.clientX;
+        mouseDownY = e.clientY;
+    });
+
+    carouselImage.addEventListener('mouseup', (e) => {
+        mouseUpX = e.clientX;
+        mouseUpY = e.clientY;
+        const deltaX = Math.abs(mouseUpX - mouseDownX);
+        const deltaY = Math.abs(mouseUpY - mouseDownY);
+        if (deltaX < dragThreshold && deltaY < dragThreshold) {
+            zoomImage(carouselImage);
+        }
+    });
+}
+
+const buyButton = document.getElementById('buy-button');
+if (buyButton) {
+    let buyButtonClicked = false;
+    buyButton.addEventListener('click', () => {
+        if (buyButtonClicked) return;
+        buyButtonClicked = true;
+
+        // Create popup overlay
+        const popupOverlay = document.createElement('div');
+        popupOverlay.id = 'popup-overlay';
+        popupOverlay.style.position = 'fixed';
+        popupOverlay.style.top = '0';
+        popupOverlay.style.left = '0';
+        popupOverlay.style.width = '100%';
+        popupOverlay.style.height = '100%';
+        popupOverlay.style.backgroundColor = 'rgba(0,0,0,0.5)';
+        popupOverlay.style.display = 'flex';
+        popupOverlay.style.justifyContent = 'center';
+        popupOverlay.style.alignItems = 'center';
+        popupOverlay.style.zIndex = '1000';
+
+        // Create popup box
+        const popupBox = document.createElement('div');
+        popupBox.style.backgroundColor = 'white';
+        popupBox.style.padding = '20px';
+        popupBox.style.borderRadius = '8px';
+        popupBox.style.textAlign = 'center';
+        popupBox.style.maxWidth = '300px';
+        popupBox.style.boxShadow = '0 2px 10px rgba(0,0,0,0.3)';
+
+        // Popup message
+        const message = document.createElement('p');
+        message.textContent = 'Do you really want to buy this item?';
+        message.style.marginBottom = '20px';
+
+        // Yes button
+        const yesButton = document.createElement('button');
+        yesButton.textContent = 'Yes';
+        yesButton.style.marginRight = '10px';
+        yesButton.style.padding = '10px 20px';
+        yesButton.style.backgroundColor = '#084F6A';
+        yesButton.style.color = 'white';
+        yesButton.style.border = 'none';
+        yesButton.style.borderRadius = '5px';
+        yesButton.style.cursor = 'pointer';
+
+        // No button
+        const noButton = document.createElement('button');
+        noButton.textContent = 'No';
+        noButton.style.padding = '10px 20px';
+        noButton.style.backgroundColor = '#ccc';
+        noButton.style.border = 'none';
+        noButton.style.borderRadius = '5px';
+        noButton.style.cursor = 'pointer';
+
+        // Append buttons and message to popup box
+        popupBox.appendChild(message);
+        popupBox.appendChild(yesButton);
+        popupBox.appendChild(noButton);
+
+        // Append popup box to overlay
+        popupOverlay.appendChild(popupBox);
+
+        // Append overlay to body
+        document.body.appendChild(popupOverlay);
+
+        // No button closes popup
+        noButton.addEventListener('click', () => {
+            document.body.removeChild(popupOverlay);
+            buyButtonClicked = false;
+        });
+
+        // Yes button redirects to message_page.html with pre-filled message
+                yesButton.addEventListener('click', async () => {
+                    if (yesButton.disabled) return;
+                    yesButton.disabled = true;
+
+                    // Check if user is logged in and has a valid session
+                    const session = await supabaseClient.auth.getSession();
+                    const accessToken = session.data.session?.access_token;
+                    if (!accessToken) {
+                        alert('You must be logged in to buy an item.');
+                        yesButton.disabled = false;
+                        buyButtonClicked = false;
+                        return;
+                    }
+
+                    const buyerId = localStorage.getItem('stud_id');
+                    const sellerId = item.student.stud_id;
+
+                    // Check if item is already in cart for this user
+                    try {
+                        const { data: cartItems, error: cartError } = await supabaseClient
+                            .from('transactions')
+                            .select('transac_id')
+                            .eq('buyer_id', buyerId)
+                            .eq('item_uuid', itemId)
+                            .eq('status', 'cart')
+                            .limit(1);
+
+                        if (cartError) {
+                            console.error('Error checking cart items:', cartError);
+                            alert('Failed to process purchase.');
+                            buyButtonClicked = false;
+                            return;
+                        }
+
+                        if (cartItems && cartItems.length > 0) {
+                            // Update existing cart transaction to requested
+                            const transacId = cartItems[0].transac_id;
+                            const { error: updateError } = await supabaseClient
+                                .from('transactions')
+                                .update({ status: 'requested' })
+                                .eq('transac_id', transacId);
+
+                            if (updateError) {
+                                console.error('Error updating transaction status:', updateError);
+                                alert('Failed to update transaction status.');
+                                buyButtonClicked = false;
+                                return;
+                            }
+                        } else {
+                            // Check if a transaction with same buyer, seller, and item exists with status 'requested'
+                            const { data: existingTransaction, error: existingError } = await supabaseClient
+                                .from('transactions')
+                                .select('transac_id')
+                                .eq('buyer_id', buyerId)
+                                .eq('seller_id', sellerId)
+                                .eq('item_uuid', itemId)
+                                .eq('status', 'requested')
+                                .limit(1);
+
+                            if (existingError && existingError.code !== 'PGRST116') { // PGRST116 = no rows found
+                                console.error('Error checking existing requested transaction:', existingError);
+                                alert('Failed to process purchase.');
+                                buyButtonClicked = false;
+                                return;
+                            }
+
+                            if (existingTransaction && existingTransaction.length > 0) {
+                                // Update existing requested transaction (if any)
+                                const transacId = existingTransaction[0].transac_id;
+                                const { error: updateError } = await supabaseClient
+                                    .from('transactions')
+                                    .update({ status: 'requested' })
+                                    .eq('transac_id', transacId);
+
+                                if (updateError) {
+                                    console.error('Error updating existing requested transaction:', updateError);
+                                    alert('Failed to update transaction status.');
+                                    buyButtonClicked = false;
+                                    return;
+                                }
+                            } else {
+                                // Insert new transaction with status 'requested'
+                                const { data: transactionData, error: transactionError } = await supabaseClient
+                                    .from('transactions')
+                                    .insert([{
+                                        buyer_id: buyerId,
+                                        buyer_uuid: session.data.session?.user?.id || null,
+                                        seller_id: sellerId,
+                                        seller_uuid: item.student.user_id || null,
+                                        item_uuid: itemId,
+                                        status: 'requested'
+                                    }]);
+
+                                if (transactionError) {
+                                    console.error('Error inserting requested transaction:', transactionError);
+                                    alert('Failed to create transaction request.');
+                                    buyButtonClicked = false;
+                                    return;
+                                }
+                            }
+                        }
+                    } catch (err) {
+                        console.error('Unexpected error:', err);
+                        alert('An unexpected error occurred.');
+                        buyButtonClicked = false;
+                        return;
+                    }
+
+                    // New code: update item status to "reserved" via server API
+                    try {
+                        // Use full URL with supabaseUrl to avoid relative path issues
+                        const apiUrl = `${window.location.origin}/item/${itemId}/buy`;
+                        const response = await fetch(apiUrl, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${session.data.session?.access_token}`
+                            }
+                        });
+
+                        if (!response.ok) {
+                            const errorData = await response.json();
+                            console.error('Failed to update item status via API:', errorData.message);
+                            alert('Failed to update item status.');s
+                            buyButtonClicked = false;
+                            return;
+                        }
+                    } catch (err) {
+                        console.error('Error updating item status via API:', err);
+                        alert('Failed to update item status.');
+                        buyButtonClicked = false;
+                        return;
+                    }
+
+                // Proceed with the rest of the existing buy logic (conversation, messaging, notifications)
+                try {
+                    // Construct message text based on price type
+                    let messageText = '';
+                    if (item.item_price_type === 'single') {
+                        messageText = `I am interested on buying ${item.item_name} at ₱${item.item_price}`;
+                    } else if (item.item_price_type === 'range' || item.item_price_type === 'hidden') {
+                        messageText = `I am interested on buying ${item.item_name}`;
+                    } else {
+                        messageText = `I am interested on buying ${item.item_name}`;
+                    }
+
+                    // Order user UUIDs to satisfy user_order check constraint
+                    const buyerUuid = (await supabaseClient.auth.getSession()).data.session?.user?.id || null;
+                    const sellerUuid = item.student.user_id || null;
+
+                    if (!buyerUuid || !sellerUuid) {
+                        alert('User authentication information is missing.');
+                        buyButtonClicked = false;
+                        return;
+                    }
+
+                    const user1_uuid = buyerUuid < sellerUuid ? buyerUuid : sellerUuid;
+                    const user2_uuid = buyerUuid < sellerUuid ? sellerUuid : buyerUuid;
+
+                    // Check if conversation already exists between buyer and seller
+                    // Order integer user IDs to satisfy user_order check constraint
+                    const buyerIdInt = parseInt(buyerId, 10);
+                    const sellerIdInt = parseInt(sellerId, 10);
+                    const user1_id = buyerIdInt < sellerIdInt ? buyerIdInt : sellerIdInt;
+                    const user2_id = buyerIdInt < sellerIdInt ? sellerIdInt : buyerIdInt;
+
+                    let { data: existingConversations, error: existingError } = await supabaseClient
+                        .from('conversation')
+                        .select('conversation_id')
+                        .match({ user1_id: user1_id, user2_id: user2_id })
+                        .limit(1);
+
+                    if (existingError) {
+                        console.error('Error checking existing conversation:', existingError);
+                        alert('Failed to initiate conversation.');
+                        buyButtonClicked = false;
+                        return;
+                    }
+
+                    let conversationId;
+                    if (existingConversations && existingConversations.length > 0) {
+                        conversationId = existingConversations[0].conversation_id;
+                    } else {
+                        // Create new conversation
+                        // Order integer user IDs to satisfy user_order check constraint
+                        const buyerIdInt = parseInt(buyerId, 10);
+                        const sellerIdInt = parseInt(sellerId, 10);
+                        const user1_id = buyerIdInt < sellerIdInt ? buyerIdInt : sellerIdInt;
+                        const user2_id = buyerIdInt < sellerIdInt ? sellerIdInt : buyerIdInt;
+
+                        const { data: newConversation, error: createError } = await supabaseClient
+                            .from('conversation')
+                            .insert([{
+                                user1_id: user1_id,
+                                user2_id: user2_id,
+                                user1_uuid: user1_uuid,
+                                user2_uuid: user2_uuid
+                            }])
+                            .select()
+                            .single();
+
+                        if (createError) {
+                            console.error('Error creating conversation:', createError);
+                            alert('Failed to create conversation.');
+                            buyButtonClicked = false;
+                            return;
+                        }
+                        conversationId = newConversation.conversation_id;
+                    }
+
+                    // Fetch seller user_id for receiver_uid
+                    const { data: sellerUser, error: sellerUserError } = await supabaseClient
+                        .from('student')
+                        .select('user_id, stud_fname, stud_lname')
+                        .eq('stud_id', sellerId)
+                        .single();
+
+                    if (sellerUserError || !sellerUser) {
+                        console.error('Error fetching seller user_id:', sellerUserError);
+                        alert('Failed to send message due to seller info.');
+                        buyButtonClicked = false;
+                        return;
+                    }
+
+                    const receiverUid = sellerUser.user_id;
+
+                    // Fetch buyer user info for notification content
+                    const { data: buyerUser, error: buyerUserError } = await supabaseClient
+                        .from('student')
+                        .select('stud_fname, stud_lname')
+                        .eq('stud_id', buyerId)
+                        .single();
+
+                    if (buyerUserError || !buyerUser) {
+                        console.error('Error fetching buyer user info:', buyerUserError);
+                        alert('Failed to send message due to buyer info.');
+                        buyButtonClicked = false;
+                        return;
+                    }
+
+                    // Insert initial message with sender_uid and receiver_uid
+                    const { error: messageError } = await supabaseClient
+                        .from('message')
+                        .insert([{
+                            conversation_id: conversationId,
+                            sender_id: buyerId,
+                            sender_uid: (await supabaseClient.auth.getSession()).data.session?.user?.id || null,
+                            receiver_id: sellerId,
+                            receiver_uid: receiverUid,
+                            mess_content: messageText
+                        }]);
+
+                    if (messageError) {
+                        console.error('Error sending message:', messageError);
+                        alert('Failed to send message.');
+                        buyButtonClicked = false;
+                        return;
+                    }
+
+                    // Insert notification for the seller about the buy request with type 'buy_request'
+                    const notificationContentBuyRequest = `${buyerUser.stud_fname} ${buyerUser.stud_lname} wants to buy ${item.item_name}`;
+                    const sessionBuyRequest = await supabaseClient.auth.getSession();
+                    const senderUuidBuyRequest = sessionBuyRequest.data.session?.user?.id || null;
+                    const receiverUuidBuyRequest = receiverUid; // seller's user_id as UUID
+
+                    // Check if existing unread buy_request notification exists
+                    const { data: existingBuyRequestNotifications, error: existingBuyRequestError } = await supabaseClient
+                        .from('notifications')
+                        .select('*')
+                        .eq('receiver_id', sellerId)
+                        .eq('sender_id', buyerId)
+                        .eq('type', 'buy_request')
+                        .eq('is_read', false);
+
+                    if (existingBuyRequestError) {
+                        console.error('Error checking existing buy_request notifications:', existingBuyRequestError);
+                    }
+
+                    if (!existingBuyRequestNotifications || existingBuyRequestNotifications.length === 0) {
+                        // Insert new buy_request notification
+                        const { data: notificationDataBuyRequest, error: notificationErrorBuyRequest } = await supabaseClient
+                            .from('notifications')
+                            .insert([{
+                                receiver_id: sellerId,
+                                sender_id: buyerId,
+                                receiver_uuid: receiverUuidBuyRequest,
+                                sender_uuid: senderUuidBuyRequest,
+                                type: 'buy_request',  // Ensure this is set to 'buy_request' enum type
+                                content: notificationContentBuyRequest,
+                                is_read: false
+                            }]);
+
+                        if (notificationErrorBuyRequest) {
+                            console.error('Error inserting buy_request notification:', notificationErrorBuyRequest);
+                            // Do not block user flow, just log error
+                        } else {
+                            console.log('Buy_request notification inserted successfully for sellerId:', sellerId, notificationDataBuyRequest);
+                        }
+                    } else {
+                        // Update existing unread buy_request notification
+                        const existingNotification = existingBuyRequestNotifications[0];
+                        const updatedContent = `${buyerUser.stud_fname} wants to buy ${item.item_name}`;
+                        const { data: updateData, error: updateError } = await supabaseClient
+                            .from('notifications')
+                            .update({ content: updatedContent, is_read: false, updated_at: new Date().toISOString() })
+                            .eq('notification_id', existingNotification.notification_id);
+
+                        if (updateError) {
+                            console.error('Error updating buy_request notification:', updateError);
+                        } else {
+                            console.log('Buy_request notification updated successfully for sellerId:', sellerId, updateData);
+                        }
+                    }
+
+                    // Redirect to message page with conversation id and seller id
+                    window.location.href = `message_page.html?conversation_id=${conversationId}&seller_id=${sellerId}`;
+                } catch (err) {
+                    console.error('Unexpected error:', err);
+                    alert('An unexpected error occurred.');
+                    buyButtonClicked = false;
+                }
+            });
+    });
+}
+
+// Add to Cart button event listener moved inside fetchItemDetails
+const addToCartButton = document.getElementById('add-to-cart-button');
+if (addToCartButton) {
+    let addToCartClicked = false;
+    addToCartButton.addEventListener('click', async () => {
+        if (addToCartClicked) return;
+        addToCartClicked = true;
+
+        const buyerId = localStorage.getItem('stud_id');
+        if (!buyerId) {
+            alert('You must be logged in to add items to the cart.');
+            addToCartClicked = false;
+            return;
+        }
+        try {
+            // Insert a new transaction with status 'cart'
+                const { data, error } = await supabaseClient
+                    .from('transactions')
+                    .insert([{
+                        buyer_id: buyerId,
+                        buyer_uuid: (await supabaseClient.auth.getSession()).data.session?.user?.id || null,
+                        seller_id: item.student.stud_id,
+                        seller_uuid: item.student.user_id || null,
+                        item_uuid: itemId,
+                        status: 'cart'
+                    }]);
+
+                if (error) {
+                    console.error('Error adding item to cart:', error);
+                    showBanner('❌ Failed to add item to cart.', 'error');
+                    addToCartClicked = false;
+                    return;
+                }
+
+                // Update button state immediately after successful add
+                addToCartButton.textContent = 'Added to Cart';
+                addToCartButton.disabled = true;
+                showBanner('✅ Item added to cart successfully!', 'success');
+
+                } catch (err) {
+                    console.error('Unexpected error adding to cart:', err);
+                    showBanner('❌ An unexpected error occurred while adding to cart.', 'error');
+                    addToCartClicked = false;
+                }
+
+    });
+}
+
+function showBanner(message, type = "error") {
+    const errorMessage = document.getElementById("error-message");
+
+    errorMessage.style.display = "block";
+    errorMessage.textContent = message;
+
+    if (type === "success") {
+        errorMessage.style.backgroundColor = "#2ecc71"; // green
+    } else {
+        errorMessage.style.backgroundColor = "#e74c3c"; // red
+    }
+
+    setTimeout(() => {
+        errorMessage.style.display = "none";
+    }, 3000);
+}
+
+
+            const notifyMeButton = document.getElementById('notify-me-button');
+            if (notifyMeButton) {
+                // Check on page load if user already has a 'cart' transaction for this item
+                const buyerId = localStorage.getItem('stud_id');
+                if (buyerId) {
+                    const { data: existingNotify, error: existingError } = await supabaseClient
+                        .from('transactions')
+                        .select('transac_id')
+                        .eq('buyer_id', buyerId)
+                        .eq('item_uuid', itemId)
+                        .in('status', ['cart', 'requested']) // Include 'requested' status as well
+                        .limit(1);
+                    if (!existingError && existingNotify && existingNotify.length > 0) {
+                        notifyMeButton.textContent = 'Waiting for Updates';
+                        notifyMeButton.disabled = true;
+                        // Hide the note when button is in "Waiting for Updates" state
+                        const notifyMeNote = document.getElementById('notify-me-note');
+                        if (notifyMeNote) {
+                            notifyMeNote.style.display = 'none';
+                        }
+                    }
+                }
+
+                let notifyMeClicked = false;
+                notifyMeButton.addEventListener('click', async () => {
+                    if (notifyMeClicked) return;
+                    notifyMeClicked = true;
+
+                    const buyerId = localStorage.getItem('stud_id');
+                    if (!buyerId) {
+                        alert('You must be logged in to add items to the cart.');
+                        notifyMeClicked = false;
+                        return;
+                    }
+                    try {
+                        // Insert a new transaction with status 'cart'
+                        const { data, error } = await supabaseClient
+                            .from('transactions')
+                            .insert([{
+                                buyer_id: buyerId,
+                                buyer_uuid: (await supabaseClient.auth.getSession()).data.session?.user?.id || null,
+                                seller_id: item.student.stud_id,
+                                seller_uuid: (item.student.user_id) ? item.student.user_id : null,
+                                item_uuid: itemId,
+                                status: 'cart'
+                            }]);
+                        if (error) {
+                            console.error('Error adding item to cart:', error);
+                            alert('Failed to add item to cart.');
+                            notifyMeClicked = false;
+                            return;
+                        }
+                        // Update button state immediately after successful add
+                        notifyMeButton.textContent = 'Waiting for Updates';
+                        notifyMeButton.disabled = true;
+                        showBanner('✅ Item added to cart successfully.', 'success');
+                    } catch (err) {
+                        console.error('Unexpected error adding to cart:', err);
+                        alert('An unexpected error occurred while adding to cart.');
+                        notifyMeClicked = false;
+                    }
+                });
+            }
+
+}
+
+function redirectToProfile(studId) {
+    if (!studId) {
+        console.error('stud_id is undefined');
+        return;
+    }
+
+    // Retrieve the logged-in user's stud_id from localStorage
+    const loggedInStudId = localStorage.getItem('stud_id');
+    console.log('Logged-in stud_id:', loggedInStudId); // Debugging: Log the logged-in user's stud_id
+    console.log('Poster stud_id:', studId); // Debugging: Log the poster's stud_id
+
+    // Convert both studId and loggedInStudId to strings for comparison
+    if (String(studId) === String(loggedInStudId)) {
+        // Redirect to the user's own profile (editable mode)
+        console.log('Redirecting to the user\'s own profile (ViewProfile.html)');
+        // Always navigate top window to open full page
+        window.top.location.href = 'ViewProfile.html';
+    } else {
+        // Redirect to the visitor mode profile
+        console.log('Redirecting to the visitor profile (View_other.html)');
+        // Always navigate top window to open full page
+        window.top.location.href = `View_other.html?stud_id=${studId}`;
+    }
+}
+function timeAgo(createdAt) {
+            const now = new Date();
+            const createdDate = new Date(createdAt);
+            const diffInSeconds = Math.floor((now - createdDate) / 1000);
+
+            if (diffInSeconds < 60) {
+                return `${diffInSeconds} second${diffInSeconds === 1 ? '' : 's'} ago`;
+            }
+
+            const diffInMinutes = Math.floor(diffInSeconds / 60);
+            if (diffInMinutes < 60) {
+                return `${diffInMinutes} minute${diffInMinutes === 1 ? '' : 's'} ago`;
+            }
+
+            const diffInHours = Math.floor(diffInMinutes / 60);
+            if (diffInHours < 24) {
+                return `${diffInHours} hour${diffInHours === 1 ? '' : 's'} ago`;
+            }
+
+            const diffInDays = Math.floor(diffInHours / 24);
+            if (diffInDays < 7) {
+                return `${diffInDays} day${diffInDays === 1 ? '' : 's'} ago`;
+            }
+
+            const diffInWeeks = Math.floor(diffInDays / 7);
+            if (diffInWeeks < 4) {
+                return `${diffInWeeks} week${diffInWeeks === 1 ? '' : 's'} ago`;
+            }
+
+            const diffInMonths = Math.floor(diffInDays / 30);
+            return `${diffInMonths} month${diffInMonths === 1 ? '' : 's'} ago`;
+        }
+
+        
+
+let currentZoomIndex = 0;
+let zoomImages = [];
+let zoomLevel = 1;
+const maxZoomLevel = 3;
+const zoomStep = 1;
+
+// Create zoom modal elements
+const zoomModal = document.createElement('div');
+zoomModal.id = 'zoom-modal';
+zoomModal.style.position = 'fixed';
+zoomModal.style.top = '0';
+zoomModal.style.left = '0';
+zoomModal.style.width = '100vw';
+zoomModal.style.height = '100vh';
+zoomModal.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+zoomModal.style.display = 'none';
+zoomModal.style.justifyContent = 'center';
+zoomModal.style.alignItems = 'center';
+zoomModal.style.zIndex = '10000';
+zoomModal.style.flexDirection = 'column';
+
+const zoomedImage = document.createElement('img');
+zoomedImage.id = 'zoomed-image';
+zoomedImage.style.maxWidth = '80vw';
+zoomedImage.style.maxHeight = '80vh';
+zoomedImage.style.borderRadius = '10px';
+zoomedImage.style.cursor = 'zoom-in';
+zoomedImage.style.transition = 'transform 0.3s ease';
+
+const navContainer = document.createElement('div');
+navContainer.style.marginTop = '10px';
+navContainer.style.display = 'flex';
+navContainer.style.justifyContent = 'center';
+navContainer.style.gap = '20px';
+
+const prevButton = document.createElement('button');
+prevButton.textContent = 'Previous';
+prevButton.style.padding = '8px 16px';
+prevButton.style.fontSize = '1rem';
+prevButton.style.cursor = 'pointer';
+
+const nextButton = document.createElement('button');
+nextButton.textContent = 'Next';
+nextButton.style.padding = '8px 16px';
+nextButton.style.fontSize = '1rem';
+nextButton.style.cursor = 'pointer';
+
+const closeButton = document.createElement('button');
+closeButton.textContent = 'Close';
+closeButton.style.position = 'absolute';
+closeButton.style.top = '20px';
+closeButton.style.right = '20px';
+closeButton.style.padding = '8px 16px';
+closeButton.style.fontSize = '1rem';
+closeButton.style.cursor = 'pointer';
+
+navContainer.appendChild(prevButton);
+navContainer.appendChild(nextButton);
+zoomModal.appendChild(closeButton);
+zoomModal.appendChild(zoomedImage);
+zoomModal.appendChild(navContainer);
+document.body.appendChild(zoomModal);
+
+function updateZoomedImage() {
+    if (!zoomImages.length) return;
+    const img = zoomImages[currentZoomIndex];
+    zoomedImage.src = img.src;
+    zoomedImage.alt = img.alt || 'Zoomed Image';
+    zoomLevel = 1;
+    zoomedImage.style.transform = 'scale(1)';
+    zoomedImage.style.cursor = 'zoom-in';
+}
+
+function openZoomModal(index, images) {
+    if (images) {
+        zoomImages = images;
+    } else {
+        zoomImages = Array.from(document.querySelectorAll('.carousel-thumbs img'));
+    }
+    currentZoomIndex = index;
+    updateZoomedImage();
+    zoomModal.style.display = 'flex';
+    document.body.style.overflow = 'hidden'; // Prevent background scroll
+
+    // Hide main page back button when zoom modal is open
+    const backButton = document.getElementById('backButton');
+    if (backButton) {
+        backButton.style.display = 'none';
+    }
+
+    // Hide prev/next buttons if only one image
+    if (zoomImages.length <= 1) {
+        prevButton.style.display = 'none';
+        nextButton.style.display = 'none';
+    } else {
+        prevButton.style.display = 'inline-block';
+        nextButton.style.display = 'inline-block';
+    }
+}
+
+function closeZoomModal() {
+    zoomModal.style.display = 'none';
+    document.body.style.overflow = ''; // Restore scroll
+
+    // Hide main page back button when zoom modal is closed (to remove it as requested)
+    const backButton = document.getElementById('backButton');
+    if (backButton) {
+        backButton.style.display = 'none';
+    }
+}
+
+function zoomToggle(e) {
+    e.stopPropagation();
+    if (zoomLevel < maxZoomLevel) {
+        zoomLevel += zoomStep;
+        zoomedImage.style.transform = `scale(${zoomLevel})`;
+        zoomedImage.style.cursor = 'zoom-out';
+        // Hide close button when zoomed in
+        closeButton.style.display = 'none';
+    } else {
+        zoomLevel = 1;
+        zoomedImage.style.transform = 'scale(1)';
+        zoomedImage.style.cursor = 'zoom-in';
+        // Show close button when zoom level is 1
+        closeButton.style.display = 'inline-block';
+    }
+}
+
+zoomedImage.addEventListener('click', zoomToggle);
+closeButton.addEventListener('click', closeZoomModal);
+zoomModal.addEventListener('click', (e) => {
+    if (e.target === zoomModal) {
+        closeZoomModal();
+    }
+});
+
+prevButton.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (zoomImages.length === 0) return;
+    currentZoomIndex = (currentZoomIndex - 1 + zoomImages.length) % zoomImages.length;
+    updateZoomedImage();
+});
+
+nextButton.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (zoomImages.length === 0) return;
+    currentZoomIndex = (currentZoomIndex + 1) % zoomImages.length;
+    updateZoomedImage();
+});
+
+function zoomImage(imgElement) {
+    // Find thumbnails images
+    let images = Array.from(document.querySelectorAll('.carousel-thumbs img'));
+    if (images.length === 0) {
+        // No thumbnails, likely only one image, use the clicked image itself
+        images = [imgElement];
+        openZoomModal(0, images);
+        return;
+    }
+    const index = images.indexOf(imgElement);
+    if (index === -1) {
+        // If clicked image is not in thumbnails, fallback to first image
+        openZoomModal(0, images);
+    } else {
+        openZoomModal(index, images);
+    }
+}
+
+        // Expose zoomImage to global scope for inline onclick handlers
+        window.zoomImage = zoomImage;
+
+        fetchItemDetails();
+
+        // Add real-time subscription to update item details when item status changes
+        const urlParams = new URLSearchParams(window.location.search);
+        const itemId = urlParams.get('item_id');
+        if (itemId) {
+            supabaseClient
+                .channel(`public:item:item_id=eq.${itemId}`)
+                .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'item', filter: `item_id=eq.${itemId}` }, async payload => {
+                    console.log('Real-time item update received:', payload);
+                    fetchItemDetails();
+
+                    // New logic: if item status changed to "sold", notify users who clicked "Notify Me"
+                    const newStatus = payload.new.item_status;
+                    const oldStatus = payload.old.item_status;
+                    if ((oldStatus === 'reserved' || oldStatus === 'requested') && newStatus === 'sold') {
+                        // Removed notification insertion logic here to avoid duplicate or failed insertions
+                        // The backend API handles notification insertion on item status update
+                        console.log('Item status changed to sold, notifications handled by backend.');
+                    }
+                })
+                .subscribe();
+
+            // New real-time subscription to update "Notify Me" button state when 'cart' transactions change for logged-in user and this item
+            const loggedInStudId = localStorage.getItem('stud_id');
+            if (loggedInStudId) {
+                supabaseClient
+                    .channel(`public:transactions:buyer_id=eq.${loggedInStudId}&item_uuid=eq.${itemId}`)
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'transactions', filter: `buyer_id=eq.${loggedInStudId},item_uuid=eq.${itemId}` }, async payload => {
+                        console.log('Real-time transactions update received:', payload);
+                        const notifyMeButton = document.getElementById('notify-me-button');
+                        const notifyMeNote = document.getElementById('notify-me-note');
+                        if (!notifyMeButton) return;
+
+                        // Check if a 'cart' transaction exists for this user and item
+                        const { data: cartItems, error } = await supabaseClient
+                            .from('transactions')
+                            .select('transac_id')
+                            .eq('buyer_id', loggedInStudId)
+                            .eq('item_uuid', itemId)
+                            .eq('status', 'cart');
+
+                        if (error) {
+                            console.error('Error fetching cart items in real-time subscription:', error);
+                            return;
+                        }
+
+                    if (cartItems && cartItems.length > 0) {
+                        // If item status is sold, disable notify me button and update UI accordingly
+                        const { data: itemData, error: itemError } = await supabaseClient
+                            .from('item')
+                            .select('item_status')
+                            .eq('item_id', itemId)
+                            .single();
+
+                        if (!itemError && itemData && itemData.item_status === 'sold') {
+                            notifyMeButton.textContent = 'Item Sold';
+                            notifyMeButton.disabled = true;
+                            if (notifyMeNote) {
+                                notifyMeNote.style.display = 'none';
+                            }
+                        } else {
+                            notifyMeButton.textContent = 'Waiting for Updates';
+                            notifyMeButton.disabled = true;
+                            if (notifyMeNote) {
+                                notifyMeNote.style.display = 'none';
+                            }
+                        }
+                    } else {
+                        notifyMeButton.textContent = 'Notify Me';
+                        notifyMeButton.disabled = false;
+                        if (notifyMeNote) {
+                            notifyMeNote.style.display = 'inline';
+                        }
+                    }
+                })
+                .subscribe();
+            }
+        }
+
+        // Removed carousel logic from global scope to fix 'item is not defined' error
+
+        // Removed carousel & modal logic from global scope to fix 'item is not defined' error
+    </script>
+
+    <!-- Modal for enlarged image -->
+    <div id="image-modal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.7); z-index:9999; align-items:center; justify-content:center;">
+        <span id="close-image-modal" style="position:absolute; top:32px; right:48px; color:#fff; font-size:2.2rem; font-weight:bold; cursor:pointer; z-index:10001;">&times;</span>
+        <img id="modal-image" src="" alt="Enlarged Item" style="max-width:80vw; max-height:80vh; border-radius:16px; box-shadow:0 8px 32px rgba(0,0,0,0.25); background:#fff; display:block;">
+    </div>
+</body>
+</html>

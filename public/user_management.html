@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>User Management - CamFlea Admin</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f2f2f2;
+            margin: 0;
+            padding: 20px;
+        }
+        header {
+            background-color: #084F6A;
+            color: white;
+            padding: 15px 20px;
+            text-align: center;
+        }
+        main {
+            margin-top: 20px;
+        }
+        h1 {
+            margin: 0 0 20px 0;
+        }
+        .content {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .search-bar {
+            margin-bottom: 15px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        input[type="text"], select {
+            padding: 8px;
+            font-size: 1rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            flex: 1 1 200px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+            text-align: left;
+        }
+        th {
+            background-color: #084F6A;
+            color: white;
+        }
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+        .no-results {
+            margin-top: 20px;
+            font-style: italic;
+            color: #666;
+        }
+        a.back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #084F6A;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        a.back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>User Management</h1>
+    </header>
+    <main>
+        <div class="content">
+            <a href="admin.html" class="back-link">&larr; Back to Admin Dashboard</a>
+            <div class="search-bar">
+                <input type="text" id="searchInput" placeholder="Search by name or ID..." />
+                <select id="schoolFilter">
+                    <option value="">All Schools</option>
+                </select>
+            </div>
+            <table id="usersTable">
+                <thead>
+                    <tr>
+                        <th>User ID</th>
+                        <th>Name</th>
+                        <th>School</th>
+                        <th>Email</th>
+                        <th>Picture</th>
+                        <th>Warning Count</th>
+                        <th>Phone</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td colspan="3">Loading users...</td></tr>
+                </tbody>
+            </table>
+            <p id="noResults" class="no-results" style="display:none;">No users found.</p>
+        </div>
+    </main>
+
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+        const supabaseUrl = 'https://wuhgqjeijmxsgvnykttj.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind1aGdxamVpam14c2d2bnlrdHRqIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MjgyOTMwNCwiZXhwIjoyMDU4NDA1MzA0fQ.z25Bc1YxdBjWo5b9ezMW7noMSTehSNzTtzOCLFNm-o4';
+
+        const supabase = createClient(supabaseUrl, supabaseKey);
+
+        const searchInput = document.getElementById('searchInput');
+        const schoolFilter = document.getElementById('schoolFilter');
+        const usersTableBody = document.querySelector('#usersTable tbody');
+        const noResults = document.getElementById('noResults');
+
+        let allUsers = [];
+
+            async function fetchUsers() {
+                const { data, error } = await supabase
+                    .from('student')
+                    .select('stud_id, stud_fname, stud_lname, stud_school, stud_email, stud_picture, stud_warning_count, stud_phone, is_role')
+                    .neq('is_role', 1);
+
+                if (error) {
+                    console.error('Error fetching users:', error);
+                    usersTableBody.innerHTML = '<tr><td colspan="7">Error loading users.</td></tr>';
+                    return;
+                }
+
+                allUsers = data || [];
+                populateSchoolFilter();
+                renderUsers(allUsers);
+            }
+
+
+// ...existing code...
+
+function renderUsers(users) {
+    if (users.length === 0) {
+        usersTableBody.innerHTML = '';
+        noResults.style.display = 'block';
+        return;
+    }
+    noResults.style.display = 'none';
+    usersTableBody.innerHTML = '';
+    users.forEach(user => {
+        const tr = document.createElement('tr');
+        const idTd = document.createElement('td');
+        idTd.textContent = user.stud_id || '';
+        const nameTd = document.createElement('td');
+        nameTd.textContent = ((user.stud_fname || '') + ' ' + (user.stud_lname || '')).trim();
+        const schoolTd = document.createElement('td');
+        schoolTd.textContent = user.stud_school || 'Unknown';
+
+        const emailTd = document.createElement('td');
+        emailTd.textContent = user.stud_email || '';
+
+        const pictureTd = document.createElement('td');
+        if (user.stud_picture) {
+            const img = document.createElement('img');
+            img.src = user.stud_picture;
+            img.alt = 'Profile Picture';
+            img.style.width = '40px';
+            img.style.height = '40px';
+            img.style.borderRadius = '50%';
+            pictureTd.appendChild(img);
+        } else {
+            pictureTd.textContent = '';
+        }
+
+        const warningCountTd = document.createElement('td');
+        warningCountTd.textContent = user.stud_warning_count != null ? user.stud_warning_count : '';
+
+        const phoneTd = document.createElement('td');
+        phoneTd.textContent = user.stud_phone || '';
+
+        tr.appendChild(idTd);
+        tr.appendChild(nameTd);
+        tr.appendChild(schoolTd);
+        tr.appendChild(emailTd);
+        tr.appendChild(pictureTd);
+        tr.appendChild(warningCountTd);
+        tr.appendChild(phoneTd);
+
+        // Add click event listener to navigate to View_other.html with stud_id query param
+        tr.style.cursor = 'pointer';
+        tr.addEventListener('click', () => {
+            if (user.stud_id) {
+                window.location.href = `View_other.html?stud_id=${encodeURIComponent(user.stud_id)}`;
+            }
+        });
+
+        usersTableBody.appendChild(tr);
+    });
+}
+
+function populateSchoolFilter() {
+    const schools = Array.from(new Set(allUsers.map(user => user.stud_school || 'Unknown'))).sort();
+    schools.forEach(school => {
+        const option = document.createElement('option');
+        option.value = school;
+        option.textContent = school;
+        schoolFilter.appendChild(option);
+    });
+}
+
+function filterUsers() {
+    const searchTerm = searchInput.value.trim().toLowerCase();
+    const selectedSchool = schoolFilter.value;
+
+    const filtered = allUsers.filter(user => {
+        const name = ((user.stud_fname || '') + ' ' + (user.stud_lname || '')).toLowerCase();
+        const matchesSearch = name.includes(searchTerm) || (user.stud_id + '').toLowerCase().includes(searchTerm);
+        const matchesSchool = selectedSchool === '' || (user.stud_school || 'Unknown') === selectedSchool;
+        return matchesSearch && matchesSchool;
+    });
+
+    renderUsers(filtered);
+}
+
+searchInput.addEventListener('input', filterUsers);
+schoolFilter.addEventListener('change', filterUsers);
+
+window.addEventListener('DOMContentLoaded', fetchUsers);
+    </script>
+</body>
+</html>
