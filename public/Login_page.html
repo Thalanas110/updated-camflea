@@ -270,9 +270,16 @@
 
     // Store user info
     console.log("User logged in:", user); // Debugging: Log the user object
-    console.log("Storing stud_id:", user.stud_id); // Debugging: Log the stud_id being stored
 
-    localStorage.setItem("stud_id", user.stud_id);
+    if (user.stud_id === undefined || user.stud_id === null) {
+        console.warn("Warning: user.stud_id is undefined or null when fetching from 'student' table. This might cause issues with features relying on stud_id.");
+        // Optionally, you could display a user-facing message or prevent login if stud_id is critical.
+    } else {
+        console.log("Storing stud_id:", user.stud_id); // Debugging: Log the stud_id being stored
+        localStorage.setItem("stud_id", user.stud_id);
+        sessionStorage.setItem("stud_id", user.stud_id); // Optional session data
+    }
+
     localStorage.setItem("senderUid", authData.user.id); // Use Supabase Auth's user ID for senderUid
     localStorage.setItem("stud_fname", user.stud_fname);
     localStorage.setItem("stud_lname", user.stud_lname);
@@ -288,16 +295,13 @@
         console.warn("No access_token found in authData.session");
     }
 
-    // Optional session data
-    sessionStorage.setItem("stud_id", user.stud_id);
-
     // Show success message
     errorMessage.classList.add("success");
     errorMessage.innerHTML = "Login successful! Redirecting to homepage...";
     errorMessage.style.display = "block";
 
     console.log("Stored senderUid:", authData.user.id);
-    console.log("Stored stud_id:", user.stud_id);
+    console.log("Current stud_id in localStorage:", localStorage.getItem("stud_id"));
 
     // Redirect based on is_role after short delay
     setTimeout(() => {
