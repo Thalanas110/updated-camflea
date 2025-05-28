@@ -1,0 +1,9 @@
+{
+"rewrites":[{
+    "source": "/(.*)",
+    "destination": "/Login_page.html"
+
+}]
+
+
+}
