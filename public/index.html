@@ -1935,7 +1935,7 @@ async function fetchNewItemNotificationCount() {
         return 0;
     }
     try {
-        const response = await fetch('http://localhost:5000/notifications', {
+        const response = await fetch(`${window.location.origin}/notifications`, {
             headers: {
                 'Authorization': `Bearer ${accessToken}`
             }
@@ -2024,7 +2024,7 @@ async function toggleNotificationPanel() {
         try {  
             const token = localStorage.getItem('access_token');  
             if (token) {  
-                await fetch('http://localhost:5000/notifications/last-checked', {
+                await fetch(`${window.location.origin}/notifications/last-checked`, {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${token}`,
