@@ -4,6 +4,10 @@
     {
       "src": "server.js",
       "use": "@vercel/node"
+    },
+    {
+      "src": "public/**",
+      "use": "@vercel/static"
     }
   ],
   "routes": [
@@ -17,6 +21,18 @@
     },
     {
       "src": "/test",
+      "dest": "server.js"
+    },
+    {
+      "src": "/post-item",
+      "dest": "server.js"
+    },
+    {
+      "src": "/student-info",
+      "dest": "server.js"
+    },
+    {
+      "src": "/complete-transaction",
       "dest": "server.js"
     },
     {
