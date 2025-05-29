@@ -79,70 +79,103 @@
         }
         .item-card {
             background: #fff;
-            border: 1.5px solid #e5e7eb;
-            border-radius: 0;
-            width: 260px;
-            margin: 0 auto 32px auto;
-            display: flex;
-            flex-direction: column;
-            align-items: stretch;
-            overflow: hidden;
-            box-shadow: none;
-            padding: 0;
-        }
-        .item-card-img {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
             width: 100%;
-            height: 170px;
-            object-fit: cover;
-            border-radius: 0;
-            margin-bottom: 0;
-        }
-        .item-card-body {
-            padding: 16px 14px 18px 14px;
+            cursor: pointer;
             display: flex;
             flex-direction: column;
-            flex: 1 1 auto;
-            align-items: flex-start;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: relative;
+            font-size: 0.9rem;
+            height: 100%;
+            box-sizing: border-box;
         }
-        .item-card-title {
-            font-size: 1.15rem;
-            font-weight: 400;
-            margin-bottom: 12px;
-            color: #222;
-            line-height: 1.2;
-            word-break: break-word;
+        .item-card img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 4px;
+            margin-bottom: 8px;
         }
-        .item-card-row {
+        .item-card h3 {
+            margin: 0;
+            font-size: 1rem;
+            font-weight: normal;
+            color: #333;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            flex-shrink: 0;
+            margin-bottom: 5px;
+        }
+        .item-card .price-time {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        .item-card .price {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #084F6A;
+            flex-shrink: 0;
+        }
+        .item-card .time-ago {
+            font-size: 0.7rem;
+            color: gray;
+            flex-shrink: 0;
+        }
+        .item-card .condition {
+            display: inline-block;
+            background-color: #e0e0e0;
+            padding: 3px 6px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            color: #333;
+            margin-bottom: 5px;
+            text-align: center;
+            align-self: flex-start;
+            flex-shrink: 0;
+            border: 1px solid #ccc;
+        }
+        .item-card .rating-status {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: auto;
+            margin-bottom: 5px;
+        }
+        .item-card .rating {
+            font-size: 0.8rem;
+            color: #555;
+            flex-shrink: 0;
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            width: 100%;
-            margin-bottom: 14px;
         }
-        .item-card-price {
-            color: #0a4f6a;
-            font-size: 1.4rem;
+        .item-card .rating i {
+            color: #FFD700;
+            margin-right: 4px;
+        }
+        .item-card .status {
+            font-size: 0.8rem;
             font-weight: bold;
-            letter-spacing: 0.5px;
+            color: green;
+            flex-shrink: 0;
         }
-        .item-card-time {
-            color: #0a4f6a;
-            font-size: 1rem;
-            font-weight: 700;
+        .item-card .school-location {
+            display: flex;
+            align-items: center;
+            font-size: 0.8rem;
+            color: #555;
+            flex-shrink: 0;
+            margin-bottom: 0;
         }
-        .item-card-condition {
-            border: 2px solid #222;
-            color: #0a4f6a;
-            font-weight: 700;
-            font-size: 1.1rem;
-            border-radius: 0;
-            padding: 7px 0;
-            margin-bottom: 16px;
-            background: #fff;
-            text-align: center;
-            width: 100%;
-            transition: background 0.2s;
-            box-sizing: border-box;
+        .item-card .school-location i {
+            margin-right: 4px;
+            color: #084F6A;
         }
         .item-card-status {
             font-weight: 700;
@@ -157,15 +190,13 @@
     </style>
 </head>
 <body class="bg-gray-100">
-<nav class="bg-[#084F6A] p-6 flex justify-between items-center">
-    <div class="flex items-center space-x-6">
-        <a id="navHome" class="text-white text-sm" href="index.html">Home</a>
+<nav class="bg-[#084F6A] flex justify-between items-center" style="padding: 4px 40px; align-items: flex-start; height: 120px;">
+    <div class="flex items-center space-x-6" style="align-self: flex-start;">
+        <a id="navHome" class="text-white" href="index.html" style="background-color: #084F6A; padding: 6px 12px; border-radius: 4px; color: white; font-weight: 600; text-decoration: none; cursor: pointer;">Home</a>
     </div>
-    <div class="flex flex-col items-center space-y-2">
-        <img alt="Logo" class="h-16 w-35" src="Homepage_images/LOGO_WHITE.png"/>
-    </div>
-    <div class="flex items-center space-x-6">
-        <a class="text-white text-sm" href="Login_page.html">Login</a>
+    <img alt="Logo" class="h-16 w-35" src="Homepage_images/LOGO_WHITE.png" style="margin-top: 8px;"/>
+    <div class="flex items-center space-x-6" style="align-self: flex-start;">
+        <a class="text-white" href="Login_page.html" style="background-color: #084F6A; padding: 6px 12px; border-radius: 4px; color: white; font-weight: 600; text-decoration: none; cursor: pointer;">Logout</a>
     </div>
 </nav>
 
@@ -181,18 +212,14 @@
         <div class="ml-0 mt-2">
             <h2 id="userName" class="text-xl font-semibold">User Name</h2>
             <p id="userSchool" style="display: flex; align-items: center; gap: 6px;">School Name</p>
-            <div class="flex items-center space-x-2 mt-2">
+            <div class="flex items-center space-x-2 mt-1">
                 <i class="fas fa-star text-yellow-500"></i>
                 <span id="visitorStars">0.0 (0)</span>
             </div>
             <!-- Added message and report buttons -->
-            <div class="mt-4 flex space-x-4">
-                <button id="messageButton" class="bg-[#084F6A] text-white px-4 py-2 rounded-lg hover:bg-[#063d52] transition duration-200">
-                    Message
-                </button>
-                <button id="reportButton" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition duration-200">
-                    Report
-                </button>
+            <div class="mt-1 flex space-x-4">
+                <button id="messageButton" class="bg-[#084F6A] text-white px-3 py-1.5 rounded-lg hover:bg-[#063d52] transition duration-200 text-sm">Message</button>
+                <button id="reportButton" class="bg-red-600 text-white px-3 py-1.5 rounded-lg hover:bg-red-700 transition duration-200 text-sm">Report</button>
             </div>
         </div>
     </div>
@@ -327,191 +354,155 @@
     }
 
     async function fetchUserPostedItems(studId) {
-        // Fetch user's posted items from Supabase
-        const { data: items, error } = await supabase
-            .from('item')
-            .select('item_id, item_name, item_price, item_price_type, item_price_min, item_price_max, item_condition, item_type, item_status, photos, created_at')
-            .eq('stud_id', studId);
+        try {
+            // Fetch user's posted items from Supabase
+            const { data: items, error } = await supabase
+                .from('item')
+                .select('item_id, item_name, item_price, item_price_type, item_price_min, item_price_max, item_condition, item_type, item_status, photos, created_at')
+                .eq('stud_id', studId);
 
-        const sellingContainer = document.getElementById('currentlySellingItemsContainer');
-        const postedContainer = document.getElementById('userItemsContainer');
-        const soldContainer = document.getElementById('soldItemsContainer');
-        sellingContainer.innerHTML = '';
-        postedContainer.innerHTML = '';
-        soldContainer.innerHTML = '';
+            // Fetch user's average rating
+            const { data: feedbacks, error: feedbackError } = await supabase
+                .from('feedback')
+                .select('stars')
+                .eq('seller_id', studId);
 
-        let noSellingMessage = document.getElementById('noCurrentlySellingItemsMessage');
-        let noItemsMessage = document.getElementById('noItemsMessage');
-        let noSoldMessage = document.getElementById('noSoldItemsMessage');
-        if (!noSellingMessage) {
-            noSellingMessage = document.createElement('p');
-            noSellingMessage.id = 'noCurrentlySellingItemsMessage';
-            noSellingMessage.className = 'text-gray-500';
-            noSellingMessage.textContent = "No currently selling items...";
-            sellingContainer.appendChild(noSellingMessage);
-        }
-        if (!noItemsMessage) {
-            noItemsMessage = document.createElement('p');
-            noItemsMessage.id = 'noItemsMessage';
-            noItemsMessage.className = 'text-gray-500';
-            noItemsMessage.textContent = "No posted items yet...";
-            postedContainer.appendChild(noItemsMessage);
-        }
-        if (!noSoldMessage) {
-            noSoldMessage = document.createElement('p');
-            noSoldMessage.id = 'noSoldItemsMessage';
-            noSoldMessage.className = 'text-gray-500';
-            noSoldMessage.textContent = "No sold items yet...";
-            soldContainer.appendChild(noSoldMessage);
-        }
+            let avgRating = 0;
+            let ratingCount = 0;
+            if (feedbacks && feedbacks.length > 0) {
+                const totalStars = feedbacks.reduce((sum, fb) => sum + fb.stars, 0);
+                avgRating = totalStars / feedbacks.length;
+                ratingCount = feedbacks.length;
+            }
 
-        if (!items || items.length === 0) {
-            noSellingMessage.style.display = 'block';
-            noItemsMessage.style.display = 'block';
-            noSoldMessage.style.display = 'block';
-            return;
-        }
+            // Update the profile rating display
+            const ratingSpan = document.getElementById('visitorStars');
+            if (ratingSpan) {
+                ratingSpan.textContent = `${avgRating.toFixed(1)} (${ratingCount})`;
+            }
 
-        // Separate items by status
-        const reservedItems = items.filter(item => item.item_status === 'reserved');
-        const otherItems = items.filter(item => item.item_status === 'available');
-        const soldItems = items.filter(item => item.item_status === 'sold');
+            const sellingContainer = document.getElementById('currentlySellingItemsContainer');
+            const postedContainer = document.getElementById('userItemsContainer');
+            const soldContainer = document.getElementById('soldItemsContainer');
+            sellingContainer.innerHTML = '';
+            postedContainer.innerHTML = '';
+            soldContainer.innerHTML = '';
 
-        // Render reserved items in currently selling section
-        if (reservedItems.length === 0) {
-            noSellingMessage.style.display = 'block';
-        } else {
-            noSellingMessage.style.display = 'none';
-reservedItems.forEach(item => {
-    const photoUrl = item.photos?.[0] || 'https://via.placeholder.com/250x200?text=No+Image';
-    const timePosted = timeAgo(item.created_at);
+            let noSellingMessage = document.getElementById('noCurrentlySellingItemsMessage');
+            let noItemsMessage = document.getElementById('noItemsMessage');
+            let noSoldMessage = document.getElementById('noSoldItemsMessage');
+            if (!noSellingMessage) {
+                noSellingMessage = document.createElement('p');
+                noSellingMessage.id = 'noCurrentlySellingItemsMessage';
+                noSellingMessage.className = 'text-gray-500';
+                noSellingMessage.textContent = "No currently selling items...";
+                sellingContainer.appendChild(noSellingMessage);
+            }
+            if (!noItemsMessage) {
+                noItemsMessage = document.createElement('p');
+                noItemsMessage.id = 'noItemsMessage';
+                noItemsMessage.className = 'text-gray-500';
+                noItemsMessage.textContent = "No posted items yet...";
+                postedContainer.appendChild(noItemsMessage);
+            }
+            if (!noSoldMessage) {
+                noSoldMessage = document.createElement('p');
+                noSoldMessage.id = 'noSoldItemsMessage';
+                noSoldMessage.className = 'text-gray-500';
+                noSoldMessage.textContent = "No sold items yet...";
+                soldContainer.appendChild(noSoldMessage);
+            }
 
-    let priceDisplay = '';
-    if (item.item_price_type === 'single') {
-        priceDisplay = `₱${item.item_price}`;
-    } else if (item.item_price_type === 'range') {
-        priceDisplay = `₱${item.item_price_min} - ₱${item.item_price_max}`;
-    } else if (item.item_price_type === 'hidden') {
-        priceDisplay = 'Price hidden';
-    } else {
-        priceDisplay = 'Price not available';
-    }
+            if (!items || items.length === 0) {
+                noSellingMessage.style.display = 'block';
+                noItemsMessage.style.display = 'block';
+                noSoldMessage.style.display = 'block';
+                return;
+            }
 
-    const itemCard = document.createElement('div');
-    itemCard.className = 'p-4 border border-gray-300 rounded-lg mb-4 shadow-sm';
-    itemCard.style.cursor = 'pointer';
+            // Separate items by status
+            const reservedItems = items.filter(item => item.item_status === 'reserved');
+            const otherItems = items.filter(item => item.item_status === 'available');
+            const soldItems = items.filter(item => item.item_status === 'sold');
 
-    itemCard.innerHTML = `
-        <img src="${photoUrl}" alt="${item.item_name}" class="item-card-img">
-        <div class="item-card-body">
-            <div class="item-card-title">${item.item_name}</div>
-            <div class="item-card-row">
-                <span class="item-card-price">${priceDisplay}</span>
-                <span class="item-card-time">${timePosted}</span>
-            </div>
-            <div class="item-card-condition">${item.item_condition}</div>
-            <div class="item-card-status${item.item_status === 'sold' ? ' sold' : ''}">${item.item_status.charAt(0).toUpperCase() + item.item_status.slice(1)}</div>
-        </div>
-    `;
+            // Helper function to create item card
+            const createItemCard = (item) => {
+                const photoUrl = item.photos?.[0] || 'https://via.placeholder.com/250x200?text=No+Image';
+                const timePosted = timeAgo(item.created_at);
+
+                let priceDisplay = '';
+                if (item.item_price_type === 'single') {
+                    priceDisplay = `₱${item.item_price}`;
+                } else if (item.item_price_type === 'range') {
+                    priceDisplay = `₱${item.item_price_min} - ₱${item.item_price_max}`;
+                } else if (item.item_price_type === 'hidden') {
+                    priceDisplay = 'Price hidden';
+                } else {
+                    priceDisplay = 'Price not available';
+                }
+
+                const itemCard = document.createElement('div');
+                itemCard.className = 'item-card';
+
+                itemCard.innerHTML = `
+                    <img src="${photoUrl}" alt="${item.item_name}">
+                    <h3>${item.item_name}</h3>
+                    <div class="price-time">
+                        <span class="price">${priceDisplay}</span>
+                        <span class="time-ago">${timePosted}</span>
+                    </div>
+                    <div class="condition">${item.item_condition}</div>
+                    <div class="rating-status">
+                        <span class="rating"><i class="fas fa-star"></i> ${avgRating.toFixed(1)} (${ratingCount})</span>
+                        <span class="status" style="color: ${item.item_status === 'available' ? 'green' : item.item_status === 'reserved' ? 'orange' : 'gray'};">${item.item_status.charAt(0).toUpperCase() + item.item_status.slice(1)}</span>
+                    </div>
+                    <div class="school-location">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>Gordon College</span>
+                    </div>
+                `;
+
                 itemCard.addEventListener('click', () => {
-                    // Open modal and load detailed post in iframe
                     const modal = document.getElementById('detailedPostModal');
                     const iframe = document.getElementById('detailedPostIframe');
                     iframe.src = `Detailed_post.html?item_id=${encodeURIComponent(item.item_id)}&embedded=1`;
                     modal.style.display = 'flex';
                 });
-    sellingContainer.appendChild(itemCard);
-});
-        }
 
-        // Render other items in items posted section
-        if (otherItems.length === 0) {
-            noItemsMessage.style.display = 'block';
-        } else {
-            noItemsMessage.style.display = 'none';
-otherItems.forEach(item => {
-    const photoUrl = item.photos?.[0] || 'https://via.placeholder.com/250x200?text=No+Image';
-    const timePosted = timeAgo(item.created_at);
+                return itemCard;
+            };
 
-    let priceDisplay = '';
-    if (item.item_price_type === 'single') {
-        priceDisplay = `₱${item.item_price}`;
-    } else if (item.item_price_type === 'range') {
-        priceDisplay = `₱${item.item_price_min} - ₱${item.item_price_max}`;
-    } else if (item.item_price_type === 'hidden') {
-        priceDisplay = 'Price hidden';
-    } else {
-        priceDisplay = 'Price not available';
-    }
+            // Render reserved items
+            if (reservedItems.length === 0) {
+                noSellingMessage.style.display = 'block';
+            } else {
+                noSellingMessage.style.display = 'none';
+                reservedItems.forEach(item => {
+                    sellingContainer.appendChild(createItemCard(item));
+                });
+            }
 
-    const itemCard = document.createElement('div');
-    itemCard.className = 'p-4 border border-gray-300 rounded-lg mb-4 shadow-sm';
-    itemCard.style.cursor = 'pointer';
-    itemCard.setAttribute('data-item-id', item.item_id);
+            // Render other items
+            if (otherItems.length === 0) {
+                noItemsMessage.style.display = 'block';
+            } else {
+                noItemsMessage.style.display = 'none';
+                otherItems.forEach(item => {
+                    postedContainer.appendChild(createItemCard(item));
+                });
+            }
 
-    itemCard.innerHTML = `
-        <img src="${photoUrl}" alt="${item.item_name}" class="w-full h-40 object-cover rounded-lg mb-2">
-        <h4 class="text-lg font-semibold">${item.item_name}</h4>
-        <p class="text-sm text-gray-600">Condition: ${item.item_condition}</p>
-        <p class="text-sm text-gray-600">Type: ${item.item_type}</p>
-        <p class="text-sm text-gray-600">Status: ${item.item_status}</p>
-        <p class="text-sm text-gray-600 font-bold">Price: ${priceDisplay}</p>
-        <p class="text-sm text-gray-500">Posted: ${timePosted}</p>
-    `;
-    itemCard.addEventListener('click', () => {
-        // Open modal and load detailed post in iframe
-        const modal = document.getElementById('detailedPostModal');
-        const iframe = document.getElementById('detailedPostIframe');
-        iframe.src = `Detailed_post.html?item_id=${encodeURIComponent(item.item_id)}&embedded=1`;
-        modal.style.display = 'flex';
-    });
-    postedContainer.appendChild(itemCard);
-});
-        }
-
-        // Render sold items in sold items section
-        if (soldItems.length === 0) {
-            noSoldMessage.style.display = 'block';
-        } else {
-            noSoldMessage.style.display = 'none';
-soldItems.forEach(item => {
-    const photoUrl = item.photos?.[0] || 'https://via.placeholder.com/250x200?text=No+Image';
-    const timePosted = timeAgo(item.created_at);
-
-    let priceDisplay = '';
-    if (item.item_price_type === 'single') {
-        priceDisplay = `₱${item.item_price}`;
-    } else if (item.item_price_type === 'range') {
-        priceDisplay = `₱${item.item_price_min} - ₱${item.item_price_max}`;
-    } else if (item.item_price_type === 'hidden') {
-        priceDisplay = 'Price hidden';
-    } else {
-        priceDisplay = 'Price not available';
-    }
-
-    const itemCard = document.createElement('div');
-    itemCard.className = 'p-4 border border-gray-300 rounded-lg mb-4 shadow-sm';
-    itemCard.style.cursor = 'pointer';
-    itemCard.setAttribute('data-item-id', item.item_id);
-
-    itemCard.innerHTML = `
-        <img src="${photoUrl}" alt="${item.item_name}" class="w-full h-40 object-cover rounded-lg mb-2">
-        <h4 class="text-lg font-semibold">${item.item_name}</h4>
-        <p class="text-sm text-gray-600">Condition: ${item.item_condition}</p>
-        <p class="text-sm text-gray-600">Type: ${item.item_type}</p>
-        <p class="text-sm text-gray-600">Status: ${item.item_status}</p>
-        <p class="text-sm text-gray-600 font-bold">Price: ${priceDisplay}</p>
-        <p class="text-sm text-gray-500">Posted: ${timePosted}</p>
-    `;
-    itemCard.addEventListener('click', () => {
-        // Open modal and load detailed post in iframe
-        const modal = document.getElementById('detailedPostModal');
-        const iframe = document.getElementById('detailedPostIframe');
-        iframe.src = `Detailed_post.html?item_id=${encodeURIComponent(item.item_id)}&embedded=1`;
-        modal.style.display = 'flex';
-    });
-    soldContainer.appendChild(itemCard);
-});
+            // Render sold items
+            if (soldItems.length === 0) {
+                noSoldMessage.style.display = 'block';
+            } else {
+                noSoldMessage.style.display = 'none';
+                soldItems.forEach(item => {
+                    soldContainer.appendChild(createItemCard(item));
+                });
+            }
+        } catch (error) {
+            console.error('Error in fetchUserPostedItems:', error);
         }
     }
 
