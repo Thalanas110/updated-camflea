@@ -130,7 +130,7 @@ document.querySelector('form').addEventListener('submit', async function (event)
     };
 
     try {
-        const response = await fetch('http://localhost:5000/post-item', {
+        const response = await fetch('hhttps://camflea.vercel.app//post-item', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
