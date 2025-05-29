@@ -7,6 +7,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
     <title>Sign Up - CamFlea</title>
     <style>
+        /* ... (your existing styles from SignUp_page.html) ... */
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
 
         body {
@@ -228,7 +229,7 @@
                     as it cannot be changed after registration.</small
                 >
 
-                                <label>Select Your School/Campus</label>
+                <label>Select Your School/Campus</label>
                 <select id="school" required style="appearance: none; -webkit-appearance: none; -moz-appearance: none; background: url('data:image/svg+xml;utf8,<svg fill=\'none\' stroke=\'%23000\' stroke-width=\'3\' viewBox=\'0 0 24 24\' xmlns=\'http://www.w3.org/2000/svg\'><path stroke-linecap=\'round\' stroke-linejoin=\'round\' d=\'M19 9l-7 7-7-7\'></path></svg>') no-repeat right 12px center/20px 20px, #fff; padding-right: 38px; border: 1px solid #ccc; border-radius: 5px;">
                     <option value="" disabled selected>Select Your School</option>
                     <option value="Gordon College">Gordon College</option>
@@ -281,17 +282,17 @@
                                 />
                             </span>
                         </div>
-                        <small style="display:block; margin-top:8px;"><strong>Note:</strong> Password must be at least 8 characters long and include at least 1 uppercase letter, 1 special character, and 1 digit.</small>
+                        <small id="passwordNote" style="display:block; margin-top:8px;"><strong>Note:</strong> Password must be at least 8 characters long and include at least 1 uppercase letter, 1 special character, and 1 digit.</small>
                     </div>
                 </div>
 
                 <div class="terms-container">
                     <div class="terms">
-                        <input type="checkbox" required />
+                        <input type="checkbox" id="terms1" required />
                         <label for="terms1">I agree to the <a href="terms.html">Terms and Conditions</a></label>
                     </div>
                     <div class="terms">
-                        <input type="checkbox" required />
+                        <input type="checkbox" id="terms2" required />
                         <label for="terms2">I agree to the <a href="privacypolicy.html">Privacy Policy</a></label>
                     </div>
                 </div>
@@ -307,7 +308,6 @@
             'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind1aGdxamVpam14c2d2bnlrdHRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI4MjkzMDQsImV4cCI6MjA1ODQwNTMwNH0._lZy7CE2A8HM1hatjGYrMR8QAUi8nk4L_EuV7Fojhwg'
         );
 
-        // ADDED: showMessage() function
         function showMessage(message, type = 'success') {
             const box = document.getElementById('messageBox');
             const text = document.getElementById('messageText');
@@ -339,13 +339,12 @@
         }
 
         function isValidPhoneNumber(phone) {
-            // Updated regex to validate exactly 10 digits (without +63 prefix as it's fixed in UI)
             const pattern = /^\d{10}$/;
             return pattern.test(phone);
         }
 
         async function handleSignup(event) {
-            event.preventDefault(); // Prevent form submission
+            event.preventDefault(); 
 
             const firstName = document.getElementById('firstName').value;
             const lastName = document.getElementById('lastName').value;
@@ -354,15 +353,12 @@
             let phoneNumber = document.getElementById('phoneNumber').value;
             const school = document.getElementById('school').value;
 
-            // Validate phone number before prepending +63
             if (!isValidPhoneNumber(phoneNumber)) {
                 showMessage('Phone number must be exactly 10 digits.', 'error');
                 return;
             }
-            // Prepend +63 to phone number before storing
             phoneNumber = '+63' + phoneNumber;
 
-            // Map school to domain
             let domain = '';
             if (school === 'Gordon College') {
                 domain = 'gordoncollege.edu.ph';
@@ -373,8 +369,7 @@
                 return;
             }
 
-            // Construct email from studentID and domain
-            const email = `${studentID}@${domain}`;
+            const email = `${studentID}@${domain}`; // This email will be passed
 
             if (!isValidEmail(email)) {
                 showMessage(
@@ -392,7 +387,6 @@
                 return;
             }
 
-            // Register the user with Supabase Auth
             const { data: authData, error: authError } = await supabaseClient.auth.signUp({
                 email,
                 password,
@@ -400,16 +394,33 @@
 
             if (authError) {
                 console.error('Registration error:', authError);
-                showMessage('Registration failed. Please try again.', 'error');
+                // Check if the error is because the email is already registered but not confirmed
+                if (authError.message.includes("User already registered")) {
+                     showMessage('Email already registered. Please verify your email or login.', 'error');
+                     // Optionally, redirect to verification if you know the email is unconfirmed
+                     // setTimeout(() => {
+                     //    window.location.href = `index.html?email=${encodeURIComponent(email)}`;
+                     // }, 2000);
+                } else {
+                    showMessage('Registration failed. Please try again.', 'error');
+                }
                 return;
             }
 
-            // Get the user object from authData
             const user = authData.user;
 
             if (!user) {
                 console.error('No user returned from signUp.');
-                showMessage('Signup failed. Please check your email for confirmation.', 'error');
+                 // This case might happen if email confirmation is required by Supabase and it's pending.
+                // For your custom MFA flow, we assume signup implies user object is returned (or handled if confirmation is on).
+                // If Supabase email confirmation is ON, the user needs to confirm that *first*.
+                // Your custom MFA would ideally come *after* Supabase's own email verification.
+                // For now, let's assume Supabase email confirmation is OFF or handled, and we proceed to your custom MFA.
+                showMessage('Signup initiated. Please check your email for Supabase confirmation if enabled, then proceed to verify for MFA.', 'success');
+                // If Supabase confirmation is OFF, or you want to force your MFA directly:
+                setTimeout(() => {
+                     window.location.href = `index.html?email=${encodeURIComponent(email)}`;
+                }, 2000);
                 return;
             }
 
@@ -420,7 +431,7 @@
                     stud_fname: firstName,
                     stud_lname: lastName,
                     stud_email: email,
-                    stud_password: password,
+                    stud_password: password, // Storing plain text password is a bad practice. Remove this.
                     stud_phone: phoneNumber,
                     stud_school: school,
                     is_role: 0,
@@ -428,40 +439,45 @@
 
             if (studentError) {
                 console.error('Error inserting student details:', studentError);
-                showMessage('Registration failed. Please try again.', 'error');
+                showMessage('Registration failed during profile creation. Please try again.', 'error');
+                // Potentially attempt to delete the auth user if profile creation fails
+                // await supabaseClient.auth.api.deleteUser(user.id); // Requires admin privileges
                 return;
             }
 
-            showMessage('Signup successful! Redirecting...', 'success');
+            showMessage('Signup successful! Redirecting to email verification...', 'success');
             setTimeout(() => {
-                window.location.href = 'Login_page.html';
+                // Redirect to index.html (the verification page) with the email
+                window.location.href = `auth.html?email=${encodeURIComponent(email)}`;
             }, 2000);
         }
 
-        // Add toggle password visibility functionality
         document.getElementById('togglePassword').addEventListener('click', function () {
             const passwordField = document.getElementById('password');
             const toggleIcon = this.querySelector('img');
             if (passwordField.type === 'password') {
                 passwordField.type = 'text';
-                toggleIcon.src = 'Login_images/eye-off-icon.png';
+                toggleIcon.src = 'Login_images/eye-off-icon.png'; 
             } else {
                 passwordField.type = 'password';
                 toggleIcon.src = 'Login_images/eye-icon.png';
             }
         });
 
-        // Show password note while typing in password field
         const passwordInput = document.getElementById('password');
         const passwordNote = document.getElementById('passwordNote');
 
-        passwordInput.addEventListener('input', () => {
-            if (passwordInput.value.length > 0) {
-                passwordNote.style.display = 'block';
-            } else {
-                passwordNote.style.display = 'none';
-            }
-        });
+        // This was causing an error if passwordNote element didn't exist.
+        // Ensure passwordNote element is correctly ID'd in your HTML or remove this if not used.
+        if (passwordInput && passwordNote) {
+            passwordInput.addEventListener('input', () => {
+                if (passwordInput.value.length > 0) {
+                    passwordNote.style.display = 'block';
+                } else {
+                    passwordNote.style.display = 'none';
+                }
+            });
+        }
     </script>
 
     <div

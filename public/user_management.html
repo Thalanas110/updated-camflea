@@ -7,27 +7,81 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f2f2f2;
+            background-color: #F2F2F2;
             margin: 0;
-            padding: 20px;
+            padding: 0;
+            overflow-x: hidden;
+            padding-top: 100px; /* Add padding to account for fixed navbar height */
         }
-        header {
+        .navbar {
+            background-color: #084F6A;
+            padding: 10px 40px;
+            height: 100px; /* Consistent height with other navbars */
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center; /* Center items horizontally */
+            gap: 40px; /* Increased gap between navigation items */
+            position: fixed;
+            width: 100%;
+            top: 0;
+            left: 0;
+            z-index: 9999;
+            box-sizing: border-box; /* Include padding in width calculation */
+        }
+        .navbar a {
+            color: white;
+            text-decoration: none;
+            font-size: 1.1rem;
+            font-weight: bold;
+            white-space: nowrap; /* Prevent text wrapping */
+        }
+        .navbar a:hover {
+            text-decoration: underline;
+        }
+        .navbar a.active-nav-link {
+            text-decoration: none; /* Remove underline on hover for active link */
+            border-bottom: 2px solid white; /* Add a bottom border as an indicator */
+            padding-bottom: 5px; /* Add some padding for the border */
+        }
+        .back-to-admin-btn {
             background-color: #084F6A;
             color: white;
-            padding: 15px 20px;
-            text-align: center;
+            border: 1px solid #084F6A;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+            margin-right: auto; /* Push this button to the far left */
         }
-        main {
-            margin-top: 20px;
+        .back-to-admin-btn:hover {
+            background-color: #063a4d;
+            border-color: #063a4d;
         }
-        h1 {
-            margin: 0 0 20px 0;
+        #logoutBtn {
+            margin-left: auto; /* Push button to the right */
+            padding: 10px 20px;
+            background-color: #E74C3C; /* Red color for logout */
+            color: white;
+            border: none;
+            border-radius: 25px; /* More rounded corners */
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+        }
+        #logoutBtn:hover {
+            background-color: #C0392B; /* Darker red on hover */
         }
         .content {
+            margin-top: 20px; /* Adjust content margin to account for fixed navbar height */
             background: white;
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            margin-left: 20px;
+            margin-right: 20px;
         }
         .search-bar {
             margin-bottom: 15px;
@@ -64,25 +118,64 @@
             font-style: italic;
             color: #666;
         }
-        a.back-link {
-            display: inline-block;
-            margin-bottom: 20px;
-            color: #084F6A;
-            text-decoration: none;
+        .action-buttons button {
+            padding: 5px 10px;
+            margin-right: 5px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background-color 0.2s ease;
+        }
+        .action-buttons .ban-btn {
+            background-color: #e74c3c; /* Red */
+            color: white;
+        }
+        .action-buttons .ban-btn:hover {
+            background-color: #c0392b;
+        }
+        .action-buttons .restrict-btn {
+            background-color: #f39c12; /* Orange */
+            color: white;
+        }
+        .action-buttons .restrict-btn:hover {
+            background-color: #e67e22;
+        }
+        .action-buttons .warn-btn {
+            background-color: #3498db; /* Blue */
+            color: white;
+        }
+        .action-buttons .warn-btn:hover {
+            background-color: #2980b9;
+        }
+        .user-id-banned {
+            color: white;
+            background-color: #e74c3c; /* Red */
             font-weight: bold;
         }
-        a.back-link:hover {
-            text-decoration: underline;
+        .user-id-restricted {
+            color: black; /* Or a dark color for contrast */
+            background-color: #f39c12; /* Yellow/Orange */
+            font-weight: bold;
+        }
+        .user-id-warned {
+            color: white;
+            background-color: #3498db; /* Blue */
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
-    <header>
-        <h1>User Management</h1>
-    </header>
+    <div class="navbar">
+        <button id="backToAdminBtn" class="back-to-admin-btn">Back to Admin</button>
+        <a href="user_management.html">User Management</a>
+        <a href="admin_post_item_management.html">Post & Item Management</a>
+        <a href="transaction_monitoring.html">Transaction Monitoring</a>
+        <a href="reports_violations.html">Reports & Violations Center</a>
+        <button id="logoutBtn">Log Out</button>
+    </div>
     <main>
         <div class="content">
-            <a href="admin.html" class="back-link">&larr; Back to Admin Dashboard</a>
             <div class="search-bar">
                 <input type="text" id="searchInput" placeholder="Search by name or ID..." />
                 <select id="schoolFilter">
@@ -99,10 +192,11 @@
                         <th>Picture</th>
                         <th>Warning Count</th>
                         <th>Phone</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr><td colspan="3">Loading users...</td></tr>
+                    <tr><td colspan="8">Loading users...</td></tr>
                 </tbody>
             </table>
             <p id="noResults" class="no-results" style="display:none;">No users found.</p>
@@ -156,6 +250,14 @@ function renderUsers(users) {
         const tr = document.createElement('tr');
         const idTd = document.createElement('td');
         idTd.textContent = user.stud_id || '';
+        // Apply highlighting based on user status
+        if (user.is_role === 2) {
+            idTd.classList.add('user-id-banned');
+        } else if (user.is_role === 3) {
+            idTd.classList.add('user-id-restricted');
+        } else if (user.stud_warning_count >= 1) {
+            idTd.classList.add('user-id-warned');
+        }
         const nameTd = document.createElement('td');
         nameTd.textContent = ((user.stud_fname || '') + ' ' + (user.stud_lname || '')).trim();
         const schoolTd = document.createElement('td');
@@ -193,6 +295,61 @@ function renderUsers(users) {
 
         // Add click event listener to navigate to View_other.html with stud_id query param
         tr.style.cursor = 'pointer';
+        // Add action buttons
+        const actionsTd = document.createElement('td');
+        actionsTd.classList.add('action-buttons');
+
+        if (user.is_role === 2) { // User is banned
+            const unbanBtn = document.createElement('button');
+            unbanBtn.textContent = 'Unban';
+            unbanBtn.classList.add('ban-btn'); // Reusing ban-btn style for unban
+            unbanBtn.addEventListener('click', (event) => {
+                event.stopPropagation();
+                unbanUser(user.stud_id);
+            });
+            actionsTd.appendChild(unbanBtn);
+        } else if (user.is_role === 3) { // User is restricted
+            const unrestrictBtn = document.createElement('button');
+            unrestrictBtn.textContent = 'Unrestrict';
+            unrestrictBtn.classList.add('restrict-btn'); // Reusing restrict-btn style for unrestrict
+            unrestrictBtn.addEventListener('click', (event) => {
+                event.stopPropagation();
+                unrestrictUser(user.stud_id);
+            });
+            actionsTd.appendChild(unrestrictBtn);
+        } else { // User is normal (not banned or restricted)
+            const banBtn = document.createElement('button');
+            banBtn.textContent = 'Ban';
+            banBtn.classList.add('ban-btn');
+            banBtn.addEventListener('click', (event) => {
+                event.stopPropagation();
+                banUser(user.stud_id);
+            });
+
+            const restrictBtn = document.createElement('button');
+            restrictBtn.textContent = 'Restrict';
+            restrictBtn.classList.add('restrict-btn');
+            restrictBtn.addEventListener('click', (event) => {
+                event.stopPropagation();
+                restrictUser(user.stud_id);
+            });
+
+            const warnBtn = document.createElement('button');
+            warnBtn.textContent = 'Warn';
+            warnBtn.classList.add('warn-btn');
+            warnBtn.addEventListener('click', (event) => {
+                event.stopPropagation();
+                warnUser(user.stud_id, user.stud_warning_count);
+            });
+
+            actionsTd.appendChild(banBtn);
+            actionsTd.appendChild(restrictBtn);
+            actionsTd.appendChild(warnBtn);
+        }
+        tr.appendChild(actionsTd);
+
+        // Add click event listener to navigate to View_other.html with stud_id query param
+        tr.style.cursor = 'pointer';
         tr.addEventListener('click', () => {
             if (user.stud_id) {
                 window.location.href = `View_other.html?stud_id=${encodeURIComponent(user.stud_id)}`;
@@ -201,6 +358,109 @@ function renderUsers(users) {
 
         usersTableBody.appendChild(tr);
     });
+}
+
+async function banUser(studId) {
+    if (confirm(`Are you sure you want to BAN user with ID: ${studId}?`)) {
+        const { error } = await supabase
+            .from('student')
+            .update({ is_role: 2 })
+            .eq('stud_id', studId);
+
+        if (error) {
+            console.error('Error banning user:', error);
+            alert('Failed to ban user.');
+        } else {
+            alert('User banned successfully!');
+            fetchUsers(); // Re-fetch and re-render users
+        }
+    }
+}
+
+async function unbanUser(studId) {
+    if (confirm(`Are you sure you want to UNBAN user with ID: ${studId}?`)) {
+        const { error } = await supabase
+            .from('student')
+            .update({ is_role: 0 }) // Revert to normal role (assuming 0 is normal)
+            .eq('stud_id', studId);
+
+        if (error) {
+            console.error('Error unbanning user:', error);
+            alert('Failed to unban user.');
+        } else {
+            alert('User unbanned successfully!');
+            fetchUsers(); // Re-fetch and re-render users
+        }
+    }
+}
+
+async function unrestrictUser(studId) {
+    if (confirm(`Are you sure you want to UNRESTRICT user with ID: ${studId}?`)) {
+        const { error } = await supabase
+            .from('student')
+            .update({ is_role: 0, restriction_start_date: null }) // Revert to normal role (assuming 0 is normal) and clear date
+            .eq('stud_id', studId);
+
+        if (error) {
+            console.error('Error unrestricting user:', error);
+            alert('Failed to unrestrict user.');
+        } else {
+            alert('User unrestricted successfully!');
+            fetchUsers(); // Re-fetch and re-render users
+        }
+    }
+}
+
+async function restrictUser(studId) {
+    if (confirm(`Are you sure you want to RESTRICT user with ID: ${studId} for 7 days?`)) {
+        // For restriction, we set is_role to 3 and set the restriction_start_date to now.
+        const { error } = await supabase
+            .from('student')
+            .update({ is_role: 3, restriction_start_date: new Date().toISOString() })
+            .eq('stud_id', studId);
+
+        if (error) {
+            console.error('Error restricting user:', error);
+            alert('Failed to restrict user.');
+        } else {
+            alert('User restricted successfully!');
+            fetchUsers(); // Re-fetch and re-render users
+        }
+    }
+}
+
+async function warnUser(studId, currentWarningCount) {
+    if (confirm(`Are you sure you want to WARN user with ID: ${studId}?`)) {
+        const newWarningCount = (currentWarningCount || 0) + 1;
+        const { error } = await supabase
+            .from('student')
+            .update({ stud_warning_count: newWarningCount })
+            .eq('stud_id', studId);
+
+        if (error) {
+            console.error('Error warning user:', error);
+            alert('Failed to warn user.');
+        } else {
+            // Insert notification for the warned user
+            const { error: notificationError } = await supabase
+                .from('notifications')
+                .insert({
+                    receiver_id: studId,
+                    type: 'warning',
+                    content: `You have received a warning from admin, please always follow the rules and regulaton of the app (current warning: ${newWarningCount})`,
+                    is_read: false,
+                    created_at: new Date().toISOString()
+                });
+
+            if (notificationError) {
+                console.error('Error sending warning notification:', notificationError);
+                alert('User warned successfully, but failed to send notification.');
+            } else {
+                alert(`User warned successfully! New warning count: ${newWarningCount}`);
+            }
+            fetchUsers(); // Re-fetch and re-render users
+        }
+    }
 }
 
 function populateSchoolFilter() {
@@ -230,7 +490,34 @@ function filterUsers() {
 searchInput.addEventListener('input', filterUsers);
 schoolFilter.addEventListener('change', filterUsers);
 
-window.addEventListener('DOMContentLoaded', fetchUsers);
+const backToAdminBtn = document.getElementById('backToAdminBtn');
+backToAdminBtn.addEventListener('click', () => {
+    window.location.href = 'admin.html';
+});
+
+const logoutBtn = document.getElementById('logoutBtn');
+logoutBtn.addEventListener('click', () => {
+    // Implement logout functionality here
+    // For now, redirect to login page
+    window.location.href = 'Login_page.html';
+});
+
+function setActiveNavLink() {
+    const currentPath = window.location.pathname.split('/').pop();
+    const navLinks = document.querySelectorAll('.navbar a');
+    navLinks.forEach(link => {
+        if (link.getAttribute('href') === currentPath) {
+            link.classList.add('active-nav-link');
+        } else {
+            link.classList.remove('active-nav-link');
+        }
+    });
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+    fetchUsers();
+    setActiveNavLink();
+});
     </script>
 </body>
 </html>

@@ -19,4 +19,6 @@ USING (receiver_uuid = auth.uid());
 -- Optionally, create policy to allow users to delete their notifications if needed
 CREATE POLICY "Allow logged-in user to delete their notifications" ON public.notifications
 FOR DELETE
-USING (receiver_uuid = auth.uid());
+USING (
+  (sender_uuid = auth.uid()) OR (receiver_uuid = auth.uid())
+);

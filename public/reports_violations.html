@@ -9,32 +9,73 @@
             font-family: Arial, sans-serif;
             background-color: #F2F2F2;
             margin: 0;
-            padding: 20px;
+            padding: 0;
+            overflow-x: hidden;
+            padding-top: 100px; /* Add padding to account for fixed navbar height */
         }
         .navbar {
             background-color: #084F6A;
             padding: 10px 40px;
-            height: 80px;
+            height: 100px; /* Consistent height with other navbars */
             color: white;
             display: flex;
             align-items: center;
-            gap: 20px;
+            justify-content: center; /* Center items horizontally */
+            gap: 40px; /* Increased gap between navigation items */
+            position: fixed;
+            width: 100%;
+            top: 0;
+            left: 0;
+            z-index: 9999;
+            box-sizing: border-box; /* Include padding in width calculation */
         }
-        .navbar h1 {
-            margin: 0;
-            font-size: 1.5rem;
+        .navbar a {
+            color: white;
+            text-decoration: none;
+            font-size: 1.1rem;
+            font-weight: bold;
+            white-space: nowrap; /* Prevent text wrapping */
         }
-        #backToAdminBtn {
-            margin-left: auto;
-            padding: 8px 16px;
+        .navbar a:hover {
+            text-decoration: underline;
+        }
+        .navbar a.active-nav-link {
+            text-decoration: none; /* Remove underline on hover for active link */
+            border-bottom: 2px solid white; /* Add a bottom border as an indicator */
+            padding-bottom: 5px; /* Add some padding for the border */
+        }
+        .back-to-admin-btn {
             background-color: #084F6A;
             color: white;
-            border: none;
+            border: 1px solid #084F6A;
+            padding: 10px 15px;
             border-radius: 5px;
             cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+            margin-right: auto; /* Push this button to the far left */
+        }
+        .back-to-admin-btn:hover {
+            background-color: #063a4d;
+            border-color: #063a4d;
+        }
+        #logoutBtn {
+            margin-left: auto; /* Push button to the right */
+            padding: 10px 20px;
+            background-color: #E74C3C; /* Red color for logout */
+            color: white;
+            border: none;
+            border-radius: 25px; /* More rounded corners */
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+        }
+        #logoutBtn:hover {
+            background-color: #C0392B; /* Darker red on hover */
         }
         .content {
-            margin-top: 20px;
+            margin-top: 20px; /* Adjust content margin to account for fixed navbar height */
             background: white;
             padding: 20px;
             border-radius: 8px;
@@ -66,19 +107,25 @@
 </head>
 <body>
     <div class="navbar">
-        <h1>Reports & Violations Center</h1>
-        <button id="backToAdminBtn">Back to Admin</button>
+        <button id="backToAdminBtn" class="back-to-admin-btn">Back to Admin</button>
+        <a href="user_management.html">User Management</a>
+        <a href="admin_post_item_management.html">Post & Item Management</a>
+        <a href="transaction_monitoring.html">Transaction Monitoring</a>
+        <a href="reports_violations.html">Reports & Violations Center</a>
+        <button id="logoutBtn">Log Out</button>
     </div>
     <div class="content">
         <table id="reportsTable">
             <thead>
                 <tr>
                     <th>Report ID</th>
+                    <th>Reporter User</th>
                     <th>Reported User</th>
                     <th>Violation Type</th>
                     <th>Violation Details</th>
                     <th>Photo URLs</th>
                     <th>Created At</th>
+                    <th>Action</th>
                 </tr>
             </thead>
             <tbody>
@@ -88,6 +135,28 @@
         <div id="noResults" style="display:none;">No reports found.</div>
     </div>
 
+    <div class="content" style="margin-top: 40px;">
+        <h2 style="color: #084F6A; text-align: center;">Resolved Reports</h2>
+        <table id="resolvedReportsTable">
+            <thead>
+                <tr>
+                    <th>Report ID</th>
+                    <th>Reporter User</th>
+                    <th>Reported User</th>
+                    <th>Violation Type</th>
+                    <th>Violation Details</th>
+                    <th>Photo URLs</th>
+                    <th>Created At</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Resolved reports will be populated here -->
+            </tbody>
+        </table>
+        <div id="noResolvedResults" style="display:none; text-align:center; color:#555; margin-top:20px;">No resolved reports yet.</div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
     <script>
         const supabaseUrl = 'https://wuhgqjeijmxsgvnykttj.supabase.co';
@@ -95,11 +164,26 @@
         const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
         const reportsTableBody = document.querySelector('#reportsTable tbody');
-        const backToAdminBtn = document.getElementById('backToAdminBtn');
+        const resolvedReportsTableBody = document.querySelector('#resolvedReportsTable tbody');
+        const logoutBtn = document.getElementById('logoutBtn');
 
-        backToAdminBtn.addEventListener('click', () => {
-            window.location.href = 'admin.html';
+        logoutBtn.addEventListener('click', () => {
+            // Implement logout functionality here
+            // For now, redirect to login page
+            window.location.href = 'Login_page.html';
         });
+
+        function setActiveNavLink() {
+            const currentPath = window.location.pathname.split('/').pop();
+            const navLinks = document.querySelectorAll('.navbar a');
+            navLinks.forEach(link => {
+                if (link.getAttribute('href') === currentPath) {
+                    link.classList.add('active-nav-link');
+                } else {
+                    link.classList.remove('active-nav-link');
+                }
+            });
+        }
 
         async function fetchReports() {
             // Fetch reports from report table with public URLs for photos
@@ -107,7 +191,8 @@
                 .from('report')
                 .select(`
                     report_id,
-                    reported_user_id,
+                    reporter_user_id(stud_fname, stud_lname),
+                    reported_user_id(stud_fname, stud_lname),
                     violation_type,
                     violation_details,
                     photo_urls,
@@ -117,30 +202,15 @@
 
             if (error) {
                 console.error('Error fetching reports:', error);
-                reportsTableBody.innerHTML = '<tr><td colspan="6">Error loading reports.</td></tr>';
+                reportsTableBody.innerHTML = '<tr><td colspan="7">Error loading reports.</td></tr>';
                 return;
             }
 
-            // Convert storage paths to public URLs using folder path logic from public/report.html
-            const updatedData = data.map(report => {
-                if (report.photo_urls && report.photo_urls.length > 0) {
-                    const publicUrls = report.photo_urls.map(filename => {
-                        // Corrected path: {reportedUserId}/reports/{filename}
-                        const filePath = `${report.reported_user_id}/reports/${filename}`;
-                        // Use getPublicUrl() correctly: it returns { data: { publicUrl }, error }
-                        const { data, error } = supabase.storage.from('report-photo').getPublicUrl(filePath);
-                        if (error) {
-                            console.error('Error getting public URL:', error);
-                            return undefined;
-                        }
-                        return data.publicUrl;
-                    }).filter(url => url !== undefined);
-                    return { ...report, photo_urls: publicUrls };
-                }
-                return report;
-            });
+        backToAdminBtn.addEventListener('click', () => {
+            window.location.href = 'admin.html';
+        });
 
-            displayReports(updatedData || []);
+            displayReports(data || []);
         }
 
         function displayReports(reports) {
@@ -249,16 +319,18 @@ function showPhoto(index) {
     if (index >= currentPhotos.length) index = 0;
     currentPhotoIndex = index;
     let url = currentPhotos[currentPhotoIndex];
-    // Fix: Ensure URL is a string
-    if (typeof url === 'object' && url.publicUrl) {
-        url = url.publicUrl;
-    }
     console.log('Displaying photo URL:', url);
     if (url) {
         img.src = url;
     } else {
         console.error('Photo URL is undefined or null at index', currentPhotoIndex);
         img.src = '';
+    }
+    // Hide controls if there's only one photo
+    if (currentPhotos.length <= 1) {
+        controls.style.display = 'none';
+    } else {
+        controls.style.display = 'flex';
     }
 }
 
@@ -272,46 +344,122 @@ function showPhoto(index) {
                 showPhoto(currentPhotoIndex + 1);
             });
 
-            reports.forEach(report => {
-                const tr = document.createElement('tr');
-                if (report.photo_urls && report.photo_urls.length > 0) {
+            const resolvedReports = getResolvedReports();
+            const unresolvedReports = reports.filter(report => !resolvedReports.includes(report.report_id));
+            const currentResolvedReports = reports.filter(report => resolvedReports.includes(report.report_id));
+
+            // Display unresolved reports
+            reportsTableBody.innerHTML = '';
+            if (unresolvedReports.length === 0) {
+                document.getElementById('noResults').style.display = 'block';
+            } else {
+                document.getElementById('noResults').style.display = 'none';
+                unresolvedReports.forEach(report => {
+                    const tr = createReportRow(report, false); // false for not resolved
+                    reportsTableBody.appendChild(tr);
+                });
+            }
+
+            // Display resolved reports
+            resolvedReportsTableBody.innerHTML = '';
+            if (currentResolvedReports.length === 0) {
+                document.getElementById('noResolvedResults').style.display = 'block';
+            } else {
+                document.getElementById('noResolvedResults').style.display = 'none';
+                currentResolvedReports.forEach(report => {
+                    const tr = createReportRow(report, true); // true for resolved
+                    resolvedReportsTableBody.appendChild(tr);
+                });
+            }
+        }
+
+        function createReportRow(report, isResolved) {
+            const tr = document.createElement('tr');
+            const reporterName = report.reporter_user_id ? `${report.reporter_user_id.stud_fname} ${report.reporter_user_id.stud_lname}` : 'N/A';
+            const reportedName = report.reported_user_id ? `${report.reported_user_id.stud_fname} ${report.reported_user_id.stud_lname}` : 'N/A';
+
+            let photoCellContent;
+            if (report.photo_urls && report.photo_urls.length > 0) {
+                const photoLink = document.createElement('a');
+                photoLink.href = '#';
+                photoLink.textContent = 'View Photo(s)';
+                photoLink.style.cursor = 'pointer';
+                photoLink.addEventListener('click', (e) => {
+                    e.preventDefault();
                     currentPhotos = report.photo_urls;
-                    const photoLink = document.createElement('a');
-                    photoLink.href = '#';
-                    photoLink.textContent = 'View Photo(s)';
-                    photoLink.style.cursor = 'pointer';
-                    photoLink.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        currentPhotos = report.photo_urls;
-                        showPhoto(0);
-                        modal.style.display = 'flex';
-                    });
-                    tr.innerHTML = `
-                        <td>${report.report_id}</td>
-                        <td>${report.reported_user_id || 'N/A'}</td>
-                        <td>${report.violation_type}</td>
-                        <td>${report.violation_details || ''}</td>
-                        <td></td>
-                        <td>${new Date(report.created_at).toLocaleString()}</td>
-                    `;
-                    const photoTd = tr.querySelector('td:nth-child(5)');
-                    photoTd.appendChild(photoLink);
-                } else {
-                    tr.innerHTML = `
-                        <td>${report.report_id}</td>
-                        <td>${report.reported_user_id || 'N/A'}</td>
-                        <td>${report.violation_type}</td>
-                        <td>${report.violation_details || ''}</td>
-                        <td>None</td>
-                        <td>${new Date(report.created_at).toLocaleString()}</td>
-                    `;
-                }
-                reportsTableBody.appendChild(tr);
-            });
+                    showPhoto(0);
+                    modal.style.display = 'flex';
+                });
+                photoCellContent = photoLink.outerHTML;
+            } else {
+                photoCellContent = 'None';
+            }
+
+            tr.innerHTML = `
+                <td>${report.report_id}</td>
+                <td>${reporterName}</td>
+                <td>${reportedName}</td>
+                <td>${report.violation_type}</td>
+                <td>${report.violation_details || ''}</td>
+                <td>${photoCellContent}</td>
+                <td>${new Date(report.created_at).toLocaleString()}</td>
+                <td></td>
+            `;
+
+            const actionTd = tr.querySelector('td:last-child');
+            if (!isResolved) {
+                const resolveButton = document.createElement('button');
+                resolveButton.textContent = 'Resolve';
+                resolveButton.style.cssText = "background-color: #28a745; color: white; border: none; border-radius: 5px; padding: 5px 10px; cursor: pointer; font-size: 0.8rem;";
+                resolveButton.addEventListener('click', () => {
+                    resolveReport(report.report_id);
+                });
+                actionTd.appendChild(resolveButton);
+            } else {
+                const unresolveButton = document.createElement('button');
+                unresolveButton.textContent = 'Unresolve';
+                unresolveButton.style.cssText = "background-color: #dc3545; color: white; border: none; border-radius: 5px; padding: 5px 10px; cursor: pointer; font-size: 0.8rem;";
+                unresolveButton.addEventListener('click', () => {
+                    unresolveReport(report.report_id);
+                });
+                actionTd.appendChild(unresolveButton);
+            }
+            return tr;
+        }
+
+        function getResolvedReports() {
+            const resolved = localStorage.getItem('resolvedReports');
+            return resolved ? JSON.parse(resolved) : [];
+        }
+
+        function setResolvedReports(resolvedReports) {
+            localStorage.setItem('resolvedReports', JSON.stringify(resolvedReports));
+        }
+
+        function resolveReport(reportId) {
+            let resolvedReports = getResolvedReports();
+            if (!resolvedReports.includes(reportId)) {
+                resolvedReports.push(reportId);
+                setResolvedReports(resolvedReports);
+                fetchReports(); // Re-fetch and display to update tables
+            }
+        }
+
+        function unresolveReport(reportId) {
+            let resolvedReports = getResolvedReports();
+            const index = resolvedReports.indexOf(reportId);
+            if (index > -1) {
+                resolvedReports.splice(index, 1);
+                setResolvedReports(resolvedReports);
+                fetchReports(); // Re-fetch and display to update tables
+            }
         }
 
         // Initial fetch
-        fetchReports();
+        window.addEventListener('DOMContentLoaded', () => {
+            fetchReports();
+            setActiveNavLink();
+        });
     </script>
 </body>
 </html>

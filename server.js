@@ -22,6 +22,7 @@ const supabaseClient = createClient(supabaseUrl, supabaseKey, {
 
 app.use(cors());
 app.use(bodyParser.json());
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Middleware to authenticate Supabase JWT token and extract user id
 async function authenticateToken(req, res, next) {

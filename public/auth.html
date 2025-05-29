@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verify Your Email - CamFlea</title>
+
+  <!-- EmailJS Library -->
+  <script
+    type="text/javascript"
+    src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js">
+  </script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+    :root {
+      --primary-color: #074F6A; /* Dark Teal/Blue from logo */
+      --primary-darker: #05394E;
+      --light-teal-bg: #d9eef7; /* For info messages and body gradient */
+
+      --success-green-text: #3A7D45; /* Dark Green from logo */
+      --success-green-bg: #e9f4d9;   /* Light Green derived from logo */
+      --success-green-border: #cce8b5;
+
+      --error-red-text: #721c24;
+      --error-red-bg: #f8d7da;
+      --error-red-border: #f5c6cb;
+
+      --text-dark: #333;
+      --text-light: #555;
+      --border-light: #ddd;
+      --background-light-grey: #f7f9fc;
+      --white: #fff;
+      --input-bg: #fdfdfd;
+      --input-disabled-bg: #e9ecef;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-image: linear-gradient(to top right, var(--light-teal-bg), var(--background-light-grey));
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+      margin: 0;
+      box-sizing: border-box;
+      color: var(--text-dark);
+    }
+
+    .logo-container {
+      text-align: center;
+      margin-bottom: 25px;
+    }
+    .logo-container img {
+      max-width: 200px;
+      height: auto;
+    }
+
+    .container {
+      background: var(--white);
+      padding: 40px;
+      max-width: 480px;
+      width: 100%;
+      margin: auto;
+      border-radius: 16px;
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.12);
+      text-align: center;
+      border-top: 4px solid var(--primary-color);
+    }
+
+    .container h2 {
+      color: var(--primary-color);
+      margin-top: 0;
+      margin-bottom: 20px;
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    .container p.instructions {
+      color: var(--text-light);
+      margin-bottom: 30px;
+      font-size: 16px;
+      line-height: 1.7;
+      font-weight: 400;
+    }
+
+    label {
+        display: block;
+        text-align: left;
+        margin-bottom: 10px;
+        font-weight: 600;
+        color: var(--text-dark);
+        font-size: 15px;
+    }
+
+    select, input[type="email"], input[type="text"] {
+      width: 100%;
+      padding: 14px 18px;
+      margin-bottom: 25px;
+      border: 1px solid var(--border-light);
+      border-radius: 10px;
+      box-sizing: border-box;
+      font-size: 16px;
+      background-color: var(--input-bg);
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+      font-family: 'Inter', sans-serif;
+    }
+
+    select::placeholder, input::placeholder {
+        color: #999;
+    }
+
+    select:focus, input[type="email"]:focus, input[type="text"]:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(7, 79, 106, 0.15);
+      outline: none;
+    }
+
+    input[type="email"]:read-only {
+        background-color: var(--input-disabled-bg);
+        cursor: not-allowed;
+        color: #777;
+    }
+
+    select {
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        background-image: url('data:image/svg+xml;utf8,<svg fill="%23074F6A" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>');
+        background-repeat: no-repeat;
+        background-position: right 18px center;
+        padding-right: 45px;
+    }
+
+    select option[disabled] {
+        color: #aaa;
+    }
+
+    button, input[type="submit"] {
+      width: 100%;
+      padding: 15px 20px;
+      margin-top: 15px;
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 17px;
+      font-weight: 600;
+      transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+      font-family: 'Inter', sans-serif;
+    }
+
+    button:hover, input[type="submit"]:hover {
+      background-color: var(--primary-darker);
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(7, 79, 106, 0.2);
+    }
+
+    button:active, input[type="submit"]:active {
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(7, 79, 106, 0.15);
+    }
+
+
+    button:disabled, input[type="submit"]:disabled {
+      background-color: #a0c3d1;
+      cursor: not-allowed;
+      transform: translateY(0);
+      box-shadow: none;
+    }
+
+    #otpInput {
+      display: none;
+      margin-top: 30px;
+      padding-top: 30px;
+      border-top: 1px solid #eee;
+    }
+
+    #otpField {
+      text-align: center;
+      font-size: 22px;
+      letter-spacing: 4px;
+      font-weight: 600;
+    }
+
+
+    #otpInput p.instructions {
+        font-size: 15px;
+        margin-bottom: 20px;
+    }
+
+    @keyframes fadeInSlideDown {
+        0% {
+            opacity: 0;
+            transform: translateY(-15px);
+        }
+        100% {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .status-message {
+        padding: 14px 18px;
+        margin-top: 20px;
+        margin-bottom: 20px;
+        border-radius: 10px;
+        font-size: 15px;
+        font-weight: 500;
+        display: none;
+        text-align: left;
+        animation: fadeInSlideDown 0.4s ease-out forwards;
+        position: relative;
+        padding-left: 45px;
+    }
+
+    .status-message::before {
+        position: absolute;
+        left: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 18px;
+        font-weight: 700;
+    }
+
+    .status-message.success {
+        background-color: var(--success-green-bg);
+        color: var(--success-green-text);
+        border: 1px solid var(--success-green-border);
+        display: block;
+    }
+    .status-message.success::before {
+        content: '✔';
+        color: var(--success-green-text);
+    }
+
+    .status-message.error {
+        background-color: var(--error-red-bg);
+        color: var(--error-red-text);
+        border: 1px solid var(--error-red-border);
+        display: block;
+    }
+    .status-message.error::before {
+        content: '✖';
+        color: var(--error-red-text);
+    }
+
+    .status-message.info {
+        background-color: var(--light-teal-bg);
+        color: var(--primary-color);
+        border: 1px solid #b0d9e8;
+        display: block;
+    }
+    .status-message.info::before {
+        content: 'ℹ';
+        color: var(--primary-color);
+    }
+
+
+    .loader {
+        border: 3px solid rgba(255,255,255,0.3);
+        border-radius: 50%;
+        border-top: 3px solid var(--white);
+        width: 18px;
+        height: 18px;
+        animation: spin 1s linear infinite;
+        display: inline-block;
+        margin-left: 10px;
+        vertical-align: middle;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="logo-container">
+      <img src="Login_images/LOGO.png" alt="CamFlea Logo"> <!-- Ensure this path is correct -->
+    </div>
+    <h2>Verify Your Email</h2>
+    <p class="instructions">
+      To complete your signup, please verify your email address. Your email is shown below.
+    </p>
+
+    <div id="status" class="status-message"></div>
+
+    <form id="verificationForm">
+      <label for="userEmail">Your Email Address:</label>
+      <input type="email" name="user_email" id="userEmail" placeholder="your.email@example.com" required readonly />
+
+      <label for="authMethod">Verification Method:</label>
+      <select id="authMethod">
+        <option value="otp">Email OTP (One-Time Password)</option>
+        <option value="push" disabled>Email Push Button (Future Feature)</option>
+      </select>
+
+      <input type="submit" id="sendVerificationButton" value="Send Verification Email" />
+    </form>
+
+    <div id="otpInput">
+      <p class="instructions">
+        An OTP has been sent to your email address. Please enter it below to complete verification.
+      </p>
+      <label for="otpField">Enter OTP:</label>
+      <input type="text" id="otpField" placeholder="######" maxlength="6" pattern="\d{6}" title="Enter 6-digit OTP" />
+      <button id="verifyOtpButton" onclick="verifyOTP()">Verify OTP</button>
+    </div>
+  </div>
+
+<script>
+  // --- EmailJS Configuration ---
+  // !!! REPLACE WITH YOUR ACTUAL EMAILJS CREDENTIALS !!!
+  const EMAILJS_SERVICE_ID = "camflea";
+  const EMAILJS_TEMPLATE_ID = "template_w2rt53e"; // Ensure this template accepts 'to_email' and 'otp_code'
+  const EMAILJS_PUBLIC_KEY = "ULbVDvHSFDGIfI_lU"; // This is your User ID / Public Key from EmailJS Account Settings -> API Keys
+
+  // Initialize EmailJS (do this ONLY if credentials are not placeholders)
+  if (EMAILJS_SERVICE_ID !== "YOUR_SERVICE_ID" && EMAILJS_PUBLIC_KEY !== "YOUR_PUBLIC_KEY") {
+    emailjs.init(EMAILJS_PUBLIC_KEY);
+    console.log("auth.html: EmailJS initialized with provided credentials.");
+  } else {
+    console.warn("auth.html: EmailJS is NOT initialized because credentials are placeholders. Email sending will fail.");
+  }
+
+
+  // DOM Elements
+  const emailInput = document.getElementById('userEmail');
+  const authMethodSelect = document.getElementById('authMethod');
+  const verificationForm = document.getElementById('verificationForm');
+  const sendVerificationButton = document.getElementById('sendVerificationButton');
+  const otpInputSection = document.getElementById('otpInput');
+  const otpField = document.getElementById('otpField');
+  // verifyOtpButton is accessed via getElementById later due to onclick in HTML
+  const statusDiv = document.getElementById('status');
+
+  let generatedOtp = ""; // To store the OTP sent via email
+
+  // Function to get URL parameters
+  function getQueryParam(param) {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get(param);
+  }
+
+  // Function to display status messages
+  function showStatus(message, type = 'info') {
+    statusDiv.innerHTML = message; // Use innerHTML if message might contain HTML (e.g. for bolding)
+    statusDiv.className = `status-message ${type}`; // This will set 'status-message' and the type class
+    statusDiv.style.display = 'block';
+  }
+
+  // Function to toggle button loading state
+  function toggleButtonLoading(button, isLoading, originalText) {
+      if (isLoading) {
+          button.disabled = true;
+          button.innerHTML = `${originalText} <span class="loader"></span>`;
+      } else {
+          button.disabled = false;
+          button.innerHTML = originalText;
+      }
+  }
+
+  // On page load
+  window.onload = function() {
+    console.log("auth.html: Page loaded. Checking for email query parameter.");
+    const emailFromQuery = getQueryParam('email');
+    console.log("auth.html: Email from query parameter:", emailFromQuery);
+
+    if (emailFromQuery && emailFromQuery.trim() !== "") {
+      const decodedEmail = decodeURIComponent(emailFromQuery);
+      emailInput.value = decodedEmail;
+      console.log("auth.html: Email input field set to:", decodedEmail);
+    } else {
+      showStatus("<strong>Error:</strong> Email address not found in URL. Please return to the signup page and try again.", 'error');
+      console.error("auth.html: Email query parameter 'email' is missing or empty.");
+      if (verificationForm) {
+        verificationForm.style.display = 'none'; // Hide the form if no email
+      }
+      if (sendVerificationButton) {
+        sendVerificationButton.disabled = true; // Disable button
+      }
+    }
+  };
+
+  // Event Listener for sending verification email
+  verificationForm.addEventListener('submit', async function(event) {
+    event.preventDefault();
+    statusDiv.style.display = 'none'; // Hide previous status
+
+    const method = authMethodSelect.value;
+    const emailForVerification = emailInput.value.trim(); // Get value from input field and trim whitespace
+
+    console.log("auth.html: 'Send Verification Email' clicked. Email from input field:", emailForVerification);
+
+    if (!emailForVerification) {
+      showStatus("<strong>Error:</strong> Email address is missing. Please ensure it was passed correctly from the signup page.", 'error');
+      console.error("auth.html: Attempted to send email, but email field is empty.");
+      return;
+    }
+
+    if (EMAILJS_SERVICE_ID === "YOUR_SERVICE_ID" || EMAILJS_TEMPLATE_ID === "YOUR_OTP_TEMPLATE_ID" || EMAILJS_PUBLIC_KEY === "YOUR_PUBLIC_KEY") {
+      showStatus("<strong>Configuration Error:</strong> EmailJS credentials are not set up. Please contact support or check console.", 'error');
+      console.error("auth.html: EmailJS credentials are placeholders. Please update them in the script.");
+      return;
+    }
+    // Check if emailjs was initialized (it might not be if credentials were placeholders)
+    if (typeof emailjs.send !== 'function') {
+        showStatus("<strong>Configuration Error:</strong> EmailJS not initialized, likely due to placeholder credentials. Cannot send email. Check console.", 'error');
+        console.error("auth.html: EmailJS send function is not available. EmailJS may not have been initialized.");
+        return;
+    }
+
+
+    toggleButtonLoading(sendVerificationButton, true, "Send Verification Email");
+    showStatus("Sending verification email...", 'info');
+
+    generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
+    console.log("auth.html: Generated OTP for " + emailForVerification + ": " + generatedOtp); // For debugging
+
+    const templateParams = {
+        email: emailForVerification,       // Correct key for "To Email" field in your template
+        passcode: generatedOtp,          // Correct key for the OTP in your template content
+        time: "15 minutes"               // Added this as your template also uses {{time}}
+        // Add any other parameters your EmailJS template expects
+        // from_name: "CamFlea Team",    // Optional, if your template uses {{from_name}}
+        // to_name: "User",              // Optional, if your template uses {{to_name}} for a greeting
+    };
+
+    console.log("auth.html: Template parameters for EmailJS:", templateParams);
+
+    try {
+      await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams);
+      showStatus(`<strong>Success:</strong> Verification email sent successfully to ${emailForVerification}! Please check your inbox.`, 'success');
+      if (method === "otp") {
+        otpInputSection.style.display = "block";
+        otpField.focus();
+      }
+    } catch (error) {
+      console.error("Error sending email via EmailJS:", error);
+      let errorMessage = "Failed to send verification email. Please try again or contact support.";
+      // EmailJS errors often have a 'text' property with details, or status/message
+      if (error && typeof error === 'object') {
+          if (error.text) errorMessage = error.text;
+          else if (error.message) errorMessage = error.message;
+          else if (error.status) errorMessage = `Failed with status ${error.status}.`;
+      }
+      showStatus(`<strong>Error:</strong> ${errorMessage}`, 'error');
+    } finally {
+      toggleButtonLoading(sendVerificationButton, false, "Send Verification Email");
+    }
+  });
+
+  // Function for verifying OTP (called by button's onclick)
+  async function verifyOTP() {
+    statusDiv.style.display = 'none'; // Hide previous status
+    const enteredOtp = otpField.value.trim();
+
+    console.log("auth.html: 'Verify OTP' clicked. Entered OTP:", enteredOtp, "Generated OTP:", generatedOtp);
+
+    if (!enteredOtp || !/^\d{6}$/.test(enteredOtp)) { // Ensure 6 digits
+      showStatus("<strong>Error:</strong> Please enter a 6-digit OTP.", 'error');
+      otpField.focus();
+      return;
+    }
+
+    const currentVerifyOtpButton = document.getElementById('verifyOtpButton'); // Get the button fresh
+    toggleButtonLoading(currentVerifyOtpButton, true, "Verify OTP");
+    showStatus("Verifying OTP...", 'info');
+
+    // Simulate a small delay for UX, as real verification might take time
+    await new Promise(resolve => setTimeout(resolve, 700));
+
+    try {
+      if (enteredOtp === generatedOtp && generatedOtp !== "") { // Also check generatedOtp is not empty
+          const successMsg = "Verification successful! Redirecting to login...";
+          showStatus(`<strong>Success:</strong> ${successMsg}`, 'success');
+          setTimeout(() => {
+              window.location.href = "Login_page.html";
+          }, 2000);
+      } else {
+          throw { message: "The OTP entered is invalid or has expired." };
+      }
+    } catch (error) {
+      console.error("Error verifying OTP:", error);
+      const errorMessage = error.message || "Error during OTP verification. Please try again.";
+      showStatus(`<strong>Error:</strong> ${errorMessage}`, 'error');
+      otpField.value = ""; // Clear the field
+      otpField.focus();
+    } finally {
+      toggleButtonLoading(currentVerifyOtpButton, false, "Verify OTP");
+    }
+  }
+
+  // Add event listener to OTP field for Enter key submission
+  otpField.addEventListener('keypress', function(event) {
+      if (event.key === 'Enter') {
+          event.preventDefault(); // Prevent default form submission if it were in a form
+          verifyOTP();
+      }
+  });
+
+</script>
+</body>
+</html>

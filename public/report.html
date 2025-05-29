@@ -455,7 +455,7 @@ const reporterUserId = parseInt(localStorage.getItem('stud_id'), 10);
       for (const file of files) {
         const fileExt = file.name.split('.').pop();
         const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
-        const filePath = `reports/${reportedUserId}/${fileName}`;
+        const filePath = `${fileName}`; // Store directly in the bucket
 
         const { data, error } = await supabaseClient.storage
           .from('report-photo')
@@ -466,17 +466,11 @@ const reporterUserId = parseInt(localStorage.getItem('stud_id'), 10);
           throw error;
         }
 
-const { publicURL, error: urlError } = supabaseClient.storage
-  .from('report-photo')
-  .getPublicUrl(filePath);
-
-        if (urlError) {
-          console.error('Error getting public URL:', urlError);
-          throw urlError;
-        }
-
+        const publicURL = `${supabaseUrl}/storage/v1/object/public/report-photo/${filePath}`;
         uploadedUrls.push(publicURL);
+        console.log('Uploaded URL:', publicURL); // Debugging: Log each uploaded URL
       }
+      console.log('All uploaded URLs:', uploadedUrls); // Debugging: Log all uploaded URLs
       return uploadedUrls;
     }
 
@@ -492,18 +486,20 @@ document.getElementById('reportForm').addEventListener('submit', async (e) => {
     const details = violationDetails.value.trim();
     const photos = violationPhotos.files;
 
-    // Get reporter's user ID
+    // Get reporter's user ID (stud_id)
     const reporterUserId = parseInt(localStorage.getItem('stud_id'), 10);
+    const reportedUserIdFromUrl = parseInt(urlParams.get('stud_id'), 10);
 
     // Upload photos and get URLs
     const photoUrls = await uploadPhotos(photos);
+    console.log('Photo URLs before Supabase insert:', photoUrls); // Debugging: Log photoUrls before insert
 
     // Insert report record into Supabase
     const { error } = await supabaseClient
       .from('report')
       .insert({
-        reporter_user_id: reporterUserId,
-        reported_user_id: reportedUserId,
+        reporter_user_id: reporterUserId, // Use integer stud_id
+        reported_user_id: reportedUserIdFromUrl, // Use integer stud_id
         violation_type: violation,
         violation_details: details,
         photo_urls: photoUrls,
@@ -520,9 +516,12 @@ document.getElementById('reportForm').addEventListener('submit', async (e) => {
 
     messageDiv.style.color = 'green';
     messageDiv.textContent = 'Report submitted successfully. Thank you.';
+    // Send a message to the parent window to indicate successful submission
+    // This is typically used when the page is opened in an iframe or a new window by another script.
+    // The parent window would need to listen for this message to close the modal/popup.
     setTimeout(() => {
-      window.location.href = 'index.html';
-    }, 3000);
+      window.parent.postMessage({ type: 'reportSubmitted' }, '*');
+    }, 1000); // Give a short delay for the success message to be visible
 
   } catch (err) {
     console.error('Unexpected error:', err);

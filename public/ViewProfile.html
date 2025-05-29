@@ -401,12 +401,12 @@ window.addEventListener('load', async function () {
 }
 </script>
 </head> 
-<nav class="bg-[#084F6A] p-6 flex justify-between items-center"> 
-    <div class="flex items-center space-x-6">
-        <a id="navHome" class="text-white text-sm pointer-events-none opacity-50" href="index.html">Home</a>
+<nav class="bg-[#084F6A] flex justify-between items-center" style="padding: 4px 40px; align-items: flex-start; height: 120px;"> 
+    <div class="flex items-center space-x-6" style="align-self: flex-start;">
+        <a id="navHome" class="text-white pointer-events-none opacity-50" href="index.html" style="background-color: #084F6A; padding: 6px 12px; border-radius: 4px; color: white; font-weight: 600; text-decoration: none; cursor: pointer;">Home</a>
     </div> 
-    <div class="flex flex-col items-center space-y-2"> <img alt="Logo" class="h-16 w-35" src="Homepage_images/LOGO_WHITE.png"/> </div> <div class="flex items-center space-x-6"> 
-        <a class="text-white text-sm" href="Login_page.html">Logout</a> </div> </nav>
+    <img alt="Logo" class="h-16 w-35" src="Homepage_images/LOGO_WHITE.png" style="margin-top: 8px;"/> <div class="flex items-center space-x-6" style="align-self: flex-start;"> 
+        <a class="text-white" href="Login_page.html" style="background-color: #084F6A; padding: 6px 12px; border-radius: 4px; color: white; font-weight: 600; text-decoration: none; cursor: pointer;">Logout</a> </div> </nav>
 <!-- Profile Section -->
 <div class="max-w-6xl mx-auto p-6 flex">
 
@@ -581,9 +581,28 @@ async function fetchUserPostedItems() {
         .select('item_id, item_name, item_price, item_price_type, item_price_min, item_price_max, item_condition, item_type, item_status, photos, created_at')
         .eq('stud_id', studId);
 
+    // Fetch user's average rating
+    const { data: feedbacks, error: feedbackError } = await supabase
+        .from('feedback')
+        .select('stars')
+        .eq('seller_id', studId);
+
+    let avgRating = 0;
+    let ratingCount = 0;
+    if (feedbacks && feedbacks.length > 0) {
+        const totalStars = feedbacks.reduce((sum, fb) => sum + fb.stars, 0);
+        avgRating = totalStars / feedbacks.length;
+        ratingCount = feedbacks.length;
+    }
+
+    // Update the profile rating display
+    const ratingSpan = document.querySelector('.flex.items-center.space-x-2.mt-2 span');
+    if (ratingSpan) {
+        ratingSpan.textContent = `${avgRating.toFixed(1)} (${ratingCount})`;
+    }
+
     if (error) {
         console.error('Error fetching user items:', error);
-        // Instead of alert, try to reload after a delay to recover from transient errors
         setTimeout(() => {
             fetchUserPostedItems();
         }, 3000);
@@ -680,71 +699,70 @@ async function fetchUserPostedItems() {
         buyerIdToName[buyer.stud_id] = `${buyer.stud_fname} ${buyer.stud_lname}`;
     });
 
+    // Create a map from item_id to transaction status for reserved items
+    const itemIdToTransactionStatus = {};
+    if (transactions) {
+        transactions.forEach(tran => {
+            itemIdToTransactionStatus[tran.item_uuid] = tran.status;
+        });
+    }
+
     // Render reserved items in currently selling section
     if (reservedItems.length === 0) {
         noSellingMessage.style.display = 'block';
     } else {
         noSellingMessage.style.display = 'none';
-            // Create a map from item_id to transaction status for reserved items
-            const itemIdToTransactionStatus = {};
-            if (transactions) {
-                transactions.forEach(tran => {
-                    itemIdToTransactionStatus[tran.item_uuid] = tran.status;
-                });
+        reservedItems.forEach(item => {
+            const photoUrl = item.photos?.[0] || 'https://via.placeholder.com/250x200?text=No+Image';
+            const timePosted = timeAgo(item.created_at);
+
+            let priceDisplay = '';
+            if (item.item_price_type === 'single') {
+                priceDisplay = `₱${item.item_price}`;
+            } else if (item.item_price_type === 'range') {
+                priceDisplay = `₱${item.item_price_min} - ₱${item.item_price_max}`;
+            } else if (item.item_price_type === 'hidden') {
+                priceDisplay = 'Price hidden';
+            } else {
+                priceDisplay = 'Price not available';
             }
 
-            reservedItems.forEach(item => {
-                const photoUrl = item.photos?.[0] || 'https://via.placeholder.com/250x200?text=No+Image';
-                const timePosted = timeAgo(item.created_at);
+            const itemCard = document.createElement('div');
+            itemCard.className = 'item-card';
 
-                let priceDisplay = '';
-                if (item.item_price_type === 'single') {
-                    priceDisplay = `₱${item.item_price}`;
-                } else if (item.item_price_type === 'range') {
-                    priceDisplay = `₱${item.item_price_min} - ₱${item.item_price_max}`;
-                } else if (item.item_price_type === 'hidden') {
-                    priceDisplay = 'Price hidden';
-                } else {
-                    priceDisplay = 'Price not available';
-                }
+            // Determine button state based on transaction status
+            const transactionStatus = itemIdToTransactionStatus[item.item_id];
+            let markAsSentButtonHTML = '';
+            if (transactionStatus === 'sent' || transactionStatus === 'completed') {
+                markAsSentButtonHTML = `<button class="bg-gray-500 text-white py-1 px-4 rounded cursor-not-allowed" disabled>Marked as Sent</button>`;
+            } else {
+                markAsSentButtonHTML = `<button class="bg-green-600 text-white py-1 px-4 rounded" onclick="event.stopPropagation(); markAsSent('${item.item_id}')">Mark as Sent</button>`;
+            }
 
-                const itemCard = document.createElement('div');
-                itemCard.className = 'item-card';
-
-                // Determine button state based on transaction status
-                const transactionStatus = itemIdToTransactionStatus[item.item_id];
-                let markAsSentButtonHTML = '';
-                if (transactionStatus === 'sent' || transactionStatus === 'completed') {
-                    markAsSentButtonHTML = `<button class="bg-gray-500 text-white py-1 px-4 rounded cursor-not-allowed" disabled>Marked as Sent</button>`;
-                } else {
-                    markAsSentButtonHTML = `<button class="bg-green-600 text-white py-1 px-4 rounded" onclick="event.stopPropagation(); markAsSent('${item.item_id}')">Mark as Sent</button>`;
-                }
-
-                itemCard.innerHTML = `
-                    <img src="${photoUrl}" alt="${item.item_name}">
-                    <h3>${item.item_name}</h3>
-                    <div class="price-time">
-                        <span class="price">${priceDisplay}</span>
-                        <span class="time-ago">${timePosted}</span>
+            itemCard.innerHTML = `
+                <img src="${photoUrl}" alt="${item.item_name}">
+                <h3>${item.item_name}</h3>
+                <div class="price-time">
+                    <span class="price">${priceDisplay}</span>
+                    <span class="time-ago">${timePosted}</span>
+                </div>
+                <div class="condition">${item.item_condition}</div>
+                <div class="rating-status">
+                    <span class="rating"><i class="fas fa-star"></i> ${avgRating.toFixed(1)} (${ratingCount})</span>
+                    <span class="status" style="color: ${item.item_status === 'available' ? 'green' : item.item_status === 'reserved' ? 'orange' : 'gray'};">${item.item_status.charAt(0).toUpperCase() + item.item_status.slice(1)}</span>
+                </div>
+                <div class="school-location">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>Gordon College</span>
+                </div>
+                <div style="margin-top: 8px;">
+                    <div style="display: flex; gap: 8px;">
+                        ${markAsSentButtonHTML}
+                        <button class="bg-yellow-500 text-white py-1 px-4 rounded" onclick="event.stopPropagation(); cancelTransaction('${item.item_id}')">Cancel</button>
                     </div>
-                    <div class="condition">${item.item_condition}</div>
-                    <div class="rating-status">
-                        <span class="rating"><i class="fas fa-star"></i> 0.0 (0)</span>
-                        <span class="status" style="color: ${item.item_status === 'available' ? 'green' : item.item_status === 'reserved' ? 'orange' : 'gray'};">${item.item_status.charAt(0).toUpperCase() + item.item_status.slice(1)}</span>
-                    </div>
-                     <div class="school-location">
-                        <i class="fas fa-map-marker-alt"></i>
-                        <span>Gordon College</span>
-                    </div>
-                    <div style="margin-top: 8px;">
-                        <div style="display: flex; gap: 8px;">
-                            ${markAsSentButtonHTML}
-                            <button class="bg-yellow-500 text-white py-1 px-4 rounded" onclick="event.stopPropagation(); cancelTransaction('${item.item_id}')">Cancel</button>
-                        </div>
-                        <div style="margin-top: 8px; color: #555; font-size: 15px;">waiting for the buyer's confirmation</div>
-                    </div>
-                `;
-
+                    <div style="margin-top: 8px; color: #555; font-size: 15px;">waiting for the buyer's confirmation</div>
+                </div>
+            `;
 
             itemCard.addEventListener('click', () => {
                 let modal = document.getElementById('detailedPostModal');
@@ -807,10 +825,10 @@ async function fetchUserPostedItems() {
                 </div>
                 <div class="condition">${item.item_condition}</div>
                 <div class="rating-status">
-                     <span class="rating"><i class="fas fa-star"></i> 0.0 (0)</span>
+                    <span class="rating"><i class="fas fa-star"></i> ${avgRating.toFixed(1)} (${ratingCount})</span>
                     <span class="status" style="color: ${item.item_status === 'available' ? 'green' : item.item_status === 'reserved' ? 'orange' : 'gray'};">${item.item_status.charAt(0).toUpperCase() + item.item_status.slice(1)}</span>
                 </div>
-                 <div class="school-location">
+                <div class="school-location">
                     <i class="fas fa-map-marker-alt"></i>
                     <span>Gordon College</span>
                 </div>
@@ -881,10 +899,10 @@ async function fetchUserPostedItems() {
                 </div>
                 <div class="condition">${item.item_condition}</div>
                 <div class="rating-status">
-                     <span class="rating"><i class="fas fa-star"></i> 0.0 (0)</span>
+                    <span class="rating"><i class="fas fa-star"></i> ${avgRating.toFixed(1)} (${ratingCount})</span>
                     <span class="status" style="color: ${item.item_status === 'available' ? 'green' : item.item_status === 'reserved' ? 'orange' : 'gray'};">${item.item_status.charAt(0).toUpperCase() + item.item_status.slice(1)}</span>
                 </div>
-                 <div class="school-location">
+                <div class="school-location">
                     <i class="fas fa-map-marker-alt"></i>
                     <span>Gordon College</span>
                 </div>
@@ -1233,7 +1251,13 @@ window.markAsSent = async function markAsSent(itemId) {
             }
         }
 
-        alert(newStatus === 'completed' ? 'Transaction marked as completed successfully.' : 'Item marked as sent successfully.');
+        showBanner(
+            newStatus === 'completed'
+                ? 'Transaction marked as completed successfully.'
+                : 'Item marked as sent successfully.',
+            'success'
+            );
+
 
         // Remove the inline button UI update code from markAsSent function
         // Instead, refresh the items list to update UI based on transaction status
@@ -1280,13 +1304,15 @@ window.markAsSent = async function markAsSent(itemId) {
 
         if (updateError) {
             console.error('Error updating profile picture URL:', updateError);
-            alert('Failed to save profile picture. Please try again.');
+            showBanner('Failed to save profile picture. Please try again.', 'error');
             return;
         }
 
         // Update the profile picture on the page
         document.getElementById('profilePicture').src = publicURL;
-        alert('Profile picture updated successfully!');
+        showBanner('Profile picture updated successfully!', 'success');
+
+
     }
 
     // Attach the function to the global window object
@@ -1611,7 +1637,7 @@ window.markAsSent = async function markAsSent(itemId) {
         const errorMessage = document.getElementById("error-message");
 
         errorMessage.style.display = "block";
-        errorMessage.textContent = (type === "success" ? "✅ " : "❌ ") + message;
+        errorMessage.textContent = (type === "success" ? "Success " : "Failed ") + message;
 
         if (type === "success") {
             errorMessage.style.backgroundColor = "#2ecc71"; // green

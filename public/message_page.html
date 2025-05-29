@@ -151,8 +151,8 @@
 <body class="bg-gray-100">
     <div class="max-w-4xl mx-auto p-6">
         <!-- Return to Conversations Button -->
-        <button id="returnToConversationsBtn" class="mb-4 bg-[#084F6A] text-white px-4 py-2 rounded-lg shadow-md hover:bg-[#063d52]">
-            Return to Conversations
+        <button id="returnToConversationsBtn" class="mb-4 bg-[#084F6A] text-white px-4 py-2 rounded-lg shadow-md hover:bg-[#063d52]" title="Return to Conversations">
+<img src="Homepage_images/return-icon.png" alt="Return Icon" id="returnIcon" style="width: 20px; height: 20px; filter: invert(100%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(100%) contrast(100%);">
         </button>
 
         <!-- Seller Profile -->
@@ -202,14 +202,15 @@
             const returnBtn = document.getElementById('returnToConversationsBtn');
             if (fromParam === 'detailedpost' || fromParam === 'viewother' || fromParam === 'myconversation') {
                 returnBtn.style.display = 'inline-block';
+                // Set title attribute for accessibility based on fromParam
                 if (fromParam === 'detailedpost') {
-                    returnBtn.textContent = 'Return to Detailed Post';
+                    returnBtn.title = 'Return to Detailed Post';
                 } else if (fromParam === 'viewother') {
-                    returnBtn.textContent = 'Return to Profile';
+                    returnBtn.title = 'Return to Profile';
                 } else if (fromParam === 'myconversation') {
-                    returnBtn.textContent = 'Return to Conversations';
+                    returnBtn.title = 'Return to Conversations';
                 } else {
-                    returnBtn.textContent = 'Return to Previous Page';
+                    returnBtn.title = 'Return to Previous Page';
                 }
             } else {
                 returnBtn.style.display = 'none';

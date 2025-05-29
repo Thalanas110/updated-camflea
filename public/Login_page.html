@@ -268,6 +268,36 @@
         return;
     }
 
+    // Check user role for ban/restriction
+    if (user.is_role === 2) { // Banned
+        errorMessage.innerHTML = "You are currently banned from using the app. Please contact support.";
+        errorMessage.style.display = "block";
+        return; // Prevent login
+    } else if (user.is_role === 3) { // Restricted
+        // Assuming restriction_start_date exists and is a valid timestamp
+        const restrictionStartDate = new Date(user.restriction_start_date);
+        const sevenDaysLater = new Date(restrictionStartDate.getTime() + (7 * 24 * 60 * 60 * 1000));
+        const now = new Date();
+
+        if (now < sevenDaysLater) {
+            const remainingDays = Math.ceil((sevenDaysLater - now) / (1000 * 60 * 60 * 24));
+            errorMessage.innerHTML = `You are restricted from using the app. Restriction lifts in ${remainingDays} day(s).`;
+            errorMessage.style.display = "block";
+            return; // Prevent login
+        } else {
+            // If 7 days have passed, automatically lift the restriction
+            const { error: updateError } = await supabase
+                .from('student')
+                .update({ is_role: 0, restriction_start_date: null }) // Revert to normal role (assuming 0 is normal)
+                .eq('user_id', authData.user.id);
+
+            if (updateError) {
+                console.error('Error lifting restriction:', updateError);
+                // Still allow login, but log the error
+            }
+        }
+    }
+
     // Store user info
     console.log("User logged in:", user); // Debugging: Log the user object
 

@@ -215,7 +215,14 @@ if (notification.type === 'cancel_trans') {
 } else if (notification.type === 'item_available') {
     textDiv.textContent = notification.content ? `the ${notification.content} is now available. Please check it out` : 'An item you requested notification for is now available.';
     contentDiv.appendChild(textDiv);
-} else {
+} else if (notification.type === 'admin_item_removal') {
+    textDiv.textContent = notification.content || 'An item has been removed by the admin.';
+    contentDiv.appendChild(textDiv);
+} else if (notification.type === 'warning') {
+    textDiv.textContent = notification.content || '';
+    contentDiv.appendChild(textDiv);
+}
+else {
     textDiv.textContent = notification.content || '';
     contentDiv.appendChild(textDiv);
     // Append subtext for other types if needed
@@ -230,8 +237,8 @@ if (notification.type === 'cancel_trans') {
         timeDiv.textContent = timeAgo(notification.created_at);
 
     //  contentDiv.appendChild(textDiv);   
-        // Append subtext only if notification type is not 'message' or 'buy_request' or mark_sent/mark_received or cancel_trans
-        if (notification.type !== 'message' && notification.type !== 'buy_request' && notification.type !== 'mark_sent' && notification.type !== 'mark_received' && notification.type !== 'cancel_trans') {
+        // Append subtext only if notification type is not 'message' or 'buy_request' or mark_sent/mark_received or cancel_trans or admin_item_removal or warning
+        if (notification.type !== 'message' && notification.type !== 'buy_request' && notification.type !== 'mark_sent' && notification.type !== 'mark_received' && notification.type !== 'cancel_trans' && notification.type !== 'admin_item_removal' && notification.type !== 'warning') {
             const subTextDiv = document.createElement('div');
             subTextDiv.className = 'notification-subtext';
             subTextDiv.textContent = notification.content || '';

@@ -29,6 +29,43 @@
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
         }
+        .admin-nav {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            background-color: #084F6A;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        .nav-button {
+            background-color: #084F6A;
+            color: white;
+            border: 1px solid #084F6A;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+        .nav-button:hover {
+            background-color: #063a4d;
+            border-color: #063a4d;
+        }
+        .nav-button.active {
+            background-color: #063a4d; /* Darker shade for active state */
+            border-color: #063a4d;
+            box-shadow: inset 0 0 8px rgba(0,0,0,0.3); /* Inner shadow for "clicked" effect */
+        }
+        .logout-button {
+            background-color: #dc3545;
+            border-color: #dc3545;
+        }
+        .logout-button:hover {
+            background-color: #c82333;
+            border-color: #bd2130;
+        }
     </style>
 </head>
 <body>
@@ -36,23 +73,25 @@
         <h1>Admin Dashboard</h1>
     </header>
     <main>
-        <div class="content">
-            <p>Welcome to the admin dashboard. Here you can manage the application.</p>
-            <button id="userManagementBtn" style="margin-top: 15px; padding: 10px 20px; font-size: 1rem; background-color: #084F6A; color: white; border: none; border-radius: 5px; cursor: pointer;">
+        <nav class="admin-nav">
+            <button id="userManagementBtn" class="nav-button" data-page="user_management.html">
                 User Management
             </button>
-            <button id="postItemManagementBtn" style="margin-top: 15px; padding: 10px 20px; font-size: 1rem; background-color: #084F6A; color: white; border: none; border-radius: 5px; cursor: pointer; margin-left: 10px;">
+            <button id="postItemManagementBtn" class="nav-button" data-page="admin_post_item_management.html">
                 Post & Item Management
             </button>
-            <button id="transactionMonitoringBtn" style="margin-top: 15px; padding: 10px 20px; font-size: 1rem; background-color: #084F6A; color: white; border: none; border-radius: 5px; cursor: pointer; margin-left: 10px;">
+            <button id="transactionMonitoringBtn" class="nav-button" data-page="transaction_monitoring.html">
                 Transaction Monitoring
             </button>
-            <button id="reportsViolationsBtn" style="margin-top: 15px; padding: 10px 20px; font-size: 1rem; background-color: #084F6A; color: white; border: none; border-radius: 5px; cursor: pointer; margin-left: 10px;">
+            <button id="reportsViolationsBtn" class="nav-button" data-page="reports_violations.html">
                 Reports & Violations Center
             </button>
-            <button id="logoutBtn" style="margin-top: 15px; padding: 10px 20px; font-size: 1rem; background-color: #cc0000; color: white; border: none; border-radius: 5px; cursor: pointer; margin-left: 10px;">
+            <button id="logoutBtn" class="nav-button logout-button" data-page="Login_page.html">
                 Log Out
             </button>
+        </nav>
+        <div class="content">
+            <p>Welcome to the admin dashboard. Here you can manage the application.</p>
         </div>
 
         <section class="content stats-section" style="margin-top: 20px;">
@@ -68,7 +107,6 @@
                 <div class="stat-card" id="itemStatsCard" style="background: #fff; border-radius: 8px; padding: 15px; box-shadow: 0 0 8px rgba(0,0,0,0.1);">
                     <h3 style="margin-top: 0; color: #084F6A; font-size: 1.2rem; margin-bottom: 10px;">Items Listed by Type</h3>
                     <canvas id="itemsByTypeChart" style="max-width: 100%; height: 200px;"></canvas>
-                    <h4 style="margin-top: 15px;">Total Sold Items by Type</h4>
                     <ul class="stat-list" id="soldItemsStatsList" style="list-style: none; padding-left: 0; margin: 0;">
                         <li>Loading...</li>
                     </ul>
@@ -80,6 +118,20 @@
                         <li>Loading...</li>
                     </ul>
                     <!-- Removed total sold items count display as per user request -->
+                </div>
+                <div class="stat-card" id="itemStatusCard" style="background: #fff; border-radius: 8px; padding: 15px; box-shadow: 0 0 8px rgba(0,0,0,0.1);">
+                    <h3 style="margin-top: 0; color: #084F6A; font-size: 1.2rem; margin-bottom: 10px;">Items Listed by Status</h3>
+                    <canvas id="itemStatusPieChart" style="max-width: 100%; height: 200px;"></canvas>
+                    <ul class="stat-list" id="itemStatusList" style="list-style: none; padding-left: 0; margin: 0; display:none;">
+                        <li>Loading...</li>
+                    </ul>
+                </div>
+                <div class="stat-card" id="reportStatsCard" style="background: #fff; border-radius: 8px; padding: 15px; box-shadow: 0 0 8px rgba(0,0,0,0.1);">
+                    <h3 style="margin-top: 0; color: #084F6A; font-size: 1.2rem; margin-bottom: 10px;">Reports by Violation Type</h3>
+                    <canvas id="reportTypePieChart" style="max-width: 100%; height: 200px;"></canvas>
+                    <ul class="stat-list" id="reportStatsList" style="list-style: none; padding-left: 0; margin: 0; display:none;">
+                        <li>Loading...</li>
+                    </ul>
                 </div>
             </div>
         </section>
@@ -163,30 +215,31 @@
 
             if (transError) {
                 console.error('Error fetching transactions:', transError);
-                return { transactionsByStatus: {}, totalSoldItems: 0 };
+                return { transactionsByStatus: {} };
             }
 
+            const predefinedTransactionStatuses = [
+                'pending',
+                'completed',
+                'cancelled',
+                'reserved' // Added 'reserved' status
+            ];
+
             const transactionsByStatus = {};
-            let totalSoldItems = 0;
+            predefinedTransactionStatuses.forEach(status => {
+                transactionsByStatus[status] = 0;
+            });
 
             transactions.forEach(tran => {
                 const status = tran.status || 'Unknown';
-                transactionsByStatus[status] = (transactionsByStatus[status] || 0) + 1;
+                if (transactionsByStatus.hasOwnProperty(status)) {
+                    transactionsByStatus[status]++;
+                } else {
+                    transactionsByStatus[status] = 1; // Add if it's a new type not in predefined list
+                }
             });
 
-            // Fetch total sold items count from item table where item_status = 'sold'
-            const { data: soldItems, error: soldError } = await supabase
-                .from('item')
-                .select('item_id')
-                .eq('item_status', 'sold');
-
-            if (!soldError && soldItems) {
-                totalSoldItems = soldItems.length;
-                // Add sold items count as a new status category in transactionsByStatus
-                transactionsByStatus['Sold'] = totalSoldItems;
-            }
-
-            return { transactionsByStatus, totalSoldItems };
+            return { transactionsByStatus };
         }
 
         function renderUserStats(schoolCounts) {
@@ -229,18 +282,26 @@
                             enabled: false
                         },
                         datalabels: {
-                            display: true,
+                            display: function(context) {
+                                const dataset = context.dataset;
+                                const total = dataset.data.reduce((sum, dataValue) => sum + dataValue, 0);
+                                const value = dataset.data[context.dataIndex];
+                                const percentage = total ? (value / total) * 100 : 0;
+                                return percentage > 5; // Always display labels
+                            },
                             formatter: function(value, context) {
-                                const label = context.chart.data.labels[context.dataIndex];
                                 const total = context.chart._metasets[context.datasetIndex].total;
                                 const percentage = total ? ((value / total) * 100).toFixed(2) : 0;
-                                return `${label}: ${value} (${percentage}%)`;
+                                return `${value} (${percentage}%)`;
                             },
-                            color: '#fff',
+                            color: '#000',
                             font: {
                                 weight: 'bold',
                                 size: 12
-                            }
+                            },
+                            anchor: 'center', // Keep center for now, offset will push out
+                            offset: 25, // Increased offset
+                            clamp: true
                         }
                     }
                 }
@@ -293,25 +354,34 @@ function renderItemStats(itemsByType, soldItemsByType) {
                             position: 'right',
                         },
                         datalabels: {
-                            display: true,
+                            display: function(context) {
+                                const dataset = context.dataset;
+                                const total = dataset.data.reduce((sum, dataValue) => sum + dataValue, 0);
+                                const value = dataset.data[context.dataIndex];
+                                const percentage = total ? (value / total) * 100 : 0;
+                                return percentage > 5; // Always display labels
+                            },
                             formatter: function(value, context) {
                                 const total = context.chart._metasets[context.datasetIndex].total;
                                 const percentage = total ? ((value / total) * 100).toFixed(2) : 0;
-                                return `${percentage}%`;
+                                return `${value} (${percentage}%)`;
                             },
-                            color: '#fff',
+                            color: '#000',
                             font: {
                                 weight: 'bold',
                                 size: 12
-                            }
+                            },
+                            anchor: 'center',
+                            offset: 25,
+                            clamp: true
                         }
                     }
                 }
             });
         }
 
-        function renderTransactionStats(transactionsByStatus, totalSoldItems) {
-            // Render pie chart for transactions by status including sold items
+        function renderTransactionStats(transactionsByStatus) {
+            // Render pie chart for transactions by status
             const ctx = document.getElementById('transactionStatusPieChart').getContext('2d');
             const labels = Object.keys(transactionsByStatus);
             const data = Object.values(transactionsByStatus);
@@ -347,24 +417,228 @@ function renderItemStats(itemsByType, soldItemsByType) {
                             position: 'right',
                         },
                         datalabels: {
-                            display: true,
+                            display: function(context) {
+                                const dataset = context.dataset;
+                                const total = dataset.data.reduce((sum, dataValue) => sum + dataValue, 0);
+                                const value = dataset.data[context.dataIndex];
+                                const percentage = total ? (value / total) * 100 : 0;
+                                return percentage > 5; // Always display labels
+                            },
                             formatter: function(value, context) {
-                                const label = context.chart.data.labels[context.dataIndex];
                                 const total = context.chart._metasets[context.datasetIndex].total;
                                 const percentage = total ? ((value / total) * 100).toFixed(2) : 0;
-                                return `${label}: ${value} (${percentage}%)`;
+                                return `${value} (${percentage}%)`;
                             },
-                            color: '#fff',
+                            color: '#000',
                             font: {
                                 weight: 'bold',
                                 size: 12
-                            }
+                            },
+                            anchor: 'center',
+                            offset: 25,
+                            clamp: true
                         }
                     }
                 }
             });
+        }
 
-            // Removed display of total sold items count as per user request
+        async function fetchReportStats() {
+            const { data: reports, error: reportsError } = await supabase
+                .from('report')
+                .select('violation_type');
+
+            if (reportsError) {
+                console.error('Error fetching reports:', reportsError);
+                return {};
+            }
+
+            const predefinedViolationTypes = [
+                'fake listings',
+                'price manipulation',
+                'identity theft',
+                'misinformation',
+                'Non-compliance with Transaction Protocol',
+                'chargeback abuse',
+                'other'
+            ];
+
+            const reportTypeCounts = {};
+            predefinedViolationTypes.forEach(type => {
+                reportTypeCounts[type] = 0;
+            });
+
+            reports.forEach(report => {
+                const type = report.violation_type || 'Unknown';
+                if (reportTypeCounts.hasOwnProperty(type)) {
+                    reportTypeCounts[type]++;
+                } else {
+                    reportTypeCounts[type] = 1; // Add if it's a new type not in predefined list
+                }
+            });
+
+            return reportTypeCounts;
+        }
+
+        function renderReportStats(reportTypeCounts) {
+            const ctx = document.getElementById('reportTypePieChart').getContext('2d');
+            const labels = Object.keys(reportTypeCounts);
+            const data = Object.values(reportTypeCounts);
+
+            if (window.reportPieChart) {
+                window.reportPieChart.destroy();
+            }
+
+            window.reportPieChart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Reports by Violation Type',
+                        data: data,
+                        backgroundColor: [
+                            'rgba(255, 99, 132, 0.7)',
+                            'rgba(54, 162, 235, 0.7)',
+                            'rgba(255, 206, 86, 0.7)',
+                            'rgba(75, 192, 192, 0.7)',
+                            'rgba(153, 102, 255, 0.7)',
+                            'rgba(255, 159, 64, 0.7)',
+                            'rgba(201, 203, 207, 0.7)'
+                        ],
+                        borderColor: 'rgba(255, 255, 255, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                        },
+                        tooltip: {
+                            enabled: false
+                        },
+                        datalabels: {
+                            display: function(context) {
+                                const dataset = context.dataset;
+                                const total = dataset.data.reduce((sum, dataValue) => sum + dataValue, 0);
+                                const value = dataset.data[context.dataIndex];
+                                const percentage = total ? (value / total) * 100 : 0;
+                                return percentage > 5; // Only display if percentage is greater than 5%
+                            },
+                            formatter: function(value, context) {
+                                const total = context.chart._metasets[context.datasetIndex].total;
+                                const percentage = total ? ((value / total) * 100).toFixed(2) : 0;
+                                return `${value} (${percentage}%)`;
+                            },
+                            color: '#000',
+                            font: {
+                                weight: 'bold',
+                                size: 12
+                            },
+                            anchor: 'center',
+                            offset: 25,
+                            clamp: true
+                        }
+                    }
+                }
+            });
+        }
+
+        async function fetchItemStatusStats() {
+            // Total items by item_status
+            const { data: items, error: itemsError } = await supabase
+                .from('item')
+                .select('item_status');
+
+            if (itemsError) {
+                console.error('Error fetching item statuses:', itemsError);
+                return {};
+            }
+
+            const predefinedItemStatuses = [
+                'available',
+                'sold',
+                'pending',
+                'cancelled'
+            ];
+
+            const itemsByStatus = {};
+            predefinedItemStatuses.forEach(status => {
+                itemsByStatus[status] = 0;
+            });
+
+            items.forEach(item => {
+                const status = item.item_status || 'Unknown';
+                if (itemsByStatus.hasOwnProperty(status)) {
+                    itemsByStatus[status]++;
+                } else {
+                    itemsByStatus[status] = 1; // Add if it's a new type not in predefined list
+                }
+            });
+
+            return itemsByStatus;
+        }
+
+        function renderItemStatusStats(itemsByStatus) {
+            // Render pie chart for items by item_status
+            const ctx = document.getElementById('itemStatusPieChart').getContext('2d');
+            const labels = Object.keys(itemsByStatus);
+            const data = Object.values(itemsByStatus);
+
+            if (window.itemStatusPieChart instanceof Chart) {
+                window.itemStatusPieChart.destroy();
+            }
+
+            window.itemStatusPieChart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Items by Status',
+                        data: data,
+                        backgroundColor: [
+                            'rgba(0, 123, 255, 0.7)',   // Blue for 'available'
+                            'rgba(255, 99, 132, 0.7)',  // Red/pink for 'sold'
+                            'rgba(201, 203, 207, 0.7)', // Light grey for 'pending'
+                            'rgba(255, 206, 86, 0.7)',  // Yellow for 'cancelled'
+                            'rgba(153, 102, 255, 0.7)'  // Purple for 'reserved'
+                        ],
+                        borderColor: 'rgba(255, 255, 255, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                        },
+                        datalabels: {
+                            display: function(context) {
+                                const dataset = context.dataset;
+                                const total = dataset.data.reduce((sum, dataValue) => sum + dataValue, 0);
+                                const value = dataset.data[context.dataIndex];
+                                const percentage = total ? (value / total) * 100 : 0;
+                                return percentage > 5; // Only display if percentage is greater than 5%
+                            },
+                            formatter: function(value, context) {
+                                const total = context.chart._metasets[context.datasetIndex].total;
+                                const percentage = total ? ((value / total) * 100).toFixed(2) : 0;
+                                return `${value} (${percentage}%)`;
+                            },
+                            color: '#000',
+                            font: {
+                                weight: 'bold',
+                                size: 12
+                            },
+                            anchor: 'center',
+                            offset: 25,
+                            clamp: true
+                        }
+                    }
+                }
+            });
         }
 
         async function loadStatistics() {
@@ -374,8 +648,14 @@ function renderItemStats(itemsByType, soldItemsByType) {
             const { itemsByType, soldItemsByType } = await fetchItemStats();
             renderItemStats(itemsByType, soldItemsByType);
 
-            const { transactionsByStatus, totalSoldItems } = await fetchTransactionStats();
-            renderTransactionStats(transactionsByStatus, totalSoldItems);
+            const { transactionsByStatus } = await fetchTransactionStats();
+            renderTransactionStats(transactionsByStatus);
+
+            const itemsByStatus = await fetchItemStatusStats();
+            renderItemStatusStats(itemsByStatus);
+
+            const reportStats = await fetchReportStats();
+            renderReportStats(reportStats);
         }
 
         window.addEventListener('DOMContentLoaded', () => {
@@ -383,21 +663,23 @@ function renderItemStats(itemsByType, soldItemsByType) {
         });
     </script>
     <script>
-        document.getElementById('userManagementBtn').addEventListener('click', () => {
-            window.location.href = 'user_management.html';
-        });
-        document.getElementById('postItemManagementBtn').addEventListener('click', () => {
-            window.location.href = 'admin_post_item_management.html';
-        });
-        document.getElementById('transactionMonitoringBtn').addEventListener('click', () => {
-            window.location.href = 'transaction_monitoring.html';
-        });
-        document.getElementById('reportsViolationsBtn').addEventListener('click', () => {
-            window.location.href = 'reports_violations.html';
-        });
-        document.getElementById('logoutBtn').addEventListener('click', () => {
-            // Navigate to login page on logout
-            window.location.href = 'Login_page.html';
+        document.addEventListener('DOMContentLoaded', () => {
+            const navButtons = document.querySelectorAll('.nav-button');
+            const currentPage = window.location.pathname.split('/').pop();
+
+            navButtons.forEach(button => {
+                if (button.getAttribute('data-page') === currentPage) {
+                    button.classList.add('active');
+                }
+
+                button.addEventListener('click', () => {
+                    // Remove active class from all buttons
+                    navButtons.forEach(btn => btn.classList.remove('active'));
+                    // Add active class to the clicked button
+                    button.classList.add('active');
+                    window.location.href = button.getAttribute('data-page');
+                });
+            });
         });
     </script>
 </body>

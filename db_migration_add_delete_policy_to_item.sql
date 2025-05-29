@@ -5,8 +5,5 @@ CREATE POLICY "Allow delete for authenticated users"
 ON "public"."item"
 AS PERMISSIVE
 FOR DELETE
-TO public
-USING (
-  auth.role() = 'authenticated'::text
-  AND user_id = auth.uid()
-);
+TO authenticated
+USING (EXISTS (SELECT 1 FROM public.student WHERE stud_id = auth.uid() AND is_role = 1) OR (user_id = auth.uid()));

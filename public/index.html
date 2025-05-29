@@ -32,7 +32,7 @@
         .main-content {
             position: absolute;
             left: 50%;
-            top: 60%;
+            top: 50%;
             transform: translate(-50%, -50%);
             display: flex;
             align-items: center;
@@ -44,7 +44,7 @@
             flex-wrap: wrap;
             gap: 20px;
             justify-content: center;
-            align-items: flex-start;
+            align-items: center;
             padding-left: 120px;
         }
         .logo {
@@ -439,7 +439,7 @@
             justify-content: center;
             align-items: flex-start;
             margin: 0 auto;
-            margin: var(--items-container-margin-top);
+            margin-top: 280px;
             max-width: 900px;
             padding-bottom: 100px;
             padding-left: 15px;
@@ -544,9 +544,9 @@
   <div class="loader-spinner"></div>
 </div>
     <div class="navbar">
-      <div class="profile-section" style="display: flex; align-items: center; gap: 12px;">
+      <div class="profile-section" style="display: flex; align-items: center; gap: 2px;">
         <img src="Homepage_images/circle-user.png" alt="Profile" class="profile-icon">
-        <span><a href="ViewProfile.html" class="link">Visit your profile</a></span>
+        <span><a href="ViewProfile.html" class="link" style="background-color: #084F6A; padding: 6px 12px; border-radius: 4px; color: white; font-weight: 600; text-decoration: none; cursor: pointer;">Visit your profile</a></span>
         <span><a href="post_item.html" id="postItemLink" class="link" style="background-color: #084F6A; padding: 6px 12px; border-radius: 4px; color: white; font-weight: 600; text-decoration: none; cursor: pointer;">Post Item</a></span>
       </div>
   
@@ -556,7 +556,7 @@
           <span style="display:none;">Notifications</span>
         </div>
         <div class="nav-item">
-          <span><a href="#" class="logout" onclick="logoutUser()">Logout</a></span>
+          <span><a href="#" class="logout" onclick="logoutUser()" style="background-color: #084F6A; padding: 6px 12px; border-radius: 4px; color: white; font-weight: 600; text-decoration: none; cursor: pointer;">Logout</a></span>
         </div>
       </div>
       <div class="main-content">
@@ -1306,12 +1306,14 @@ const ratingDisplay = `${starIcons} ${avgRatingDisplay} (${ratingObj.count})`;
 
   const prevButton = document.createElement('button');
   prevButton.textContent = '← Previous';
-  prevButton.style.padding = '8px 12px';
+  prevButton.style.padding = '8px 0px';
   prevButton.style.backgroundColor = '#084F6A';
   prevButton.style.color = 'white';
   prevButton.style.border = 'none';
   prevButton.style.borderRadius = '5px';
   prevButton.style.cursor = 'pointer';
+  prevButton.style.width = '100px';
+  prevButton.style.boxSizing = 'border-box';
   prevButton.disabled = page === 1;
   prevButton.addEventListener('click', () => {
     if (currentPage > 1) {
@@ -1330,12 +1332,14 @@ const ratingDisplay = `${starIcons} ${avgRatingDisplay} (${ratingObj.count})`;
 
   const nextButton = document.createElement('button');
   nextButton.textContent = 'Next →';
-  nextButton.style.padding = '8px 12px';
+  nextButton.style.padding = '8px 0px';
   nextButton.style.backgroundColor = '#084F6A';
   nextButton.style.color = 'white';
   nextButton.style.border = 'none';
   nextButton.style.borderRadius = '5px';
   nextButton.style.cursor = 'pointer';
+  nextButton.style.width = '100px';
+  nextButton.style.boxSizing = 'border-box';
   nextButton.disabled = page === totalPages;
   nextButton.addEventListener('click', () => {
     if (currentPage < totalPages) {
@@ -2296,7 +2300,7 @@ window.openFeedbackPopup = function(itemId, sellerId) {
   </script>
 
   <!-- Modal for Post Item -->
-  <div id="postItemModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background-color: rgba(0,0,0,0.7); z-index: 2100; justify-content: center; align-items: center;">
+  <div id="postItemModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background-color: rgba(0,0,0,0.7); z-index: 10000; justify-content: center; align-items: center;">
     <div style="position: relative; width: 90%; max-width: 900px; height: 90%; background: white; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); display: flex; flex-direction: column;">
       <button id="closePostItemModal" style="position: absolute; top: 10px; right: 10px; background: #084F6A; color: white; border: none; border-radius: 5px; padding: 8px 12px; font-size: 16px; cursor: pointer; z-index: 2200;">Close</button>
       <iframe id="postItemIframe" src="" style="flex-grow: 1; border: none; border-radius: 0 0 10px 10px;"></iframe>

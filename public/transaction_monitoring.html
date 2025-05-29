@@ -9,32 +9,73 @@
             font-family: Arial, sans-serif;
             background-color: #F2F2F2;
             margin: 0;
-            padding: 20px;
+            padding: 0;
+            overflow-x: hidden;
+            padding-top: 100px; /* Add padding to account for fixed navbar height */
         }
         .navbar {
             background-color: #084F6A;
             padding: 10px 40px;
-            height: 80px;
+            height: 100px; /* Consistent height with other navbars */
             color: white;
             display: flex;
             align-items: center;
-            gap: 20px;
+            justify-content: center; /* Center items horizontally */
+            gap: 40px; /* Increased gap between navigation items */
+            position: fixed;
+            width: 100%;
+            top: 0;
+            left: 0;
+            z-index: 9999;
+            box-sizing: border-box; /* Include padding in width calculation */
         }
-        .navbar h1 {
-            margin: 0;
-            font-size: 1.5rem;
+        .navbar a {
+            color: white;
+            text-decoration: none;
+            font-size: 1.1rem;
+            font-weight: bold;
+            white-space: nowrap; /* Prevent text wrapping */
         }
-        #backToAdminBtn {
-            margin-left: auto;
-            padding: 8px 16px;
+        .navbar a:hover {
+            text-decoration: underline;
+        }
+        .navbar a.active-nav-link {
+            text-decoration: none; /* Remove underline on hover for active link */
+            border-bottom: 2px solid white; /* Add a bottom border as an indicator */
+            padding-bottom: 5px; /* Add some padding for the border */
+        }
+        .back-to-admin-btn {
             background-color: #084F6A;
             color: white;
-            border: none;
+            border: 1px solid #084F6A;
+            padding: 10px 15px;
             border-radius: 5px;
             cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+            margin-right: auto; /* Push this button to the far left */
+        }
+        .back-to-admin-btn:hover {
+            background-color: #063a4d;
+            border-color: #063a4d;
+        }
+        #logoutBtn {
+            margin-left: auto; /* Push button to the right */
+            padding: 10px 20px;
+            background-color: #E74C3C; /* Red color for logout */
+            color: white;
+            border: none;
+            border-radius: 25px; /* More rounded corners */
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+        }
+        #logoutBtn:hover {
+            background-color: #C0392B; /* Darker red on hover */
         }
         .content {
-            margin-top: 20px;
+            margin-top: 20px; /* Adjust content margin to account for fixed navbar height */
             background: white;
             padding: 20px;
             border-radius: 8px;
@@ -74,8 +115,12 @@
 </head>
 <body>
     <div class="navbar">
-        <h1>Transaction Monitoring</h1>
-        <button id="backToAdminBtn">Back to Admin</button>
+        <button id="backToAdminBtn" class="back-to-admin-btn">Back to Admin</button>
+        <a href="user_management.html">User Management</a>
+        <a href="admin_post_item_management.html">Post & Item Management</a>
+        <a href="transaction_monitoring.html">Transaction Monitoring</a>
+        <a href="reports_violations.html">Reports & Violations Center</a>
+        <button id="logoutBtn">Log Out</button>
     </div>
     <div class="content">
         <input type="text" id="searchBar" placeholder="Search by Transaction ID, Buyer, Seller, or Product Name" />
@@ -106,11 +151,29 @@
 
         const transactionsTableBody = document.querySelector('#transactionsTable tbody');
         const searchBar = document.getElementById('searchBar');
-        const backToAdminBtn = document.getElementById('backToAdminBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
 
-        backToAdminBtn.addEventListener('click', () => {
+        logoutBtn.addEventListener('click', () => {
+            // Implement logout functionality here
+            // For now, redirect to login page
+            window.location.href = 'Login_page.html';
+        });
+
+                backToAdminBtn.addEventListener('click', () => {
             window.location.href = 'admin.html';
         });
+
+        function setActiveNavLink() {
+            const currentPath = window.location.pathname.split('/').pop();
+            const navLinks = document.querySelectorAll('.navbar a');
+            navLinks.forEach(link => {
+                if (link.getAttribute('href') === currentPath) {
+                    link.classList.add('active-nav-link');
+                } else {
+                    link.classList.remove('active-nav-link');
+                }
+            });
+        }
 
         let transactions = [];
 
@@ -192,7 +255,10 @@ tr.innerHTML = `
         });
 
         // Initial fetch
-        fetchTransactions();
+        window.addEventListener('DOMContentLoaded', () => {
+            fetchTransactions();
+            setActiveNavLink();
+        });
     </script>
 </body>
 </html>
