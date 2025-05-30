@@ -17,6 +17,7 @@
         html {
             overflow-x: hidden; /* Hide horizontal scrollbar */
             overflow-y: auto; /* Enable vertical scrollbar */
+            font-size: 16px; /* Base font size for rem units */
         }
         .navbar {
             background-color: #084F6A;
@@ -139,12 +140,86 @@
 
         /* Sidebar Styles for Search Filter (as per user's reference) */
         .search-filter-sidebar {
-            background-color: #fff; /* White background for card effect */
+            background-color: #fff;
             padding: 20px;
             border-radius: 8px;
-            width: 250px;
-            margin-top: 20px;
+            width: 280px; /* Fixed width for larger screens */
+            flex-shrink: 0; /* Prevent shrinking */
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
+
+        @media screen and (max-width: 1400px) {
+            .search-filter-sidebar {
+                width: 250px; /* Slightly smaller width */
+            }
+
+            .main-content:not(.navbar .main-content) {
+                 max-width: calc(100% - 250px - 15px); /* Adjust max-width */
+            }
+        }
+
+        @media screen and (max-width: 1024px) {
+             .search-filter-sidebar {
+                width: 220px; /* Further reduced width */
+             }
+             .main-content:not(.navbar .main-content) {
+                 max-width: calc(100% - 220px - 15px); /* Adjust max-width */
+             }
+        }
+
+        @media screen and (max-width: 768px) {
+            .content-container {
+                flex-direction: column; /* Stack on smaller screens */
+                align-items: center; /* Center items when stacked */
+                padding: 10px;
+                gap: 10px;
+                margin-top: 100px; /* Adjust margin for navbar */
+            }
+
+            .search-filter-sidebar {
+                width: 95%; /* Full width or near full width */
+                max-width: 400px; /* Max width when stacked */
+                margin-bottom: 20px; /* Space below sidebar */
+                position: relative; /* Remove sticky */
+                top: auto;
+                max-height: none;
+                overflow-y: visible;
+            }
+
+            .main-content:not(.navbar .main-content) {
+                width: 100%; /* Allow main content to take full width */
+                max-width: 100%;
+                margin: 0 auto; /* Center main content container */
+                padding: 0 10px; /* Add some padding */
+            }
+
+            #items-container {
+               justify-content: center; /* Ensure items are centered within the now full-width container */
+               gap: 15px; /* Adjust gap */
+               padding-bottom: 80px;
+            }
+        }
+
+        @media screen and (max-width: 480px) {
+            .content-container {
+                 padding: 5px;
+                 gap: 5px;
+                 margin-top: 90px;
+            }
+            .search-filter-sidebar {
+                width: 98%;
+                padding: 10px;
+                margin-bottom: 15px;
+            }
+            .main-content:not(.navbar .main-content) {
+                padding: 0 5px;
+            }
+            #items-container {
+                gap: 10px;
+                padding-bottom: 60px;
+            }
+        }
+
         .search-filter-sidebar h2 {
             text-align: center;
             font-size: 1.25rem;
@@ -214,47 +289,108 @@
             background-color: #fff;
         }
 
-        /* Content container holding sidebar and main content area (from user's reference) */
+        /* Content container holding sidebar and main content area */
         .content-container {
             display: flex;
             gap: 20px;
             padding: 20px;
-            margin-top: 120px; /* Add margin for fixed navbar */
+            margin-top: 120px;
+            max-width: 1400px;
+            margin-left: auto;
+            margin-right: auto;
+            align-items: flex-start; /* Align items to the top */
         }
 
-        /* Main content area beside the sidebar (as per user's reference comments) */
-        .main-content:not(.navbar .main-content) { /* Target .main-content not in the navbar */
+        /* Main content area beside the sidebar */
+        .main-content:not(.navbar .main-content) {
             flex-grow: 1;
-            /* Remove all flex, grid, or centering styles from here */
-            display: block; /* Override previous flex/grid if necessary */
-            flex-wrap: initial; /* Reset flex-wrap */
-            gap: initial; /* Reset gap */
-            justify-content: initial; /* Reset justify-content */
-            align-items: initial; /* Reset align-items */
-            padding-left: initial; /* Reset padding-left */
+            display: block;
+            max-width: calc(1400px - 280px - 20px); /* Calculate max-width based on container and sidebar */
+            margin: 0; /* Remove auto margin from here */
+        }
+
+        /* Item container (grid of item cards) */
+        #items-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            align-items: flex-start;
+            margin: 0 auto; /* Center item cards within the main content area */
+            max-width: 100%; /* Ensure it fits within its parent */
+            padding: 0;
+            padding-bottom: 100px;
         }
 
         .item-card {
             background: #fff;
-            padding: 10px; /* Adjusted padding */
+            padding: 10px;
             border: 1px solid #ccc;
             border-radius: 8px;
             width: 220px;
             cursor: pointer;
-            display: flex; /* Use flexbox for internal layout */
-            flex-direction: column; /* Stack items vertically */
-            overflow: hidden; /* Hide anything outside the card */
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             position: relative;
-            font-size: 0.9rem; /* Adjusted font size */
+            font-size: 0.9rem;
         }
 
         .item-card img {
             width: 100%;
-            height: 150px; /* Adjusted image height */
+            height: 150px;
             object-fit: cover;
             border-radius: 4px;
             margin-bottom: 8px;
+        }
+
+        /* Responsive Media Queries */
+        @media screen and (max-width: 1200px) {
+            #items-container {
+                max-width: 1000px;
+                gap: 15px;
+            }
+        }
+
+        @media screen and (max-width: 992px) {
+            #items-container {
+                max-width: 800px;
+                margin-top: 200px;
+            }
+        }
+
+        @media screen and (max-width: 768px) {
+            #items-container {
+                max-width: 600px;
+                margin-top: 180px;
+                gap: 12px;
+            }
+
+            .item-card {
+                width: 180px;
+            }
+
+            .item-card img {
+                height: 130px;
+            }
+        }
+
+        @media screen and (max-width: 576px) {
+            #items-container {
+                max-width: 100%;
+                margin-top: 150px;
+                gap: 10px;
+                padding: 0 10px;
+            }
+
+            .item-card {
+                width: 150px;
+            }
+
+            .item-card img {
+                height: 120px;
+            }
         }
 
         .item-card h3 {
@@ -535,6 +671,160 @@
   justify-content: center;
   align-items: center;
   z-index: 9999;
+}
+
+/* Responsive Media Queries */
+@media screen and (max-width: 1200px) {
+  .content-container {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .search-filter-sidebar {
+    width: 90%;
+    max-width: 600px;
+    margin-bottom: 20px;
+  }
+  
+  #items-container {
+    margin-top: 20px;
+    padding-left: 0;
+  }
+}
+
+@media screen and (max-width: 992px) {
+  .navbar {
+    padding: 10px;
+    height: auto;
+    min-height: 70px;
+  }
+  
+  .main-content {
+    width: 95%;
+    padding-left: 0;
+    gap: 10px;
+  }
+  
+  .logo {
+    height: 35px;
+  }
+  
+  .search-bar {
+    min-width: 150px;
+  }
+  
+  .profile-section {
+    left: 10px;
+    top: 10px;
+  }
+  
+  .notifications-container {
+    right: 10px;
+  }
+  
+  #items-container {
+    margin-top: 200px;
+    gap: 15px;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .navbar {
+    padding: 8px;
+    min-height: 60px;
+  }
+  
+  .profile-section {
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+  
+  .profile-section span a {
+    padding: 4px 8px;
+    font-size: 0.9rem;
+  }
+  
+  .main-content {
+    flex-direction: column;
+    gap: 10px;
+    padding-top: 40px;
+  }
+  
+  .logo {
+    height: 30px;
+    margin-bottom: 5px;
+  }
+  
+  .search-bar {
+    width: 100%;
+  }
+  
+  .topbar-action-icons {
+    margin-top: 10px;
+    margin-left: 0;
+  }
+  
+  .topbar-action-icons button {
+    width: 40px !important;
+    height: 40px !important;
+  }
+  
+  .item-card {
+    width: 45%;
+    min-width: 150px;
+  }
+  
+  #items-container {
+    margin-top: 180px;
+    gap: 10px;
+  }
+  
+  .content-container {
+    margin-top: 150px;
+  }
+}
+
+@media screen and (max-width: 576px) {
+  .navbar {
+    min-height: 50px;
+  }
+  
+  .profile-section, .notifications-container {
+    position: relative;
+    left: 0;
+    right: 0;
+    top: 0;
+    justify-content: center;
+    margin-bottom: 5px;
+  }
+  
+  .main-content {
+    position: relative;
+    transform: none;
+    left: 0;
+    top: 0;
+    width: 100%;
+    padding: 10px;
+  }
+  
+  .item-card {
+    width: 100%;
+  }
+  
+  #items-container {
+    margin-top: 150px;
+  }
+  
+  .search-filter-sidebar {
+    width: 100%;
+  }
+  
+  #conversationPanel,
+  #notificationPanel,
+  #transactionPanel {
+    width: 100% !important;
+    right: -100% !important;
+  }
 }
     </style>
 

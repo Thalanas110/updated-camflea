@@ -412,6 +412,7 @@ function startCountdownForCancelButton(itemCard, itemId) {
     const timestampKey = `cancelTimer_seller_${itemId}`;
     const storedTimestamp = localStorage.getItem(timestampKey);
     const addedTimestamp = storedTimestamp ? parseInt(storedTimestamp, 10) : Date.now(); // Use stored or current
+    console.log(`[ViewProfile.html] startCountdownForCancelButton for itemId ${itemId}: storedTimestamp=${storedTimestamp}, addedTimestamp=${addedTimestamp}`);
     
     const cancelButton = itemCard.querySelector(`button[data-item-id="${itemId}"]`);
     const countdownTimerSpan = itemCard.querySelector('.countdown-timer');
