@@ -212,6 +212,34 @@
         .carousel-arrow.right {
             right: 8px;
         }
+        .modal-arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(8,79,106,0.7); /* Dark blue, semi-transparent, matching carousel-arrow */
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            width: 48px; /* Slightly larger for better touch target */
+            height: 48px;
+            font-size: 2rem; /* Larger arrow */
+            cursor: pointer;
+            z-index: 10001; /* Above zoomedImage and close button */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.18s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        .modal-arrow:hover {
+            background: #17607d; /* Matching carousel-arrow hover */
+        }
+        .modal-arrow.left {
+            left: 80px; /* Position from left edge, closer to image */
+        }
+        .modal-arrow.right {
+            right: 80px; /* Position from right edge, closer to image */
+        }
         .zoomed-overlay {
             position: fixed;
             top: 0;
@@ -1305,38 +1333,17 @@ zoomedImage.style.borderRadius = '10px';
 zoomedImage.style.cursor = 'zoom-in';
 zoomedImage.style.transition = 'transform 0.3s ease';
 
-const navContainer = document.createElement('div');
-navContainer.style.marginTop = '10px';
-navContainer.style.display = 'flex';
-navContainer.style.justifyContent = 'center';
-navContainer.style.gap = '20px';
-
 const prevButton = document.createElement('button');
-prevButton.textContent = 'Previous';
-prevButton.style.padding = '8px 16px';
-prevButton.style.fontSize = '1rem';
-prevButton.style.cursor = 'pointer';
+prevButton.innerHTML = '&#8592;'; // Left arrow
+prevButton.className = 'modal-arrow left';
 
 const nextButton = document.createElement('button');
-nextButton.textContent = 'Next';
-nextButton.style.padding = '8px 16px';
-nextButton.style.fontSize = '1rem';
-nextButton.style.cursor = 'pointer';
+nextButton.innerHTML = '&#8594;'; // Right arrow
+nextButton.className = 'modal-arrow right';
 
-const closeButton = document.createElement('button');
-closeButton.textContent = 'Close';
-closeButton.style.position = 'absolute';
-closeButton.style.top = '20px';
-closeButton.style.right = '20px';
-closeButton.style.padding = '8px 16px';
-closeButton.style.fontSize = '1rem';
-closeButton.style.cursor = 'pointer';
-
-navContainer.appendChild(prevButton);
-navContainer.appendChild(nextButton);
-zoomModal.appendChild(closeButton);
 zoomModal.appendChild(zoomedImage);
-zoomModal.appendChild(navContainer);
+zoomModal.appendChild(prevButton); // Append directly to modal
+zoomModal.appendChild(nextButton); // Append directly to modal
 document.body.appendChild(zoomModal);
 
 function updateZoomedImage() {
@@ -1371,8 +1378,8 @@ function openZoomModal(index, images) {
         prevButton.style.display = 'none';
         nextButton.style.display = 'none';
     } else {
-        prevButton.style.display = 'inline-block';
-        nextButton.style.display = 'inline-block';
+        prevButton.style.display = 'flex';
+        nextButton.style.display = 'flex';
     }
 }
 
@@ -1393,19 +1400,14 @@ function zoomToggle(e) {
         zoomLevel += zoomStep;
         zoomedImage.style.transform = `scale(${zoomLevel})`;
         zoomedImage.style.cursor = 'zoom-out';
-        // Hide close button when zoomed in
-        closeButton.style.display = 'none';
     } else {
         zoomLevel = 1;
         zoomedImage.style.transform = 'scale(1)';
         zoomedImage.style.cursor = 'zoom-in';
-        // Show close button when zoom level is 1
-        closeButton.style.display = 'inline-block';
     }
 }
 
 zoomedImage.addEventListener('click', zoomToggle);
-closeButton.addEventListener('click', closeZoomModal);
 zoomModal.addEventListener('click', (e) => {
     if (e.target === zoomModal) {
         closeZoomModal();

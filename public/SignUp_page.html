@@ -243,7 +243,7 @@
                             type="text"
                             id="studentID"
                             required
-                            pattern="202[1-5]\d{5}"
+                            pattern="\d{9}"
                         />
                     </div>
                     <div style="flex: 1.7; margin-left: 25px;">
@@ -334,7 +334,7 @@
         }
 
         function isValidEmail(email) {
-            const pattern = /^(202[1-5]\d{5})@(gordoncollege|columbancollege)\.edu\.ph$/;
+            const pattern = /^\d{9}@(gordoncollege|columbancollege)\.edu\.ph$/;
             return pattern.test(email);
         }
 

@@ -25,7 +25,7 @@
             display: inline-block;
             background: #084F6A;
             color: white;
-            border-radius: 4px;
+            border-radius: 0;
             padding: 6px 12px;
             outline: none;
             white-space: nowrap;
@@ -43,8 +43,7 @@
             background-color: #042a3a;
         }
         #messagePhotos:focus::before {
-            outline: 1px solid #063d52;
-            outline-offset: 2px;
+            outline: none;
         }
         #messagePhotos {
             position: relative;
@@ -52,6 +51,18 @@
             height: 36px;
             cursor: pointer;
             color: transparent;
+            border: none;
+            background: transparent;
+            box-shadow: none;
+            border-radius: 0;
+        }
+
+        /* Aggressive reset for default file input styling */
+        input[type="file"] {
+            background-color: transparent;
+            border: none;
+            box-shadow: none;
+            border-radius: 0;
         }
 
         .message {
@@ -174,7 +185,7 @@
         <!-- Message Input Section -->
         <form id="messageForm" class="flex flex-col space-y-4">
             <textarea id="messageContent" class="w-full p-2 border border-gray-300 rounded-lg" rows="3" placeholder="Type your message..."></textarea>
-            <input id="messagePhotos" type="file" class="p-2 border border-gray-300 rounded-lg" multiple accept="image/*">
+            <input id="messagePhotos" type="file" class="" multiple accept="image/*">
             <div id="fileCountDisplay" class="text-gray-600 mt-1"></div>
             <div id="photoPreviewContainer" class="flex flex-wrap gap-2 mt-2"></div>
             <button type="submit" class="bg-[#084F6A] text-white px-4 py-2 rounded-lg shadow-md hover:bg-[#063d52]">
@@ -1006,26 +1017,21 @@ function appendMessageToUI(message, loggedInStudId) {
         });
     }
 
-    // Check mark icons for read/unread status with color adjustment
-    // Use CSS classes instead of inline styles for better control
-    // Use distinct symbols for debugging color issue
-    const checkMarkLight = '<span class="checkmark-unread">✗</span>'; // light gray cross mark for unread
-    const checkMarkDark = '<span class="checkmark-read">✔️</span>'; // dark blue check mark for read
-
     // Determine if the message is sent by the logged-in user
     const isSender = message.sender_id === loggedInStudId;
 
-    // Debug log for is_read value
-    console.log(`Message ID: ${message.mess_id}, is_read: ${message.is_read}, type: ${typeof message.is_read}`);
-
-    // For messages sent by the logged-in user, check if the receiver has read it (is_read true)
-    // Simplify to boolean check since is_read is boolean in DB
-    const rawIsRead = message.is_read;
-    const isReadBool = rawIsRead === true;
-    console.log(`Message ID: ${message.mess_id}, raw is_read: ${rawIsRead}, coerced isReadBool: ${isReadBool}`);
-    const checkMarkIcon = isSender
-        ? (isReadBool ? checkMarkDark : checkMarkLight)
-        : '';
+    // Determine the status text based on message status
+    let statusText = '';
+    if (isSender) {
+        // If the message was sent by the logged-in user
+        if (message.is_read) {
+            statusText = 'Received'; // Message has been seen by the recipient
+        } else {
+            statusText = 'Sent'; // Message has been sent but not yet seen
+        }
+    }
+    // For received messages (isSender is false), no status text is typically displayed for the sender's view.
+    // If a status for received messages is needed, it would be handled here.
 
     // Handle multiple images separated by commas
     let imagesHtml = '';
@@ -1039,7 +1045,7 @@ function appendMessageToUI(message, loggedInStudId) {
         ${imagesHtml}
         <div style="font-size: 0.75rem; color: #999; margin-top: 4px; display: flex; justify-content: space-between; align-items: center;">
             <span>${messageTime}</span>
-            <span class="checkmark" style="margin-left: 8px;">${checkMarkIcon}</span>
+            <span style="margin-left: 8px;">${statusText}</span>
         </div>
     `;
     messageContainer.appendChild(messageDiv);

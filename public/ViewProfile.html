@@ -242,6 +242,13 @@
             margin-right: 4px;
             color: #084F6A; /* Adjusted color based on visual */
         }
+        .countdown-timer {
+            font-size: 0.75rem;
+            color: #888;
+            margin-left: 5px;
+            display: block;
+            text-align: right;
+        }
     </style>
 <script>
  // Save bio to localStorage (simulating database) function saveBioToDatabase(bioText) { localStorage.setItem('userBio', bioText); }
@@ -399,24 +406,72 @@ window.addEventListener('load', async function () {
     const diffInMonths = Math.floor(diffInDays / 30);
     return `${diffInMonths} month${diffInMonths === 1 ? '' : 's'} ago`;
 }
+
+// Function to start countdown for the cancel button
+function startCountdownForCancelButton(itemCard, itemId) {
+    const timestampKey = `cancelTimer_seller_${itemId}`;
+    const storedTimestamp = localStorage.getItem(timestampKey);
+    const addedTimestamp = storedTimestamp ? parseInt(storedTimestamp, 10) : Date.now(); // Use stored or current
+    
+    const cancelButton = itemCard.querySelector(`button[data-item-id="${itemId}"]`);
+    const countdownTimerSpan = itemCard.querySelector('.countdown-timer');
+
+    if (!cancelButton || !countdownTimerSpan) {
+        console.error('Cancel button or countdown span not found for item:', itemId);
+        return;
+    }
+
+    const countdownDuration = 120 * 1000; // 15 seconds in milliseconds
+
+    const updateCountdown = () => {
+        const currentTime = Date.now();
+        const elapsedTime = currentTime - addedTimestamp;
+        const remainingTime = countdownDuration - elapsedTime;
+
+        if (remainingTime <= 0) {
+            countdownTimerSpan.textContent = '0s';
+            cancelButton.disabled = true;
+            cancelButton.style.backgroundColor = '#ccc';
+            cancelButton.style.cursor = 'not-allowed';
+            clearInterval(itemCard.countdownInterval);
+        } else {
+            const seconds = Math.ceil(remainingTime / 1000);
+            countdownTimerSpan.textContent = `${seconds}s`;
+        }
+    };
+
+    // Initial call to display countdown immediately
+    updateCountdown();
+
+    // Clear any existing interval for this item to prevent duplicates
+    if (itemCard.countdownInterval) {
+        clearInterval(itemCard.countdownInterval);
+    }
+
+    // Update countdown every second
+    itemCard.countdownInterval = setInterval(updateCountdown, 1000);
+}
 </script>
 </head> 
-<nav class="bg-[#084F6A] flex justify-between items-center" style="padding: 4px 40px; align-items: flex-start; height: 120px;"> 
-    <div class="flex items-center space-x-6" style="align-self: flex-start;">
-        <a id="navHome" class="text-white pointer-events-none opacity-50" href="index.html" style="background-color: #084F6A; padding: 6px 12px; border-radius: 4px; color: white; font-weight: 600; text-decoration: none; cursor: pointer;">Home</a>
+<nav class="bg-[#084F6A] flex flex-col sm:flex-row justify-between items-center py-2 px-4 sm:px-10"> 
+    <div class="flex items-center space-x-6 mb-2 sm:mb-0">
+        <a id="navHome" class="text-white pointer-events-none opacity-50 px-3 py-1 rounded-md font-semibold hover:bg-[#063e53]" href="index.html">Home</a>
     </div> 
-    <img alt="Logo" class="h-16 w-35" src="Homepage_images/LOGO_WHITE.png" style="margin-top: 8px;"/> <div class="flex items-center space-x-6" style="align-self: flex-start;"> 
-        <a class="text-white" href="Login_page.html" style="background-color: #084F6A; padding: 6px 12px; border-radius: 4px; color: white; font-weight: 600; text-decoration: none; cursor: pointer;">Logout</a> </div> </nav>
+    <img alt="Logo" class="h-16 w-35 my-2 sm:my-0" src="Homepage_images/LOGO_WHITE.png"/> 
+    <div class="flex items-center space-x-6"> 
+        <a class="text-white px-3 py-1 rounded-md font-semibold hover:bg-[#063e53]" href="Login_page.html">Logout</a> 
+    </div> 
+</nav>
 <!-- Profile Section -->
-<div class="max-w-6xl mx-auto p-6 flex">
+<div class="max-w-6xl mx-auto p-6 flex flex-col lg:flex-row lg:space-x-6">
 
     
-    <div class="bg-[#084F6A] p-3 rounded-lg shadow-lg flex items-center w-1/3 h-48 relative text-white">
-        <label for="profilePictureInput" class="cursor-pointer">
+    <div class="bg-[#084F6A] p-3 rounded-lg shadow-lg flex flex-col sm:flex-row items-center w-full lg:w-1/3 h-auto sm:h-48 relative text-white mb-6 lg:mb-0">
+        <label for="profilePictureInput" class="cursor-pointer flex-shrink-0 mb-4 sm:mb-0 sm:mr-4">
             <img
                 id="profilePicture"
                 alt="Profile Picture"
-                class="h-24 w-24 rounded-full mr-4 ml-8"
+                class="h-24 w-24 rounded-full mx-auto sm:ml-8"
                 src="Homepage_images/circle-user.png"
             />
         </label>
@@ -427,7 +482,7 @@ window.addEventListener('load', async function () {
             class="hidden"
             onchange="uploadProfilePicture(event)"
         />
-        <div class="ml-0 mt-2">
+        <div class="text-center sm:text-left mt-2 sm:mt-0">
             <h2 id="userName" class="text-xl font-semibold">User Name</h2>
             <p id="userSchool" style="display: flex; align-items: center; gap: 6px;">School Name</p>
             <!-- Removed duplicate logo appending script to avoid size conflicts -->
@@ -438,7 +493,7 @@ window.addEventListener('load', async function () {
         </div>
         <a class="text-white text-sm absolute bottom-4 right-2" href="Reset_password.html">Reset password</a>
     </div>
-    <div class="flex-1 ml-6">
+    <div class="flex-1 mt-6 lg:mt-0 lg:ml-6">
         <!-- Bio Section -->
         <div class="p-6 rounded-lg shadow-lg bio-outer-container">
             <div class="bio-container">
@@ -729,14 +784,23 @@ async function fetchUserPostedItems() {
 
             const itemCard = document.createElement('div');
             itemCard.className = 'item-card';
+            itemCard.dataset.itemId = item.item_id; // Add item ID to the card
+            // Store the timestamp in localStorage when the item is added to the DOM
+            const timestampKey = `cancelTimer_seller_${item.item_id}`;
+            let addedTimestamp = localStorage.getItem(timestampKey);
+            if (!addedTimestamp) {
+                addedTimestamp = Date.now().toString();
+                localStorage.setItem(timestampKey, addedTimestamp);
+            }
+            itemCard.dataset.addedTimestamp = addedTimestamp;
 
             // Determine button state based on transaction status
             const transactionStatus = itemIdToTransactionStatus[item.item_id];
             let markAsSentButtonHTML = '';
             if (transactionStatus === 'sent' || transactionStatus === 'completed') {
-                markAsSentButtonHTML = `<button class="bg-gray-500 text-white py-1 px-4 rounded cursor-not-allowed" disabled>Marked as Sent</button>`;
+                markAsSentButtonHTML = `<button class="bg-gray-500 text-white py-1 px-4 rounded cursor-not-allowed" disabled>Marked as Sold</button>`;
             } else {
-                markAsSentButtonHTML = `<button class="bg-green-600 text-white py-1 px-4 rounded" onclick="event.stopPropagation(); markAsSent('${item.item_id}')">Mark as Sent</button>`;
+                markAsSentButtonHTML = `<button class="bg-green-600 text-white py-1 px-4 rounded" onclick="event.stopPropagation(); markAsSent('${item.item_id}')">Mark as Sold</button>`;
             }
 
             itemCard.innerHTML = `
@@ -758,8 +822,9 @@ async function fetchUserPostedItems() {
                 <div style="margin-top: 8px;">
                     <div style="display: flex; gap: 8px;">
                         ${markAsSentButtonHTML}
-                        <button class="bg-yellow-500 text-white py-1 px-4 rounded" onclick="event.stopPropagation(); cancelTransaction('${item.item_id}')">Cancel</button>
+                        <button class="bg-yellow-500 text-white py-1 px-4 rounded" data-item-id="${item.item_id}" onclick="event.stopPropagation(); cancelTransaction('${item.item_id}')">Cancel</button>
                     </div>
+                    <span class="countdown-timer"></span>
                     <div style="margin-top: 8px; color: #555; font-size: 15px;">waiting for the buyer's confirmation</div>
                 </div>
             `;
@@ -790,6 +855,7 @@ async function fetchUserPostedItems() {
             });
 
             sellingContainer.appendChild(itemCard);
+            startCountdownForCancelButton(itemCard, item.item_id); // Start countdown for this item
         });
     }
 
@@ -1001,14 +1067,35 @@ async function fetchUserPostedItems() {
     window.fetchUserPostedItems = fetchUserPostedItems;
     window.editItem = editItem;
 
-    window.cancelTransaction = async function cancelTransaction(itemId) {
+window.cancelItemIdToConfirm = null; // Global variable to store the item ID for cancellation
+
+window.cancelTransaction = async function cancelTransaction(itemId) {
+    window.cancelItemIdToConfirm = itemId; // Store the item ID
+    const cancelReasonModal = document.getElementById('cancelReasonModal');
+    if (cancelReasonModal) {
+        cancelReasonModal.style.display = 'flex'; // Show the modal
+    }
+}
+
+// Event listener for the "Confirm" button in the cancellation reason modal
+document.getElementById('confirmCancelReasonBtn').addEventListener('click', async () => {
+    const itemId = window.cancelItemIdToConfirm;
+    const cancellationReason = document.getElementById('cancellationReason').value.trim();
+
     if (!itemId) return;
+
+    if (!cancellationReason) {
+        alert('Please provide a reason for cancellation.');
+        return;
+    }
+
     const studId = localStorage.getItem('stud_id');
     if (!studId) {
         alert('User not logged in. Redirecting to login page.');
         window.location.href = 'Login_page.html';
         return;
     }
+
     try {
         // Find the buyer_id for the item with status 'requested'
         const { data: transactions, error: fetchTransError } = await supabase
@@ -1044,8 +1131,8 @@ async function fetchUserPostedItems() {
 
         const itemName = itemData ? itemData.item_name : 'your item';
 
-        // Insert notification to buyer that seller cancelled
-        const notificationContent = `I am no longer interested on selling ${itemName}`;
+        // Insert notification to buyer that seller cancelled with reason
+        const notificationContent = `I am cancelling my transaction for ${itemName}. Reason: ${cancellationReason}`;
         // Get current authenticated user UUID
         const { data: { user }, error: userError } = await supabase.auth.getUser();
         if (userError || !user) {
@@ -1086,6 +1173,81 @@ async function fetchUserPostedItems() {
             console.error('Error inserting notification:', notifError);
         }
 
+        // --- Start: Add message sending logic ---
+        let currentConversationId = null;
+        let user1_id = parseInt(studId, 10);
+        let user2_id = parseInt(buyerId, 10);
+
+        if (user1_id > user2_id) {
+            [user1_id, user2_id] = [user2_id, user1_id];
+        }
+
+        const { data: existingConversations, error: existingError } = await supabase
+            .from('conversation')
+            .select('conversation_id')
+            .or(`and(user1_id.eq.${user1_id},user2_id.eq.${user2_id})`)
+            .limit(1);
+
+        if (existingError) {
+            console.error('Error checking existing conversation:', existingError);
+            // Do not alert, as notification might still be sent.
+        } else if (existingConversations && existingConversations.length > 0) {
+            currentConversationId = existingConversations[0].conversation_id;
+        } else {
+            // Create new conversation if it doesn't exist
+            const { data: newConversation, error: createError } = await supabase
+                .from('conversation')
+                .insert([{ user1_id, user2_id, user1_uuid: userUuid, user2_uuid: buyerUuid }])
+                .select()
+                .single();
+
+            if (createError) {
+                console.error('Error creating conversation:', createError);
+            } else {
+                currentConversationId = newConversation.conversation_id;
+            }
+        }
+
+        if (currentConversationId) {
+            const { data: newMessage, error: messageError } = await supabase
+                .from('message')
+                .insert({
+                    sender_id: studId,
+                    receiver_id: buyerId,
+                    sender_uid: userUuid,
+                    receiver_uid: buyerUuid,
+                    mess_content: notificationContent,
+                    conversation_id: currentConversationId,
+                })
+                .select()
+                .single();
+
+            if (messageError) {
+                console.error('Error inserting message:', messageError);
+                showBanner('Failed to send cancellation message: ' + messageError.message, 'error');
+            } else {
+                console.log('Cancellation message sent successfully:', newMessage);
+                // Update conversation table's last_message_id and updated_at fields
+                const { error: updateConvError } = await supabase
+                    .from('conversation')
+                    .update({
+                        last_message_id: newMessage.mess_id,
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('conversation_id', currentConversationId);
+
+                if (updateConvError) {
+                    console.error('Error updating conversation last_message_id:', updateConvError);
+                    // This error is less critical, no need to show banner to user
+                }
+                showBanner('Cancellation message sent successfully!', 'success');
+            }
+        } else {
+            console.warn('Could not determine conversation ID, message not sent.');
+            showBanner('Could not send cancellation message (conversation not found).', 'error');
+        }
+        // --- End: Add message sending logic ---
+
         // Update the transactions table to set status to 'cancelled' for this item and buyer
         const { error: transError } = await supabase
             .from('transactions')
@@ -1095,7 +1257,7 @@ async function fetchUserPostedItems() {
 
         if (transError) {
             console.error('Error updating transaction status:', transError);
-            alert('Failed to cancel transaction: ' + transError.message);
+            showBanner('Failed to cancel transaction: ' + transError.message, 'error');
             return;
         }
 
@@ -1107,17 +1269,40 @@ async function fetchUserPostedItems() {
 
         if (itemError) {
             console.error('Error updating item status:', itemError);
-            alert('Failed to update item status: ' + itemError.message);
+            showBanner('Failed to update item status: ' + itemError.message, 'error');
             return;
         }
 
-        alert('Transaction cancelled successfully.');
+        showBanner('Transaction cancelled successfully.', 'success');
+        // Clear the timestamp from localStorage for the cancelled transaction
+        localStorage.removeItem(`cancelTimer_seller_${itemId}`);
         await debouncedFetchUserPostedItems(); // Refresh the items list using debounced function
     } catch (err) {
         console.error('Unexpected error cancelling transaction:', err);
-        alert('Failed to cancel transaction due to unexpected error.');
+        showBanner('Failed to cancel transaction due to unexpected error.', 'error');
+    } finally {
+        // Close the modal and clear the reason field
+        document.getElementById('cancellationReason').value = '';
+        document.getElementById('cancelReasonModal').style.display = 'none';
+        window.cancelItemIdToConfirm = null;
     }
-}
+});
+
+// Event listener for the "Cancel" button in the cancellation reason modal
+document.getElementById('closeCancelReasonModalBtn').addEventListener('click', () => {
+    document.getElementById('cancellationReason').value = '';
+    document.getElementById('cancelReasonModal').style.display = 'none';
+    window.cancelItemIdToConfirm = null;
+});
+
+// Close modal if user clicks outside the modal content
+document.getElementById('cancelReasonModal').addEventListener('click', (event) => {
+    if (event.target === document.getElementById('cancelReasonModal')) {
+        document.getElementById('cancellationReason').value = '';
+        document.getElementById('cancelReasonModal').style.display = 'none';
+        window.cancelItemIdToConfirm = null;
+    }
+});
 
 window.markAsSent = async function markAsSent(itemId) {
     if (!itemId) return;
@@ -1480,10 +1665,10 @@ window.markAsSent = async function markAsSent(itemId) {
     renderFeedback();
 </script>
   <!-- Modal for Edit Item -->
-  <div id="editItemModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background-color: rgba(0,0,0,0.7); z-index: 2100; justify-content: center; align-items: center;">
-    <div style="position: relative; width: 90%; max-width: 900px; height: 90%; background: white; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); display: flex; flex-direction: column;">
-      <button id="closeEditItemModal" style="position: absolute; top: 10px; right: 10px; background: #084F6A; color: white; border: none; border-radius: 5px; padding: 8px 12px; font-size: 16px; cursor: pointer; z-index: 2200;">Close</button>
-      <iframe id="editItemIframe" src="" style="flex-grow: 1; border: none; border-radius: 0 0 10px 10px;"></iframe>
+  <div id="editItemModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex justify-center items-center z-2100" style="display:none;">
+    <div class="relative bg-white p-4 rounded-lg shadow-lg w-11/12 max-w-3xl h-5/6 flex flex-col">
+      <button id="closeEditItemModal" class="absolute top-3 right-3 bg-[#084F6A] text-white rounded-md px-3 py-1 text-sm cursor-pointer z-2200">Close</button>
+      <iframe id="editItemIframe" src="" class="flex-grow border-none rounded-b-lg"></iframe>
     </div>
   </div>
 
@@ -1515,12 +1700,12 @@ window.markAsSent = async function markAsSent(itemId) {
   });
 </script>
 <!-- Delete Confirmation Modal -->
-<div id="deleteConfirmModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background-color: rgba(0,0,0,0.7); z-index: 3000; justify-content: center; align-items: center;">
-    <div style="background: white; padding: 20px; border-radius: 10px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
-        <p style="font-size: 18px; margin-bottom: 20px;">Are you sure you want to delete this post?</p>
-        <div style="display: flex; justify-content: space-around;">
-            <button id="confirmDeleteBtn" style="background-color: #dc2626; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;">Delete</button>
-            <button id="cancelDeleteBtn" style="background-color: #6b7280; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;">Cancel</button>
+<div id="deleteConfirmModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex justify-center items-center z-3000" style="display:none;">
+    <div class="bg-white p-5 rounded-lg shadow-lg w-11/12 max-w-sm text-center">
+        <p class="text-lg mb-5">Are you sure you want to delete this post?</p>
+        <div class="flex justify-around">
+            <button id="confirmDeleteBtn" class="bg-red-600 text-white py-2 px-5 rounded-md cursor-pointer hover:bg-red-700">Delete</button>
+            <button id="cancelDeleteBtn" class="bg-gray-600 text-white py-2 px-5 rounded-md cursor-pointer hover:bg-gray-700">Cancel</button>
         </div>
     </div>
 </div>
@@ -1610,6 +1795,22 @@ window.markAsSent = async function markAsSent(itemId) {
             </div>
             <div class="items-center px-4 py-3">
                 <button id="customAlertCloseBtn" class="px-4 py-2 bg-[#084F6A] text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-[#063e53] focus:outline-none focus:ring-2 focus:ring-[#084F6A]">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Cancellation Reason Modal -->
+<div id="cancelReasonModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50" style="display: none; justify-content: center; align-items: center;">
+    <div class="relative mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div class="mt-3 text-center">
+            <h3 class="text-lg leading-6 font-medium text-gray-900">Reason for Cancellation</h3>
+            <div class="mt-2 px-7 py-3">
+                <textarea id="cancellationReason" class="w-full p-2 border border-gray-300 rounded-lg" rows="4" placeholder="Please provide a reason for cancellation..."></textarea>
+            </div>
+            <div class="items-center px-4 py-3 flex justify-around">
+                <button id="confirmCancelReasonBtn" class="px-4 py-2 bg-red-600 text-white text-base font-medium rounded-md shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500">Confirm</button>
+                <button id="closeCancelReasonModalBtn" class="px-4 py-2 bg-gray-600 text-white text-base font-medium rounded-md shadow-sm hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500">Cancel</button>
             </div>
         </div>
     </div>

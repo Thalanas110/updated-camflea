@@ -218,7 +218,8 @@
 
                 const nameSpan = document.createElement('span');
                 nameSpan.className = 'item-name';
-                nameSpan.textContent = item.item.item_name || 'Unnamed item';
+                const itemName = item.item.item_name || 'Unnamed item';
+                nameSpan.textContent = itemName.length > 15 ? itemName.substring(0, 15) + '...' : itemName;
 
                 // Create container div for name and seller name
                 const nameContainer = document.createElement('div');
@@ -359,6 +360,15 @@ async function renderCurrentlyBuying() {
         const li = document.createElement('li');
         li.style.cursor = 'pointer';
         li.dataset.itemId = item.item.item_id;
+        li.dataset.transacId = item.transac_id; // Add transaction ID to li
+        // Store the timestamp in localStorage when the item is added to the DOM
+        const timestampKey = `cancelTimer_${item.transac_id}`;
+        let addedTimestamp = localStorage.getItem(timestampKey);
+        if (!addedTimestamp) {
+            addedTimestamp = Date.now().toString();
+            localStorage.setItem(timestampKey, addedTimestamp);
+        }
+        li.dataset.addedTimestamp = addedTimestamp;
 
         // Show first photo if available, with null checks
         const photoUrl = (item.item && item.item.photos && item.item.photos.length > 0) ? item.item.photos[0] : 'Homepage_images/circle-user.png';
@@ -374,7 +384,8 @@ async function renderCurrentlyBuying() {
 
         const nameSpan = document.createElement('span');
         nameSpan.className = 'item-name';
-        nameSpan.textContent = (item.item && item.item.item_name) ? item.item.item_name : 'Unnamed item';
+        const itemNameCurrentlyBuying = (item.item && item.item.item_name) ? item.item.item_name : 'Unnamed item';
+        nameSpan.textContent = itemNameCurrentlyBuying.length > 15 ? itemNameCurrentlyBuying.substring(0, 15) + '...' : itemNameCurrentlyBuying;
 
         // Create container div for name and seller name
         const nameContainer = document.createElement('div');
@@ -431,7 +442,7 @@ async function renderCurrentlyBuying() {
             noteSpan.style.marginLeft = '8px';
             markReceivedBtn.parentNode?.appendChild(noteSpan);
         } else {
-            markReceivedBtn.textContent = 'Mark as Received';
+            markReceivedBtn.textContent = 'Mark as Delivered';
             markReceivedBtn.style.backgroundColor = '#28a745'; // green color
             markReceivedBtn.onclick = async (e) => {
                 e.stopPropagation();
@@ -442,20 +453,29 @@ async function renderCurrentlyBuying() {
         const cancelBtn = document.createElement('button');
         cancelBtn.className = 'remove-btn';
         cancelBtn.textContent = 'Cancel';
+        cancelBtn.dataset.transacId = item.transac_id; // Add transac_id to the cancel button
         cancelBtn.onclick = async (e) => {
             e.stopPropagation();
             await cancelCurrentlyBuying(item.transac_id, item.item.item_id);
         };
 
-        // Create a container for the buttons
+        const countdownSpan = document.createElement('span');
+        countdownSpan.className = 'countdown-timer';
+        countdownSpan.style.fontSize = '10px';
+        countdownSpan.style.color = '#888';
+        countdownSpan.style.marginLeft = '5px';
+        countdownSpan.style.display = 'block'; // Ensure it takes its own line or block space
+
+        // Create a container for the buttons and countdown
         const buttonContainer = document.createElement('div');
         buttonContainer.style.display = 'flex';
         buttonContainer.style.flexDirection = 'column';
         buttonContainer.style.gap = '5px'; // Add some space between buttons
 
-        // Add buttons to container
+        // Add buttons and countdown to container
         buttonContainer.appendChild(markReceivedBtn);
         buttonContainer.appendChild(cancelBtn);
+        buttonContainer.appendChild(countdownSpan); // Append countdown span here
 
         li.appendChild(img);
         li.appendChild(nameContainer);
@@ -463,11 +483,59 @@ async function renderCurrentlyBuying() {
         li.appendChild(buttonContainer);
         currentlyBuyingList.appendChild(li);
 
+        // Start countdown for this item's cancel button
+        startCountdownForCancelButton(li, item.transac_id);
+
         // Add click event to open detailed post modal
         li.addEventListener('click', () => {
             openDetailedPostModal(item.item.item_id);
         });
     });
+}
+
+// Function to start countdown for the cancel button
+function startCountdownForCancelButton(listItem, transacId) {
+    const timestampKey = `cancelTimer_${transacId}`;
+    const storedTimestamp = localStorage.getItem(timestampKey);
+    const addedTimestamp = storedTimestamp ? parseInt(storedTimestamp, 10) : Date.now(); // Use stored or current
+    
+    const cancelButton = listItem.querySelector(`button.remove-btn[data-transac-id="${transacId}"]`);
+    const countdownTimerSpan = listItem.querySelector('.countdown-timer');
+
+    if (!cancelButton || !countdownTimerSpan) {
+        console.error('Cancel button or countdown span not found for transaction:', transacId);
+        return;
+    }
+
+    const countdownDuration = 120 * 1000; // 15 seconds in milliseconds
+
+    const updateCountdown = () => {
+        const currentTime = Date.now();
+        const elapsedTime = currentTime - addedTimestamp;
+        const remainingTime = countdownDuration - elapsedTime;
+
+        if (remainingTime <= 0) {
+            countdownTimerSpan.textContent = '0s';
+            cancelButton.disabled = true;
+            cancelButton.style.backgroundColor = '#ccc';
+            cancelButton.style.cursor = 'not-allowed';
+            clearInterval(listItem.countdownInterval);
+        } else {
+            const seconds = Math.ceil(remainingTime / 1000);
+            countdownTimerSpan.textContent = `${seconds}s`;
+        }
+    };
+
+    // Initial call to display countdown immediately
+    updateCountdown();
+
+    // Clear any existing interval for this item to prevent duplicates
+    if (listItem.countdownInterval) {
+        clearInterval(listItem.countdownInterval);
+    }
+
+    // Update countdown every second
+    listItem.countdownInterval = setInterval(updateCountdown, 1000);
 }
 
         // Cancel currently buying by updating status to 'cancelled' and item status to 'available'
@@ -588,6 +656,9 @@ async function renderCurrentlyBuying() {
                     console.error('Error calling backend to update item status:', err);
                 }
             }
+
+            // Clear the timestamp from localStorage for the cancelled transaction
+            localStorage.removeItem(`cancelTimer_${transac_id}`);
 
             // Refresh currently buying list and cart list after cancellation
             renderCurrentlyBuying();
@@ -809,7 +880,7 @@ function showBanner(message, type = "error") {
         const buttons = document.querySelectorAll('button');
         buttons.forEach(button => {
             if (button.onclick && button.onclick.toString().includes(`markAsReceived('${transac_id}')`)) {
-                button.textContent = 'Marked as Received';
+                button.textContent = 'Marked as Delivered';
                 button.disabled = true;
                 // Add note span if not already present
                 if (!button.nextElementSibling || !button.nextElementSibling.classList.contains('received-note')) {
@@ -964,7 +1035,8 @@ const currentlyBuyingList = document.getElementById('currentlyBuyingList');
 
                 const nameSpan = document.createElement('span');
                 nameSpan.className = 'item-name';
-                nameSpan.textContent = (item.item && item.item.item_name) ? item.item.item_name : 'Unnamed item';
+                const itemNamePurchased = (item.item && item.item.item_name) ? item.item.item_name : 'Unnamed item';
+                nameSpan.textContent = itemNamePurchased.length > 15 ? itemNamePurchased.substring(0, 15) + '...' : itemNamePurchased;
 
                 // Create container div for name and seller name
                 const nameContainer = document.createElement('div');
