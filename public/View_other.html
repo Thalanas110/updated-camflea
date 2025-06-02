@@ -189,7 +189,7 @@
         }
     </style>
 </head>
-<body class="bg-gray-100">
+<body style="background: linear-gradient(to right, #e0eafc, #cfdef3);">
 <nav class="bg-[#084F6A] flex justify-between items-center" style="padding: 4px 40px; align-items: flex-start; height: 120px;">
     <div class="flex items-center space-x-6" style="align-self: flex-start;">
         <a id="navHome" class="text-white" href="index.html" style="background-color: #084F6A; padding: 6px 12px; border-radius: 4px; color: white; font-weight: 600; text-decoration: none; cursor: pointer;">Home</a>
@@ -432,9 +432,9 @@
 
                 let priceDisplay = '';
                 if (item.item_price_type === 'single') {
-                    priceDisplay = `₱${item.item_price}`;
+                    priceDisplay = `PHP${item.item_price}`;
                 } else if (item.item_price_type === 'range') {
-                    priceDisplay = `₱${item.item_price_min} - ₱${item.item_price_max}`;
+                    priceDisplay = `PHP${item.item_price_min} - PHP${item.item_price_max}`;
                 } else if (item.item_price_type === 'hidden') {
                     priceDisplay = 'Price hidden';
                 } else {

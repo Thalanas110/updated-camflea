@@ -249,6 +249,9 @@
             display: block;
             text-align: right;
         }
+       body {
+           background: linear-gradient(to right, #e0eafc, #cfdef3);
+       }
     </style>
 <script>
  // Save bio to localStorage (simulating database) function saveBioToDatabase(bioText) { localStorage.setItem('userBio', bioText); }
@@ -774,9 +777,9 @@ async function fetchUserPostedItems() {
 
             let priceDisplay = '';
             if (item.item_price_type === 'single') {
-                priceDisplay = `₱${item.item_price}`;
+                priceDisplay = `PHP${item.item_price}`;
             } else if (item.item_price_type === 'range') {
-                priceDisplay = `₱${item.item_price_min} - ₱${item.item_price_max}`;
+                priceDisplay = `PHP${item.item_price_min} - PHP${item.item_price_max}`;
             } else if (item.item_price_type === 'hidden') {
                 priceDisplay = 'Price hidden';
             } else {
@@ -871,9 +874,9 @@ async function fetchUserPostedItems() {
 
             let priceDisplay = '';
             if (item.item_price_type === 'single') {
-                priceDisplay = `₱${item.item_price}`;
+                priceDisplay = `PHP${item.item_price}`;
             } else if (item.item_price_type === 'range') {
-                priceDisplay = `₱${item.item_price_min} - ₱${item.item_price_max}`;
+                priceDisplay = `PHP${item.item_price_min} - PHP${item.item_price_max}`;
             } else if (item.item_price_type === 'hidden') {
                 priceDisplay = 'Price hidden';
             } else {
@@ -945,9 +948,9 @@ async function fetchUserPostedItems() {
 
             let priceDisplay = '';
             if (item.item_price_type === 'single') {
-                priceDisplay = `₱${item.item_price}`;
+                priceDisplay = `PHP${item.item_price}`;
             } else if (item.item_price_type === 'range') {
-                priceDisplay = `₱${item.item_price_min} - ₱${item.item_price_max}`;
+                priceDisplay = `PHP${item.item_price_min} - PHP${item.item_price_max}`;
             } else if (item.item_price_type === 'hidden') {
                 priceDisplay = 'Price hidden';
             } else {
@@ -1313,145 +1316,224 @@ window.markAsSent = async function markAsSent(itemId) {
         window.location.href = 'Login_page.html';
         return;
     }
-    try {
-        // Find the buyer_id and current status for the item with status 'requested', 'received', or 'sent'
-        const { data: transactions, error: fetchTransError } = await supabase
-            .from('transactions')
-            .select('buyer_id, status')
-            .eq('item_uuid', itemId)
-            .in('status', ['requested', 'received', 'sent'])
-            .limit(1);
 
-        if (fetchTransError) {
-            console.error('Error fetching transaction buyer:', fetchTransError);
-            alert('Failed to mark as sent: ' + fetchTransError.message);
-            return;
-        }
+    // Confirmation popup similar to Detailed_post.html buy button
+    let markAsSentClicked = false;
+    if (markAsSentClicked) return;
+    markAsSentClicked = true;
 
-        if (!transactions || transactions.length === 0) {
-            alert('No active transaction found for this item.');
-            return;
-        }
+    // Create popup overlay
+    const popupOverlay = document.createElement('div');
+    popupOverlay.id = 'popup-overlay';
+    popupOverlay.style.position = 'fixed';
+    popupOverlay.style.top = '0';
+    popupOverlay.style.left = '0';
+    popupOverlay.style.width = '100%';
+    popupOverlay.style.height = '100%';
+    popupOverlay.style.backgroundColor = 'rgba(0,0,0,0.5)';
+    popupOverlay.style.display = 'flex';
+    popupOverlay.style.justifyContent = 'center';
+    popupOverlay.style.alignItems = 'center';
+    popupOverlay.style.zIndex = '1000';
 
-        const buyerId = transactions[0].buyer_id;
-        const currentStatus = transactions[0].status;
+    // Create popup box
+    const popupBox = document.createElement('div');
+    popupBox.style.backgroundColor = 'white';
+    popupBox.style.padding = '20px';
+    popupBox.style.borderRadius = '8px';
+    popupBox.style.textAlign = 'center';
+    popupBox.style.maxWidth = '300px';
+    popupBox.style.boxShadow = '0 2px 10px rgba(0,0,0,0.3)';
 
-        // Fetch item name for notification content
-        const { data: itemData, error: itemFetchError } = await supabase
-            .from('item')
-            .select('item_name')
-            .eq('item_id', itemId)
-            .single();
+    // Popup message
+    const message = document.createElement('p');
+    message.textContent = 'Are you sure you want to mark this item as sold?';
+    message.style.marginBottom = '20px';
 
-        if (itemFetchError) {
-            console.error('Error fetching item name:', itemFetchError);
-        }
+    // Yes button
+    const yesButton = document.createElement('button');
+    yesButton.textContent = 'Yes';
+    yesButton.style.marginRight = '10px';
+    yesButton.style.padding = '10px 20px';
+    yesButton.style.backgroundColor = '#084F6A';
+    yesButton.style.color = 'white';
+    yesButton.style.border = 'none';
+    yesButton.style.borderRadius = '5px';
+    yesButton.style.cursor = 'pointer';
 
-        const itemName = itemData ? itemData.item_name : 'your item';
+    // No button
+    const noButton = document.createElement('button');
+    noButton.textContent = 'No';
+    noButton.style.padding = '10px 20px';
+    noButton.style.backgroundColor = '#ccc';
+    noButton.style.border = 'none';
+    noButton.style.borderRadius = '5px';
+    noButton.style.cursor = 'pointer';
 
-        // Get current authenticated user UUID
-        const { data: { user }, error: userError } = await supabase.auth.getUser();
-        if (userError || !user) {
-            console.error('User not authenticated', userError);
-            return;
-        }
-        const userUuid = user.id;
+    // Append buttons and message to popup box
+    popupBox.appendChild(message);
+    popupBox.appendChild(yesButton);
+    popupBox.appendChild(noButton);
 
-        // Map buyerId (stud_id) to buyer UUID by querying student table for user_id
-        const { data: buyerStudent, error: buyerStudentError } = await supabase
-            .from('student')
-            .select('user_id')
-            .eq('stud_id', buyerId)
-            .single();
+    // Append popup box to overlay
+    popupOverlay.appendChild(popupBox);
 
-        let buyerUuid = null;
-        if (buyerStudentError || !buyerStudent) {
-            console.error('Error mapping buyer stud_id to user_id:', buyerStudentError);
-            return; // Stop if UUID not found
-        } else {
-            buyerUuid = buyerStudent.user_id;
-        }
+    // Append overlay to body
+    document.body.appendChild(popupOverlay);
 
-        // Determine new status and notification logic
-        let newStatus;
-        let sendNotification = false;
-        let notificationContent = '';
+    // No button closes popup
+    noButton.addEventListener('click', () => {
+        document.body.removeChild(popupOverlay);
+        markAsSentClicked = false;
+    });
 
-        if (currentStatus === 'requested') {
-            newStatus = 'sent';
-            sendNotification = true;
-            notificationContent = `The item ${itemName} has been marked as sent by the seller.`;
-        } else if (currentStatus === 'received') {
-            newStatus = 'completed';
-            sendNotification = false;
-            notificationContent = `The item ${itemName} transaction has been completed by the seller.`;
-        } else {
-            // For other statuses, do nothing or alert
-            alert('Invalid transaction status for marking as sent.');
-            return;
-        }
+    // Yes button proceeds with existing markAsSent logic
+    yesButton.addEventListener('click', async () => {
+        yesButton.disabled = true;
 
-        if (sendNotification) {
-            const { error: notifError } = await supabase
-                .from('notifications')
-                .insert({
-                    sender_uuid: userUuid,
-                    receiver_uuid: buyerUuid,
-                    sender_id: studId,
-                    receiver_id: buyerId,
-                    type: newStatus === 'completed' ? 'mark_completed' : 'mark_sent',
-                    content: notificationContent,
-                    item_id: itemId,
-                    created_at: new Date().toISOString()
-                });
+        try {
+            // Find the buyer_id and current status for the item with status 'requested', 'received', or 'sent'
+            const { data: transactions, error: fetchTransError } = await supabase
+                .from('transactions')
+                .select('buyer_id, status')
+                .eq('item_uuid', itemId)
+                .in('status', ['requested', 'received', 'sent'])
+                .limit(1);
 
-            if (notifError) {
-                console.error('Error inserting notification:', notifError);
-            }
-        }
-
-        // Update the transactions table to set status to newStatus for this item and buyer
-        const { error: transError } = await supabase
-            .from('transactions')
-            .update({ status: newStatus })
-            .eq('item_uuid', itemId)
-            .eq('buyer_id', buyerId);
-
-        if (transError) {
-            console.error('Error updating transaction status:', transError);
-            alert('Failed to mark as sent: ' + transError.message);
-            return;
-        }
-
-        // If transaction completed, update item status to sold
-        if (newStatus === 'completed') {
-            const { error: itemUpdateError } = await supabase
-                .from('item')
-                .update({ item_status: 'sold' })
-                .eq('item_id', itemId);
-
-            if (itemUpdateError) {
-                console.error('Error updating item status to sold:', itemUpdateError);
-                alert('Failed to update item status to sold.');
+            if (fetchTransError) {
+                console.error('Error fetching transaction buyer:', fetchTransError);
+                alert('Failed to mark as sent: ' + fetchTransError.message);
                 return;
             }
-        }
 
-        showBanner(
-            newStatus === 'completed'
-                ? 'Transaction marked as completed successfully.'
-                : 'Item marked as sent successfully.',
-            'success'
+            if (!transactions || transactions.length === 0) {
+                alert('No active transaction found for this item.');
+                return;
+            }
+
+            const buyerId = transactions[0].buyer_id;
+            const currentStatus = transactions[0].status;
+
+            // Fetch item name for notification content
+            const { data: itemData, error: itemFetchError } = await supabase
+                .from('item')
+                .select('item_name')
+                .eq('item_id', itemId)
+                .single();
+
+            if (itemFetchError) {
+                console.error('Error fetching item name:', itemFetchError);
+            }
+
+            const itemName = itemData ? itemData.item_name : 'your item';
+
+            // Get current authenticated user UUID
+            const { data: { user }, error: userError } = await supabase.auth.getUser();
+            if (userError || !user) {
+                console.error('User not authenticated', userError);
+                return;
+            }
+            const userUuid = user.id;
+
+            // Map buyerId (stud_id) to buyer UUID by querying student table for user_id
+            const { data: buyerStudent, error: buyerStudentError } = await supabase
+                .from('student')
+                .select('user_id')
+                .eq('stud_id', buyerId)
+                .single();
+
+            let buyerUuid = null;
+            if (buyerStudentError || !buyerStudent) {
+                console.error('Error mapping buyer stud_id to user_id:', buyerStudentError);
+                return; // Stop if UUID not found
+            } else {
+                buyerUuid = buyerStudent.user_id;
+            }
+
+            // Determine new status and notification logic
+            let newStatus;
+            let sendNotification = false;
+            let notificationContent = '';
+
+            if (currentStatus === 'requested') {
+                newStatus = 'sent';
+                sendNotification = true;
+                notificationContent = `The item ${itemName} has been marked as sent by the seller.`;
+            } else if (currentStatus === 'received') {
+                newStatus = 'completed';
+                sendNotification = false;
+                notificationContent = `The item ${itemName} transaction has been completed by the seller.`;
+            } else {
+                // For other statuses, do nothing or alert
+                alert('Invalid transaction status for marking as sent.');
+                return;
+            }
+
+            if (sendNotification) {
+                const { error: notifError } = await supabase
+                    .from('notifications')
+                    .insert({
+                        sender_uuid: userUuid,
+                        receiver_uuid: buyerUuid,
+                        sender_id: studId,
+                        receiver_id: buyerId,
+                        type: newStatus === 'completed' ? 'mark_completed' : 'mark_sent',
+                        content: notificationContent,
+                        item_id: itemId,
+                        created_at: new Date().toISOString()
+                    });
+
+                if (notifError) {
+                    console.error('Error inserting notification:', notifError);
+                }
+            }
+
+            // Update the transactions table to set status to newStatus for this item and buyer
+            const { error: transError } = await supabase
+                .from('transactions')
+                .update({ status: newStatus })
+                .eq('item_uuid', itemId)
+                .eq('buyer_id', buyerId);
+
+            if (transError) {
+                console.error('Error updating transaction status:', transError);
+                alert('Failed to mark as sent: ' + transError.message);
+                return;
+            }
+
+            // If transaction completed, update item status to sold
+            if (newStatus === 'completed') {
+                const { error: itemUpdateError } = await supabase
+                    .from('item')
+                    .update({ item_status: 'sold' })
+                    .eq('item_id', itemId);
+
+                if (itemUpdateError) {
+                    console.error('Error updating item status to sold:', itemUpdateError);
+                    alert('Failed to update item status to sold.');
+                    return;
+                }
+            }
+
+            showBanner(
+                newStatus === 'completed'
+                    ? 'Transaction marked as completed successfully.'
+                    : 'Item marked as sent successfully.',
+                'success'
             );
 
+            // Remove the inline button UI update code from markAsSent function
+            // Instead, refresh the items list to update UI based on transaction status
+            await fetchUserPostedItems();
+        } catch (err) {
+            console.error('Unexpected error marking as sent:', err);
+            alert('Failed to mark as sent due to unexpected error.');
+        } finally {
+            document.body.removeChild(popupOverlay);
+            markAsSentClicked = false;
+        }
+    });
 
-        // Remove the inline button UI update code from markAsSent function
-        // Instead, refresh the items list to update UI based on transaction status
-        await fetchUserPostedItems();
-    } catch (err) {
-        console.error('Unexpected error marking as sent:', err);
-        alert('Failed to mark as sent due to unexpected error.');
-    }
 }
 
 
@@ -1667,13 +1749,24 @@ window.markAsSent = async function markAsSent(itemId) {
 </script>
   <!-- Modal for Edit Item -->
   <div id="editItemModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex justify-center items-center z-2100" style="display:none;">
-    <div class="relative bg-white p-4 rounded-lg shadow-lg w-11/12 max-w-3xl h-5/6 flex flex-col">
-      <button id="closeEditItemModal" class="absolute top-3 right-3 bg-[#084F6A] text-white rounded-md px-3 py-1 text-sm cursor-pointer z-2200">Close</button>
+    <div class="relative w-11/12 max-w-3xl h-5/6 flex flex-col">
       <iframe id="editItemIframe" src="" class="flex-grow border-none rounded-b-lg"></iframe>
     </div>
   </div>
 
 <script>
+  // Add event listener for messages from iframe
+  window.addEventListener('message', function(event) {
+    if (event.data && event.data.type === 'closePostItemModal') {
+      const modal = document.getElementById('editItemModal');
+      const iframe = document.getElementById('editItemIframe');
+      if (modal && iframe) {
+        iframe.src = '';
+        modal.style.display = 'none';
+      }
+    }
+  });
+
   // Modify editItem function to open modal and load edit_item.html in iframe
   function editItem(itemId) {
     const modal = document.getElementById('editItemModal');

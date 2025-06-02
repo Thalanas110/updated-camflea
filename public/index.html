@@ -10,7 +10,7 @@
         body {
             margin: 0;
             font-family: Arial, sans-serif;
-            background-color: #F2F2F2; /* Changed background color */
+            background: linear-gradient(to right, #e0eafc, #cfdef3); /* Subtle blue gradient copied from Login_page.html */
             overflow-x: hidden; /* Hide horizontal scrollbar */
             overflow-y: auto; /* Enable vertical scrollbar */
         }
@@ -200,7 +200,7 @@
             }
         }
 
-        @media screen and (max-width: 480px) {
+        @media screen and (max-width: 576px) {
             .content-container {
                  padding: 5px;
                  gap: 5px;
@@ -239,6 +239,8 @@
             border-radius: 0;
             margin-bottom: 1rem;
             text-align: center;
+            z-index: 2; /* Ensure inputs are clickable */
+            pointer-events: auto; /* Ensure clicks are not blocked */
         }
         .search-filter-sidebar button {
             width: 100%;
@@ -252,28 +254,62 @@
             box-shadow: none;
             border: none;
             cursor: pointer;
+            z-index: 2; /* Ensure button is clickable */
+            pointer-events: auto; /* Ensure clicks are not blocked */
         }
-        .search-filter-sidebar select {
-            width: 100%;
-            padding: 0.5rem;
-            border: 1px solid #d1d5db;
-            border-radius: 0;
-            appearance: none;
-            margin-bottom: 1rem;
-            background: none;
-            text-align: center;
-        }
-        .search-filter-sidebar .relative {
-            position: relative;
-        }
-.search-filter-sidebar .relative i {
+/* New wrapper for custom select */
+.custom-select-wrapper {
+    position: relative;
+    width: 100%;
+    margin-bottom: 1rem; /* Inherit from original select */
+}
+
+/* Style the visible part of the custom select */
+.select-styled {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0;
+    background: #fff; /* Explicit background */
+    text-align: center;
+    cursor: pointer;
+    height: 2.5rem; /* Match previous select height */
+    line-height: 1.5rem; /* Match previous select line-height */
+    box-sizing: border-box;
+    display: flex; /* Use flex to center content */
+    align-items: center; /* Vertically center content */
+    justify-content: center; /* Horizontally center content */
+    z-index: 2; /* Ensure custom select is clickable */
+    pointer-events: auto; /* Ensure clicks are not blocked */
+}
+
+/* Hide the original select element but keep it functional */
+.hidden-select {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0; /* Make it invisible */
+    cursor: pointer; /* Keep cursor for native dropdown */
+    z-index: 10; /* Ensure it's on top to capture native clicks */
+    -webkit-appearance: none; /* For Safari/Chrome */
+    -moz-appearance: none;    /* For Firefox */
+    appearance: none;         /* Standard */
+    border: none;             /* Remove border */
+    background: transparent;  /* Remove background */
+    text-align: center; /* Attempt to center text in dropdown options */
+}
+
+/* Adjust icon positioning within the new wrapper */
+.custom-select-wrapper .fas.fa-chevron-down {
     position: absolute;
     right: 0.5rem;
-    top: 40%;
+    top: 50%;
     transform: translateY(-50%);
     color: #6b7280;
-    pointer-events: none; /* <-- Add this line */
-    z-index: 2;           /* Ensure it's above the select visually */
+    pointer-events: none; /* Icon should not capture clicks */
+    z-index: 11; /* Ensure icon is above the hidden select for visual purposes */
 }
         
         .search-filter-sidebar .space-y-2 > div {
@@ -482,8 +518,8 @@
         #transactionPanel {
             position: fixed;
             top: 120px !important; /* Adjusted to start directly below the navbar */
-            right: -420px !important; /* Ensure it's fully hidden when closed */
-            width: 320px !important; /* Ensure width is 320px */
+            right: -480px !important; /* Ensure it's fully hidden when closed (increased from 420 to 480) */
+            width: 480px !important; /* Increased width by 50% (320 -> 480) */
             height: calc(100vh - 120px) !important; /* Adjust height to fill space below navbar */
             background-color: #f9f9f9;
             box-shadow: -2px 0 8px rgba(0,0,0,0.4);
@@ -626,6 +662,7 @@
             /* Removed inline styles from the inner div */
         }
 
+        /* Close button for detailed post modal */
         #detailedPostModal #closeDetailedPostModal {
             position: absolute;
             top: 10px;
@@ -734,14 +771,19 @@
     min-height: 60px;
   }
   
-  .profile-section {
+  .profile-section,
+  .notifications-container {
+    position: relative;
+    left: 0;
+    right: 0;
+    top: 0;
+    justify-content: center;
+    margin-bottom: 5px;
+    /* Ensure mobile view is horizontal */
+    display: flex !important;
+    flex-direction: row !important;
     flex-wrap: wrap;
-    gap: 5px;
-  }
-  
-  .profile-section span a {
-    padding: 4px 8px;
-    font-size: 0.9rem;
+    gap: 8px;
   }
   
   .main-content {
@@ -796,6 +838,17 @@
     top: 0;
     justify-content: center;
     margin-bottom: 5px;
+    /* Ensure mobile view is horizontal */
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  
+  .profile-section a,
+  .notifications-container a {
+    font-size: 0.75rem; /* Reduce font size for mobile */
+    padding: 4px 8px; /* Adjust padding */
   }
   
   .main-content {
@@ -803,8 +856,9 @@
     transform: none;
     left: 0;
     top: 0;
-    width: 100%;
-    padding: 10px;
+    width: 80%; /* Further reduce width in mobile view */
+    padding: 0; /* Remove padding from here */
+    margin: 0 auto; /* Center main content block */
   }
   
   .item-card {
@@ -816,7 +870,380 @@
   }
   
   .search-filter-sidebar {
+    width: 95%; /* Make sidebar shorter */
+    margin: 0 auto; /* Center the shorter sidebar */
+  }
+  
+  #conversationPanel,
+  #notificationPanel,
+  #transactionPanel {
+    width: 100% !important;
+    right: -100% !important;
+  }
+}
+
+    /* Styles for the sliding conversation panel */
+    #conversationPanel,
+    #notificationPanel,
+    #transactionPanel {
+        position: fixed;
+        top: 120px !important; /* Adjusted to start directly below the navbar */
+        right: -480px !important; /* Ensure it's fully hidden when closed (increased from 420 to 480) */
+        width: 480px !important; /* Increased width by 50% (320 -> 480) */
+        height: calc(100vh - 120px) !important; /* Adjust height to fill space below navbar */
+        background-color: #f9f9f9;
+        box-shadow: -2px 0 8px rgba(0,0,0,0.4);
+        transition: right 0.3s ease;
+        z-index: 9998; /* Just below navbar */
+        display: flex;
+        flex-direction: column;
+        border-radius: 8px 0 0 8px;
+        margin: 0;
+        bottom: 0;
+        overflow-y: auto; /* Add scrolling if needed */
+    }
+
+    /* Hide the Post Item Modal Close button */
+    #closePostItemModal {
+        display: none;
+    }
+
+    #detailedPostModal iframe,
+    #notificationPanel iframe,
+    #transactionPanel iframe {
+        border: none;
+        width: 100%;
+        height: 100%;
+        flex-grow: 1;
+        display: block;
+    }
+
+    #closeConversationPanel {
+        background: #084F6A;
+        color: white;
+        border: none;
+        border-radius: 0 0 0 8px;
+        padding: 10px 15px;
+        cursor: pointer;
+        font-size: 18px;
+        align-self: flex-start;
+    }
+
+    #conversationOverlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: transparent; /* Removed darkening */
+        z-index: 999; /* Below side panels */
+        display: none;
+    }
+
+    #myConversationsBtn,
+    #notificationsFloatBtn {
+        background-color: #4FC3F7 !important;
+        color: #fff !important;
+    }
+
+    #myConversationsBtn img,
+    #notificationsFloatBtn img {
+        filter: brightness(0) saturate(100%) invert(77%) sepia(16%) saturate(749%) hue-rotate(169deg) brightness(97%) contrast(92%);
+    }
+
+    /* Add or update this CSS to ensure icons are centered in their circle backgrounds */
+    .topbar-action-icons button {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        background-color: #4FC3F7 !important;
+        color: #fff !important;
+        border: none !important;
+        border-radius: 50% !important;
+        width: 48px !important;
+        height: 48px !important;
+        font-size: 22px !important;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+        padding: 0 !important;
+    }
+    .topbar-action-icons button i {
+        color: #fff !important;
+        font-size: 22px !important;
+        margin: 0 !important;
+        line-height: 1 !important;
+    }
+    :root {
+  --items-container-margin-top: 0px; /* Adjust this value as needed */
+}
+        /* Item container (grid of item cards) from user's reference */
+        #items-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            align-items: flex-start;
+            margin: 0 auto;
+            margin-top: 280px;
+            max-width: 900px;
+            padding-bottom: 100px;
+            padding-left: 15px;
+        }
+
+        #pagination-controls {
+            position: fixed;
+            left: 50%;
+            bottom: 0px;
+            transform: translateX(-50%);
+            z-index: 100;
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+            border-radius: 12px;
+            padding: 12px 24px;
+            display: flex;
+            justify-content: center;
+
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Modal for Detailed Post */
+        #detailedPostModal {
+            display: none;
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            background-color: rgba(0,0,0,0.7);
+            z-index: 10000 !important; /* Set a high z-index to appear above the navbar */
+            justify-content: center;
+            align-items: center;
+            /* Removed inline styles from the div and put them here */
+        }
+
+        #detailedPostModal > div {
+            position: relative;
+            width: 90%;
+            max-width: 900px;
+            height: 90%;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+            /* Removed inline styles from the inner div */
+        }
+
+        /* Close button for detailed post modal */
+        #detailedPostModal #closeDetailedPostModal {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #084F6A;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 8px 12px;
+            font-size: 16px;
+            cursor: pointer;
+            z-index: 2100; /* Ensure close button is above modal content */
+        }
+
+        #detailedPostModal iframe {
+            flex-grow: 1;
+            border: none;
+            border-radius: 0 0 10px 10px;
+        }
+
+.loader-spinner {
+  border: 10px solid #e3f0fa;
+  border-top: 10px solid #084F6A;
+  border-radius: 50%;
+  width: 70px;
+  height: 70px;
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  0% { transform: rotate(0deg);}
+  100% { transform: rotate(360deg);}
+}
+
+#imageZoomModal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.85);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+/* Responsive Media Queries */
+@media screen and (max-width: 1200px) {
+  .content-container {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .search-filter-sidebar {
+    width: 90%;
+    max-width: 600px;
+    margin-bottom: 20px;
+  }
+  
+  #items-container {
+    margin-top: 20px;
+    padding-left: 0;
+  }
+}
+
+@media screen and (max-width: 992px) {
+  .navbar {
+    padding: 10px;
+    height: auto;
+    min-height: 70px;
+  }
+  
+  .main-content {
+    width: 95%;
+    padding-left: 0;
+    gap: 10px;
+  }
+  
+  .logo {
+    height: 35px;
+  }
+  
+  .search-bar {
+    min-width: 150px;
+  }
+  
+  .profile-section {
+    left: 10px;
+    top: 10px;
+  }
+  
+  .notifications-container {
+    right: 10px;
+  }
+  
+  #items-container {
+    margin-top: 200px;
+    gap: 15px;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .navbar {
+    padding: 8px;
+    min-height: 60px;
+  }
+  
+  .profile-section,
+  .notifications-container {
+    position: relative;
+    left: 0;
+    right: 0;
+    top: 0;
+    justify-content: center;
+    margin-bottom: 5px;
+    /* Ensure mobile view is horizontal */
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  
+  .main-content {
+    flex-direction: column;
+    gap: 10px;
+    padding-top: 40px;
+  }
+  
+  .logo {
+    height: 30px;
+    margin-bottom: 5px;
+  }
+  
+  .search-bar {
     width: 100%;
+  }
+  
+  .topbar-action-icons {
+    margin-top: 10px;
+    margin-left: 0;
+  }
+  
+  .topbar-action-icons button {
+    width: 40px !important;
+    height: 40px !important;
+  }
+  
+  .item-card {
+    width: 45%;
+    min-width: 150px;
+  }
+  
+  #items-container {
+    margin-top: 180px;
+    gap: 10px;
+  }
+  
+  .content-container {
+    margin-top: 150px;
+  }
+}
+
+@media screen and (max-width: 576px) {
+  .navbar {
+    min-height: 50px;
+  }
+  
+  .profile-section, .notifications-container {
+    position: relative;
+    left: 0;
+    right: 0;
+    top: 0;
+    justify-content: center;
+    margin-bottom: 5px;
+    /* Ensure mobile view is horizontal */
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  
+  .profile-section a,
+  .notifications-container a {
+    font-size: 0.75rem; /* Reduce font size for mobile */
+    padding: 4px 8px; /* Adjust padding */
+  }
+  
+  .main-content {
+    position: relative;
+    transform: none;
+    left: 0;
+    top: 0;
+    width: 80%; /* Further reduce width in mobile view */
+    padding: 0; /* Remove padding from here */
+    margin: 0 auto; /* Center main content block */
+  }
+  
+  .item-card {
+    width: 100%;
+  }
+  
+  #items-container {
+    margin-top: 150px;
+  }
+  
+  .search-filter-sidebar {
+    width: 95%; /* Make sidebar shorter */
+    margin: 0 auto; /* Center the shorter sidebar */
   }
   
   #conversationPanel,
@@ -834,14 +1261,16 @@
   <div class="loader-spinner"></div>
 </div>
     <div class="navbar">
-      <div class="profile-section" style="display: flex; align-items: center; gap: 2px;">
+      <!-- Profile Section (Left Side) -->
+      <div class="profile-section" style="display: flex; align-items: center; gap: 8px;">
         <img src="Homepage_images/circle-user.png" alt="Profile" class="profile-icon">
         <span><a href="ViewProfile.html" class="link" style="background-color: #084F6A; padding: 6px 12px; border-radius: 4px; color: white; font-weight: 600; text-decoration: none; cursor: pointer;">Visit your profile</a></span>
         <span><a href="post_item.html" id="postItemLink" class="link" style="background-color: #084F6A; padding: 6px 12px; border-radius: 4px; color: white; font-weight: 600; text-decoration: none; cursor: pointer;">Post Item</a></span>
       </div>
   
-      <div class="notifications-container">
-        <div class="nav-item"
+      <!-- Notifications Container (Right Side - includes Logout) -->
+      <div class="notifications-container" style="display: flex; gap: 20px; color: white;">
+        <div class="nav-item">
           <img src="Homepage_images/bell.png" alt="Notifications" class="nav-icon" style="display:none;">
           <span style="display:none;">Notifications</span>
         </div>
@@ -1063,6 +1492,36 @@ searchInput.addEventListener("input", function () {
 
             // Do NOT render recent searches dropdown on page load to avoid auto dropdown after login
             // renderRecentSearches();
+
+            // Custom Select Dropdown Logic
+            const customSelects = [
+              { id: 'rating-filter', styledId: 'rating-filter-styled' },
+              { id: 'sort-filter', styledId: 'sort-filter-styled' },
+              { id: 'school-filter', styledId: 'school-filter-styled' },
+              { id: 'condition-filter', styledId: 'condition-filter-styled' }
+            ];
+
+            customSelects.forEach(selectData => {
+              const selectElement = document.getElementById(selectData.id);
+              const styledElement = document.getElementById(selectData.styledId);
+
+              if (selectElement && styledElement) {
+                // Set initial text for styled div
+                styledElement.textContent = selectElement.options[selectElement.selectedIndex].textContent;
+
+                // Update styled div text when select value changes
+                selectElement.addEventListener('change', () => {
+                  styledElement.textContent = selectElement.options[selectElement.selectedIndex].textContent;
+                  fetchAndDisplayItems(); // Re-trigger fetch on change
+                });
+
+                // When styled div is clicked, open the native select
+                styledElement.addEventListener('click', () => {
+                  selectElement.focus();
+                  selectElement.click(); // Programmatically open the dropdown
+                });
+              }
+            });
           });
 
           // Unified function to fetch and display items based on search query and filters
@@ -1515,9 +1974,9 @@ async function displayItems(items, container, withHighlight = false, page = 1) {
 
     let priceDisplay = '';
     if (item.item_price_type === 'single') {
-      priceDisplay = `₱${item.item_price}`;
+      priceDisplay = `PHP${item.item_price}`;
     } else if (item.item_price_type === 'range') {
-      priceDisplay = `₱${item.item_price_min} - ₱${item.item_price_max}`;
+      priceDisplay = `PHP${item.item_price_min} - PHP${item.item_price_max}`;
     } else if (item.item_price_type === 'hidden') {
       priceDisplay = 'Price hidden';
     } else {
@@ -1678,17 +2137,19 @@ const ratingDisplay = `${starIcons} ${avgRatingDisplay} (${ratingObj.count})`;
       
             <div class="mb-4">
               <label>Price Range</label>
-              <div class="flex space-x-2">
+              <div class="flex space-x-2" style="position: relative; z-index: 2;">
                 <input id="price-min" type="text" placeholder="MIN" class="w-1/2 p-2 border border-gray-300">
                 <input id="price-max" type="text" placeholder="MAX" class="w-1/2 p-2 border border-gray-300">
               </div>
-              <button id="apply-price-filter" type="button" style="width: 100%; margin-top: 8px; background-color: #084F6A; color: white; padding: 0.5rem; border-radius: 0.375rem; font-size: 1rem; font-weight: 500; border: none; cursor: pointer;">Apply</button>
+              <button id="apply-price-filter" type="button" style="width: 100%; margin-top: 8px; background-color: #084F6A; color: white; padding: 0.5rem; border-radius: 0.375rem; font-size: 1rem; font-weight: 500; border: none; cursor: pointer; position: relative; z-index: 2;">Apply</button>
             </div>
       
             <div class="mb-4">
               <label>Seller's Rating</label>
-              <div class="relative select-container">
-                <select id="rating-filter" class="w-full p-2 border border-gray-300 appearance-none">
+              <div class="custom-select-wrapper">
+                <div class="select-styled" id="rating-filter-styled"></div>
+                <i class="fas fa-chevron-down"></i>
+                <select id="rating-filter" class="hidden-select">
                   <option value="">All Ratings</option>
                   <option value="5">5 stars</option>
                   <option value="4">4 stars</option>
@@ -1696,33 +2157,35 @@ const ratingDisplay = `${starIcons} ${avgRatingDisplay} (${ratingObj.count})`;
                   <option value="2">2 stars</option>
                   <option value="1">1 star</option>
                 </select>
-                <i class="fas fa-chevron-down absolute right-2 top-3 text-gray-500"></i>
               </div>
             </div>
 
             <div class="mb-4">
               <label for="sort-filter">Sort By</label>
-              <div class="relative">
-                <select id="sort-filter" class="w-full p-2 border border-gray-300 appearance-none">
+              <div class="custom-select-wrapper">
+                <div class="select-styled" id="sort-filter-styled"></div>
+                <i class="fas fa-chevron-down"></i>
+                <select id="sort-filter" class="hidden-select">
                   <option value="newest">Newest First</option>
                   <option value="price-low-high">Price: Low to High</option>
                   <option value="price-high-low">Price: High to Low</option>
                   <option value="rating-high-low">Seller Rating: High to Low</option>
                   <option value="condition">Condition: Best First</option>
                 </select>
-                <i class="fas fa-chevron-down absolute right-2 top-3 text-gray-500"></i>
+                <i class="fas fa-chevron-down"></i>
               </div>
             </div>
       
             <div class="mb-4">
               <label>School From</label>
-              <div class="relative">
-                <select id="school-filter" class="w-full p-2 border border-gray-300 appearance-none">
+              <div class="custom-select-wrapper">
+                <div class="select-styled" id="school-filter-styled"></div>
+                <i class="fas fa-chevron-down"></i>
+                <select id="school-filter" class="hidden-select">
                   <option value="">All Schools</option>
                   <option value="Gordon College">Gordon College</option>
                   <option value="Columban College">Columban College</option>
                 </select>
-                <i class="fas fa-chevron-down absolute right-2 top-3 text-gray-500"></i>
               </div>
             </div>
               <script>
@@ -1731,6 +2194,7 @@ const ratingDisplay = `${starIcons} ${avgRatingDisplay} (${ratingObj.count})`;
                 const userSchool = localStorage.getItem("userSchool");
                 const searchInput = document.querySelector(".search-bar input");
                 const schoolFilter = document.getElementById("school-filter");
+                const schoolFilterStyled = document.getElementById("school-filter-styled");
                 const conditionFilter = document.getElementById("condition-filter");
                 const priceMinInput = document.getElementById("price-min");
                 const priceMaxInput = document.getElementById("price-max");
@@ -1755,6 +2219,11 @@ const ratingDisplay = `${starIcons} ${avgRatingDisplay} (${ratingObj.count})`;
                   schoolFilter.value = userSchool;
                 } else {
                   schoolFilter.value = ""; // default to All Schools if no match
+                }
+                // Update the styled div text to match the selected school filter option
+                if (schoolFilterStyled) {
+                  const selectedOption = schoolFilter.options[schoolFilter.selectedIndex];
+                  schoolFilterStyled.textContent = selectedOption ? selectedOption.textContent : "All Schools";
                 }
       
                 if (savedCondition) {
@@ -1844,14 +2313,15 @@ const ratingDisplay = `${starIcons} ${avgRatingDisplay} (${ratingObj.count})`;
       
             <div class="mb-4">
               <label>Condition</label>
-              <div class="relative">
-                <select id="condition-filter" class="w-full p-2 border border-gray-300 appearance-none">
+              <div class="custom-select-wrapper">
+                <div class="select-styled" id="condition-filter-styled"></div>
+                <i class="fas fa-chevron-down"></i>
+                <select id="condition-filter" class="hidden-select">
                   <option value="">All Conditions</option>
                   <option value="brand new">Brand New</option>
                   <option value="gently used">Gently Used</option>
                   <option value="heavily used">Heavily Used</option>
                 </select>
-                <i class="fas fa-chevron-down absolute right-2 top-3 text-gray-500"></i>
               </div>
             </div>
       
@@ -2649,9 +3119,21 @@ window.openFeedbackPopup = function(itemId, sellerId) {
 
     // Listen for messages from iframe to navigate profile inside modal iframe
     window.addEventListener('message', (event) => {
+      console.log('Message received in index.html:', event.data);
       if (!event.data) return;
 
-      if (event.data.type === 'navigateProfile') {
+      // Handle message to close the Post Item modal
+      if (event.data.type === 'closePostItemModal') {
+        console.log('Received closePostItemModal message, attempting to close modal.');
+        const modal = document.getElementById('postItemModal');
+        const iframe = document.getElementById('postItemIframe');
+        if (modal) {
+          modal.style.display = 'none';
+        }
+        if (iframe) {
+          iframe.src = ''; // Clear iframe source
+        }
+      } else if (event.data.type === 'navigateProfile') {
         const url = event.data.url;
         const modal = document.getElementById('detailedPostModal');
         const iframe = document.getElementById('detailedPostIframe');

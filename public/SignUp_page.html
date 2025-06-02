@@ -11,7 +11,7 @@
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
 
         body {
-            background-color: #F5F5F5;
+            background: linear-gradient(to right, #e0eafc, #cfdef3); /* Subtle blue gradient */
             display: flex;
             justify-content: center;
             align-items: center;
@@ -30,21 +30,25 @@
             max-width: 600px;
         }
 
-        .back-btn {
-            position: absolute;
-            top: 20px;
-            left: 20px;
+        #back-button {
             background-color: #074F6A;
             color: white;
             border: none;
-            padding: 12px 30px;
-            font-size: 16px;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             cursor: pointer;
-            border-radius: 5px;
-            font-weight: bold;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            padding: 0;
         }
 
-        .back-btn:hover {
+        #back-button:hover {
             background-color: #05394E;
         }
 
@@ -122,6 +126,13 @@
             border: 1px solid #ccc;
             border-radius: 5px;
             box-sizing: border-box;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease; /* Smooth transition for focus */
+        }
+        input:focus,
+        select:focus {
+            border-color: #074F6A; /* Highlight border on focus */
+            box-shadow: 0 0 0 3px rgba(7, 79, 106, 0.2); /* Subtle shadow on focus */
+            outline: none; /* Remove default outline */
         }
 
         .terms-container {
@@ -202,7 +213,9 @@
 </head>
 <body>
     <div class="container">
-        <button class="back-btn" onclick="location.href='Login_page.html'">Back</button>
+        <button id="back-button" title="Go Back">
+            <img src="Homepage_images/return-icon.png" alt="Return Icon" style="width: 16px; height: 16px; filter: invert(100%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(100%) contrast(100%);">
+        </button>
         <div class="signup-box">
             <img src="Login_images/LOGO.png" alt="CamFlea Logo" class="logo" />
             <h2>Create Your Account</h2>
@@ -478,6 +491,11 @@
                 }
             });
         }
+
+        // Add event listener for back button
+        document.getElementById('back-button').addEventListener('click', () => {
+            window.location.href = 'Login_page.html';
+        });
     </script>
 
     <div

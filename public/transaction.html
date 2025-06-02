@@ -144,13 +144,36 @@
 
         const supabase = createClient(supabaseUrl, supabaseKey);
 
+        function subscribeToTransactions() {
+            supabase
+                .channel('transactions_changes')
+                .on(
+                    'postgres_changes',
+                    {
+                        event: '*', // Listen for all events (INSERT, UPDATE, DELETE)
+                        schema: 'public',
+                        table: 'transactions'
+                    },
+                    (payload) => {
+                        console.log('Transaction change received:', payload);
+                        // Re-render all lists on any change to ensure real-time update
+                        renderCart();
+                        renderCurrentlyBuying();
+                        renderPurchasedItems();
+                    }
+                )
+                .subscribe();
+        }
+
         // Fetch transactions with status 'cart' and render
         async function fetchCartItems() {
-            const loggedInStudId = localStorage.getItem('stud_id');
-            if (!loggedInStudId) {
-                console.error('User not logged in');
+            const { data: { user }, error: userError } = await supabase.auth.getUser();
+            if (userError || !user) {
+                console.error('User not authenticated', userError);
                 return [];
             }
+            const userUuid = user.id;
+
             const { data, error } = await supabase
                 .from('transactions')
                 .select(`
@@ -175,7 +198,7 @@
                     )
                 `)
                 .eq('status', 'cart')
-                .eq('buyer_id', loggedInStudId);
+                .eq('buyer_uuid', userUuid);
 
             if (error) {
                 console.error('Error fetching cart items:', error);
@@ -296,11 +319,13 @@
 
         // Fetch transactions with status 'requested' and render
         async function fetchCurrentlyBuyingItems() {
-            const loggedInStudId = localStorage.getItem('stud_id');
-            if (!loggedInStudId) {
-                console.error('User not logged in');
+            const { data: { user }, error: userError } = await supabase.auth.getUser();
+            if (userError || !user) {
+                console.error('User not authenticated', userError);
                 return [];
             }
+            const userUuid = user.id;
+
             const { data, error } = await supabase
                 .from('transactions')
                 .select(`
@@ -324,7 +349,7 @@
                     )
                 `)
         .in('status', ['requested', 'sent', 'received'])
-        .eq('buyer_id', loggedInStudId);
+        .eq('buyer_uuid', userUuid);
 
             if (error) {
                 console.error('Error fetching currently buying items:', error);
@@ -674,250 +699,310 @@ window.markAsReceived = async function markAsReceived(transac_id) {
         window.location.href = 'Login_page.html';
         return;
     }
-    try {
-        // Get current authenticated user UUID
-        const { data: { user }, error: userError } = await supabase.auth.getUser();
-        if (userError || !user) {
-            console.error('User not authenticated', userError);
-            return;
-        }
-        const userUuid = user.id;
 
-        // Fetch transaction details to get item_id, seller_id, and current status
-        const { data: transaction, error: transError } = await supabase
-            .from('transactions')
-            .select('item_uuid, seller_id, status')
-            .eq('transac_id', transac_id)
-            .single();
+    // Confirmation popup similar to ViewProfile.html markAsSent
+    let markAsReceivedClicked = false;
+    if (markAsReceivedClicked) return;
+    markAsReceivedClicked = true;
 
-        if (transError || !transaction) {
-            console.error('Error fetching transaction details:', transError);
-            alert('Failed to fetch transaction details.');
-            return;
-        }
+    // Create popup overlay
+    const popupOverlay = document.createElement('div');
+    popupOverlay.id = 'popup-overlay';
+    popupOverlay.style.position = 'fixed';
+    popupOverlay.style.top = '0';
+    popupOverlay.style.left = '0';
+    popupOverlay.style.width = '100%';
+    popupOverlay.style.height = '100%';
+    popupOverlay.style.backgroundColor = 'rgba(0,0,0,0.5)';
+    popupOverlay.style.display = 'flex';
+    popupOverlay.style.justifyContent = 'center';
+    popupOverlay.style.alignItems = 'center';
+    popupOverlay.style.zIndex = '1000';
 
-        const itemId = transaction.item_uuid;
-        const sellerId = transaction.seller_id;
-        const currentStatus = transaction.status;
+    // Create popup box
+    const popupBox = document.createElement('div');
+    popupBox.style.backgroundColor = 'white';
+    popupBox.style.padding = '20px';
+    popupBox.style.borderRadius = '8px';
+    popupBox.style.textAlign = 'center';
+    popupBox.style.maxWidth = '300px';
+    popupBox.style.boxShadow = '0 2px 10px rgba(0,0,0,0.3)';
 
-        // Fetch item name for notification content
-        const { data: itemData, error: itemFetchError } = await supabase
-            .from('item')
-            .select('item_name')
-            .eq('item_id', itemId)
-            .single();
+    // Popup message
+    const message = document.createElement('p');
+    message.textContent = 'Are you sure you want to mark this item as delivered?';
+    message.style.marginBottom = '20px';
 
-        if (itemFetchError) {
-            console.error('Error fetching item name:', itemFetchError);
-        }
+    // Yes button
+    const yesButton = document.createElement('button');
+    yesButton.textContent = 'Yes';
+    yesButton.style.marginRight = '10px';
+    yesButton.style.padding = '10px 20px';
+    yesButton.style.backgroundColor = '#084F6A';
+    yesButton.style.color = 'white';
+    yesButton.style.border = 'none';
+    yesButton.style.borderRadius = '5px';
+    yesButton.style.cursor = 'pointer';
 
-        const itemName = itemData ? itemData.item_name : 'your item';
+    // No button
+    const noButton = document.createElement('button');
+    noButton.textContent = 'No';
+    noButton.style.padding = '10px 20px';
+    noButton.style.backgroundColor = '#ccc';
+    noButton.style.border = 'none';
+    noButton.style.borderRadius = '5px';
+    noButton.style.cursor = 'pointer';
 
-        // Map sellerId (stud_id) to seller UUID by querying student table for user_id, stud_fname, stud_lname
-        const { data: sellerStudent, error: sellerStudentError } = await supabase
-            .from('student')
-            .select('user_id, stud_fname, stud_lname')
-            .eq('stud_id', sellerId)
-            .single();
+    // Append buttons and message to popup box
+    popupBox.appendChild(message);
+    popupBox.appendChild(yesButton);
+    popupBox.appendChild(noButton);
 
-        let sellerUuid = null;
-        if (sellerStudentError || !sellerStudent) {
-            console.error('Error mapping seller stud_id to user_id:', sellerStudentError);
-            return; // Stop if UUID not found
-        } else {
-            sellerUuid = sellerStudent.user_id;
-        }
+    // Append popup box to overlay
+    popupOverlay.appendChild(popupBox);
 
-        // Determine new status and notification logic
-        let newStatus;
-        let sendNotification = false;
-        let notificationContent = '';
+    // Append overlay to body
+    document.body.appendChild(popupOverlay);
 
-        if (currentStatus === 'requested') {
-            newStatus = 'received';
-            sendNotification = true;
-            notificationContent = `The item ${itemName} has been marked as received by the buyer.`;
-        } else if (currentStatus === 'sent') {
-            newStatus = 'completed';
-            sendNotification = false;
-            notificationContent = `The item ${itemName} transaction has been completed by the buyer.`;
+    // No button closes popup
+    noButton.addEventListener('click', () => {
+        document.body.removeChild(popupOverlay);
+        markAsReceivedClicked = false;
+    });
 
-            // Add notification for buyer that transaction is complete and can provide feedback
-            const buyerUuid = userUuid; // logged-in user is buyer
-            const sellerName = sellerStudent ? `${sellerStudent.stud_fname} ${sellerStudent.stud_lname}` : 'the seller';
-            const notificationMessage = `The transaction with ${sellerName} is complete. You can now provide a feedback about the transaction.`;
+    // Yes button proceeds with existing markAsReceived logic
+    yesButton.addEventListener('click', async () => {
+        yesButton.disabled = true;
 
-            try {
-                // Check if a similar notification already exists to avoid duplicates
-                const { data: existingNotifications, error: existingError } = await supabase
-                    .from('notifications')
-                    .select('notification_id')
-                    .eq('receiver_uuid', buyerUuid)
-                    .eq('type', 'transaction_complete')
-                    .eq('item_id', itemId)
-                    .eq('sender_id', sellerId)
-                    .limit(1);
-
-                if (existingError) {
-                    console.error('Error checking existing notifications:', existingError);
-                }
-
-                if (!existingNotifications || existingNotifications.length === 0) {
-                    const { error: notifCompleteError } = await supabase
-                        .from('notifications')
-                        .insert({
-                            sender_uuid: sellerStudent ? sellerStudent.user_id : null,
-                            receiver_uuid: buyerUuid,
-                            sender_id: sellerId,
-                            receiver_id: studId,
-                            type: 'transaction_complete',
-                            content: notificationMessage,
-                            item_id: itemId,
-                            created_at: new Date().toISOString()
-                        });
-                    if (notifCompleteError) {
-                        console.error('Error inserting transaction complete notification:', notifCompleteError);
-                    }
-                } else {
-                    console.log('Transaction complete notification already exists, skipping duplicate insert.');
-                }
-            } catch (err) {
-                console.error('Exception inserting transaction complete notification:', err);
-            }
-        } else {
-            alert('Invalid transaction status for marking as received.');
-            return;
-        }
-
-        if (sendNotification) {
-            const { error: notifError } = await supabase
-                .from('notifications')
-                .insert({
-                    sender_uuid: userUuid,
-                    receiver_uuid: sellerUuid,
-                    sender_id: studId,
-                    receiver_id: sellerId,
-                    type: newStatus === 'completed' ? 'mark_completed' : 'mark_received',
-                    content: notificationContent,
-                    item_id: itemId,
-                    created_at: new Date().toISOString()
-                });
-
-            if (notifError) {
-                console.error('Error inserting notification:', notifError);
-            }
-        }
-
-        // Update the transactions table to set status to newStatus for this transaction
-        const { error: transUpdateError } = await supabase
-            .from('transactions')
-            .update({ status: newStatus })
-            .eq('transac_id', transac_id);
-
-        if (transUpdateError) {
-            console.error('Error updating transaction status:', transUpdateError);
-            alert('Failed to mark as received: ' + transUpdateError.message);
-            return;
-        } else {
-            console.log(`Transaction ${transac_id} status updated to ${newStatus}`);
-        }
-
-        // If transaction completed, update item status to sold via backend endpoint to bypass RLS
-        if (newStatus === 'completed') {
-            console.log('Calling backend endpoint to update item status to sold for item:', itemId);
-            try {
-                const response = await fetch(`/item/${itemId}/mark-sold`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${await supabase.auth.getSession().then(s => s.data.session?.access_token)}`
-                    }
-                });
-                const result = await response.json();
-                if (!result.success) {
-                    console.error('Backend failed to update item status:', result.message);
-                    alert('Failed to update item status to sold.');
-                    return;
-                } else {
-                    console.log('Item status updated to sold successfully via backend.');
-                }
-            } catch (err) {
-                console.error('Error calling backend to update item status:', err);
-                alert('Failed to update item status to sold.');
+        try {
+            // Get current authenticated user UUID
+            const { data: { user }, error: userError } = await supabase.auth.getUser();
+            if (userError || !user) {
+                console.error('User not authenticated', userError);
                 return;
             }
-            // Refresh UI after update
-            renderCurrentlyBuying();
-            renderPurchasedItems();
-        }
+            const userUuid = user.id;
 
-        showBanner(
-  newStatus === 'completed'
-    ? '✅ Transaction marked as completed successfully.'
-    : '✅ Item marked as received successfully.',
-  'success'
-);
+            // Fetch transaction details to get item_id, seller_id, and current status
+            const { data: transaction, error: transError } = await supabase
+                .from('transactions')
+                .select('item_uuid, seller_id, status')
+                .eq('transac_id', transac_id)
+                .single();
 
-function showBanner(message, type = "error") {
-    const errorMessage = document.getElementById("error-message");
+            if (transError || !transaction) {
+                console.error('Error fetching transaction details:', transError);
+                alert('Failed to fetch transaction details.');
+                return;
+            }
 
-    errorMessage.style.display = "block";
-    errorMessage.textContent = message;
+            const itemId = transaction.item_uuid;
+            const sellerId = transaction.seller_id;
+            const currentStatus = transaction.status;
 
-    if (type === "success") {
-        errorMessage.style.backgroundColor = "#2ecc71";
-    } else {
-        errorMessage.style.backgroundColor = "#e74c3c";
-    }
+            // Fetch item name for notification content
+            const { data: itemData, error: itemFetchError } = await supabase
+                .from('item')
+                .select('item_name')
+                .eq('item_id', itemId)
+                .single();
 
-    setTimeout(() => {
-        errorMessage.style.display = "none";
-    }, 3000);
-}
+            if (itemFetchError) {
+                console.error('Error fetching item name:', itemFetchError);
+            }
 
+            const itemName = itemData ? itemData.item_name : 'your item';
 
+            // Map sellerId (stud_id) to seller UUID by querying student table for user_id, stud_fname, stud_lname
+            const { data: sellerStudent, error: sellerStudentError } = await supabase
+                .from('student')
+                .select('user_id, stud_fname, stud_lname')
+                .eq('stud_id', sellerId)
+                .single();
 
-        // Update the button UI: find the button by transac_id and update text, disable it, and add note
-        const buttons = document.querySelectorAll('button');
-        buttons.forEach(button => {
-            if (button.onclick && button.onclick.toString().includes(`markAsReceived('${transac_id}')`)) {
-                button.textContent = 'Marked as Delivered';
-                button.disabled = true;
-                // Add note span if not already present
-                if (!button.nextElementSibling || !button.nextElementSibling.classList.contains('received-note')) {
-                    const noteSpan = document.createElement('span');
-                    noteSpan.textContent = " waiting for the seller's confirmation";
-                    noteSpan.className = 'received-note';
-                    noteSpan.style.color = '#555';
-                    noteSpan.style.marginLeft = '8px';
-                    button.parentNode.appendChild(noteSpan);
+            let sellerUuid = null;
+            if (sellerStudentError || !sellerStudent) {
+                console.error('Error mapping seller stud_id to user_id:', sellerStudentError);
+                return; // Stop if UUID not found
+            } else {
+                sellerUuid = sellerStudent.user_id;
+            }
+
+            // Determine new status and notification logic
+            let newStatus;
+            let sendNotification = false;
+            let notificationContent = '';
+
+            if (currentStatus === 'requested') {
+                newStatus = 'received';
+                sendNotification = true;
+                notificationContent = `The item ${itemName} has been marked as received by the buyer.`;
+            } else if (currentStatus === 'sent') {
+                newStatus = 'completed';
+                sendNotification = false;
+                notificationContent = `The item ${itemName} transaction has been completed by the buyer.`;
+
+                // Add notification for buyer that transaction is complete and can provide feedback
+                const buyerUuid = userUuid; // logged-in user is buyer
+                const sellerName = sellerStudent ? `${sellerStudent.stud_fname} ${sellerStudent.stud_lname}` : 'the seller';
+                const notificationMessage = `The transaction with ${sellerName} is complete. You can now provide a feedback about the transaction.`;
+
+                try {
+                    // Check if a similar notification already exists to avoid duplicates
+                    const { data: existingNotifications, error: existingError } = await supabase
+                        .from('notifications')
+                        .select('notification_id')
+                        .eq('receiver_uuid', buyerUuid)
+                        .eq('type', 'transaction_complete')
+                        .eq('item_id', itemId)
+                        .eq('sender_id', sellerId)
+                        .limit(1);
+
+                    if (existingError) {
+                        console.error('Error checking existing notifications:', existingError);
+                    }
+
+                    if (!existingNotifications || existingNotifications.length === 0) {
+                        const { error: notifCompleteError } = await supabase
+                            .from('notifications')
+                            .insert({
+                                sender_uuid: sellerStudent ? sellerStudent.user_id : null,
+                                receiver_uuid: buyerUuid,
+                                sender_id: sellerId,
+                                receiver_id: studId,
+                                type: 'transaction_complete',
+                                content: notificationMessage,
+                                item_id: itemId,
+                                created_at: new Date().toISOString()
+                            });
+                        if (notifCompleteError) {
+                            console.error('Error inserting transaction complete notification:', notifCompleteError);
+                        }
+                    } else {
+                        console.log('Transaction complete notification already exists, skipping duplicate insert.');
+                    }
+                } catch (err) {
+                    console.error('Exception inserting transaction complete notification:', err);
+                }
+            } else {
+                alert('Invalid transaction status for marking as received.');
+                return;
+            }
+
+            if (sendNotification) {
+                const { error: notifError } = await supabase
+                    .from('notifications')
+                    .insert({
+                        sender_uuid: userUuid,
+                        receiver_uuid: sellerUuid,
+                        sender_id: studId,
+                        receiver_id: sellerId,
+                        type: newStatus === 'completed' ? 'mark_completed' : 'mark_received',
+                        content: notificationContent,
+                        item_id: itemId,
+                        created_at: new Date().toISOString()
+                    });
+
+                if (notifError) {
+                    console.error('Error inserting notification:', notifError);
                 }
             }
-        });
 
-        // Refresh the lists to move item from Currently Buying to Purchased Items
-        await new Promise(resolve => setTimeout(resolve, 1000)); // increased wait to 1000ms for DB consistency
+            // Update the transactions table to set status to newStatus for this transaction
+            const { error: transUpdateError } = await supabase
+                .from('transactions')
+                .update({ status: newStatus })
+                .eq('transac_id', transac_id);
 
-        // Immediately remove the item from currentlyBuyingList DOM to avoid showing stale data
-const currentlyBuyingList = document.getElementById('currentlyBuyingList');
-        const li = currentlyBuyingList.querySelector(`li[data-item-id="${itemId}"]`);
-        if (li) {
-            const buttons = li.querySelectorAll('button');
-            buttons.forEach(btn => {
-                if (btn.textContent === 'Mark as Received') {
-                    btn.textContent = 'Marked as Received';
-                    btn.disabled = true;
-                    btn.style.backgroundColor = '#ccc';
-                    btn.style.cursor = 'not-allowed';
+            if (transUpdateError) {
+                console.error('Error updating transaction status:', transUpdateError);
+                alert('Failed to mark as received: ' + transUpdateError.message);
+                return;
+            } else {
+                console.log(`Transaction ${transac_id} status updated to ${newStatus}`);
+            }
+
+            // If transaction completed, update item status to sold via backend endpoint to bypass RLS
+            if (newStatus === 'completed') {
+                console.log('Calling backend endpoint to update item status to sold for item:', itemId);
+                try {
+                    const response = await fetch(`/item/${itemId}/mark-sold`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${await supabase.auth.getSession().then(s => s.data.session?.access_token)}`
+                        }
+                    });
+                    const result = await response.json();
+                    if (!result.success) {
+                        console.error('Backend failed to update item status:', result.message);
+                        alert('Failed to update item status to sold.');
+                        return;
+                    } else {
+                        console.log('Item status updated to sold successfully via backend.');
+                    }
+                } catch (err) {
+                    console.error('Error calling backend to update item status:', err);
+                    alert('Failed to update item status to sold.');
+                    return;
                 }
-            });
-        }
+                // Refresh UI after update
+                renderCurrentlyBuying();
+                renderPurchasedItems();
+            }
 
-        // ...rest of your code (refresh lists, etc.)...
-    } catch (err) {
-        console.error('Unexpected error marking as received:', err);
-        alert('Failed to mark as received due to unexpected error.');
+            showBanner(
+      newStatus === 'completed'
+        ? '✅ Transaction marked as completed successfully.'
+        : '✅ Item marked as received successfully.',
+      'success'
+    );
+
+    // Update the button UI: find the button by transac_id and update text, disable it, and add note
+    const buttons = document.querySelectorAll('button');
+    buttons.forEach(button => {
+        if (button.onclick && button.onclick.toString().includes(`markAsReceived('${transac_id}')`)) {
+            button.textContent = 'Marked as Delivered';
+            button.disabled = true;
+            // Add note span if not already present
+            if (!button.nextElementSibling || !button.nextElementSibling.classList.contains('received-note')) {
+                const noteSpan = document.createElement('span');
+                noteSpan.textContent = " waiting for the seller's confirmation";
+                noteSpan.className = 'received-note';
+                noteSpan.style.color = '#555';
+                noteSpan.style.marginLeft = '8px';
+                button.parentNode.appendChild(noteSpan);
+            }
+        }
+    });
+
+    // Refresh the lists to move item from Currently Buying to Purchased Items
+    await new Promise(resolve => setTimeout(resolve, 1000)); // increased wait to 1000ms for DB consistency
+
+    // Immediately remove the item from currentlyBuyingList DOM to avoid showing stale data
+    const currentlyBuyingList = document.getElementById('currentlyBuyingList');
+    const li = currentlyBuyingList.querySelector(`li[data-item-id="${itemId}"]`);
+    if (li) {
+        const buttons = li.querySelectorAll('button');
+        buttons.forEach(btn => {
+            if (btn.textContent === 'Mark as Received') {
+                btn.textContent = 'Marked as Received';
+                btn.disabled = true;
+                btn.style.backgroundColor = '#ccc';
+                btn.style.cursor = 'not-allowed';
+            }
+        });
     }
+
+    // ...rest of your code (refresh lists, etc.)...
+} catch (err) {
+    console.error('Unexpected error marking as received:', err);
+    alert('Failed to mark as received due to unexpected error.');
+} finally {
+    document.body.removeChild(popupOverlay);
+    markAsReceivedClicked = false;
+}
+});
 }
 
         // Function to open detailed post modal on main page (index.html)
@@ -951,11 +1036,13 @@ const currentlyBuyingList = document.getElementById('currentlyBuyingList');
 
         // Fetch transactions with status 'completed' and render purchased items
         async function fetchPurchasedItems() {
-            const loggedInStudId = localStorage.getItem('stud_id');
-            if (!loggedInStudId) {
-                console.error('User not logged in');
+            const { data: { user }, error: userError } = await supabase.auth.getUser();
+            if (userError || !user) {
+                console.error('User not authenticated', userError);
                 return [];
             }
+            const userUuid = user.id;
+
             const { data, error } = await supabase
                 .from('transactions')
                 .select(`
@@ -980,7 +1067,7 @@ const currentlyBuyingList = document.getElementById('currentlyBuyingList');
                     )
                 `)
                 .eq('status', 'completed')
-                .eq('buyer_id', loggedInStudId);
+                .eq('buyer_uuid', userUuid);
 
             if (error) {
                 console.error('Error fetching purchased items:', error);
@@ -1127,6 +1214,9 @@ const currentlyBuyingList = document.getElementById('currentlyBuyingList');
 
         // Call renderPurchasedItems on initial load and after relevant updates
         renderPurchasedItems();
+
+        // Subscribe to real-time transaction changes
+        subscribeToTransactions();
 
     </script>
 </body>
