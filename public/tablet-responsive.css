@@ -1,0 +1,724 @@
+/* Tablet-Optimized Responsive Design for CamFlea */
+/* Target: iPad and similar tablets (768px - 1024px) */
+
+/* Enhanced Tablet Layout for Main Content (1024px - 769px) */
+@media screen and (max-width: 1024px) and (min-width: 769px) {
+    /* Navbar Improvements */
+    .navbar {
+        padding: 8px 15px !important;
+        height: 80px !important;
+        min-height: 80px !important;
+    }
+    
+    .main-content {
+        padding-left: 80px !important;
+        gap: 20px !important;
+        max-width: 900px !important;
+    }
+    
+    .search-bar {
+        min-width: 350px !important;
+        flex-grow: 1;
+    }
+    
+    .search-bar input {
+        padding: 10px 35px 10px 15px !important;
+        font-size: 14px !important;
+    }
+    
+    .search-icon {
+        right: 10px !important;
+        padding: 6px 15px !important;
+    }
+    
+    .logo {
+        height: 40px !important;
+    }
+    
+    .ask-ai {
+        font-size: 16px !important;
+    }
+    
+    .ask-ai-icon {
+        height: 24px !important;
+        width: 24px !important;
+    }
+    
+    /* Profile and Notification Section */
+    .profile-section {
+        left: 15px !important;
+        top: 15px !important;
+        gap: 15px !important;
+    }
+    
+    .profile-section a {
+        font-size: 14px !important;
+        padding: 8px 12px !important;
+        white-space: nowrap;
+    }
+    
+    .notifications-container {
+        right: 15px !important;
+        top: 15px !important;
+        gap: 10px !important;
+    }
+    
+    .topbar-action-icons {
+        margin-left: 15px !important;
+        gap: 10px !important;
+    }
+    
+    .topbar-action-icons button {
+        width: 45px !important;
+        height: 45px !important;
+        font-size: 18px !important;
+    }
+    
+    .notification-badge {
+        width: 18px !important;
+        height: 18px !important;
+        font-size: 10px !important;
+        top: -6px !important;
+        right: -6px !important;
+    }
+    
+    /* Sidebar Improvements */
+    .search-filter-sidebar {
+        width: 200px !important;
+        padding: 15px !important;
+        font-size: 14px !important;
+    }
+    
+    .main-content:not(.navbar .main-content) {
+        max-width: calc(100% - 200px - 15px) !important;
+        padding-left: 10px !important;
+    }
+    
+    /* Item Cards - 2 per row for tablets */
+    .item-card {
+        width: calc(50% - 10px) !important;
+        min-width: 280px !important;
+        margin-bottom: 20px !important;
+    }
+    
+    .item-card img {
+        height: 180px !important;
+    }
+    
+    .item-card h3 {
+        font-size: 16px !important;
+        margin: 8px 0 !important;
+    }
+    
+    .item-card p {
+        font-size: 13px !important;
+        margin: 4px 0 !important;
+    }
+    
+    .price {
+        font-size: 16px !important;
+        font-weight: bold !important;
+    }
+    
+    /* Layout Spacing */
+    #items-container {
+        gap: 20px !important;
+        justify-content: flex-start !important;
+        margin-top: 140px !important;
+    }
+    
+    .content-container {
+        margin-top: 120px !important;
+        padding: 15px !important;
+    }
+    
+    /* Search Filter Improvements */
+    .search-filter-sidebar h3 {
+        font-size: 16px !important;
+        margin-bottom: 10px !important;
+    }
+    
+    .search-filter-sidebar label {
+        font-size: 13px !important;
+    }
+    
+    .search-filter-sidebar input,
+    .search-filter-sidebar select {
+        font-size: 13px !important;
+        padding: 6px 8px !important;
+    }
+    
+    .search-filter-sidebar button {
+        font-size: 14px !important;
+        padding: 8px 16px !important;
+    }
+}
+
+/* Portrait Tablet Specific (768px - 1024px in portrait) */
+@media screen and (max-width: 1024px) and (min-width: 769px) and (orientation: portrait) {
+    .item-card {
+        width: calc(50% - 15px) !important;
+        min-width: 250px !important;
+    }
+    
+    .search-filter-sidebar {
+        width: 180px !important;
+    }
+    
+    .main-content:not(.navbar .main-content) {
+        max-width: calc(100% - 180px - 15px) !important;
+    }
+}
+
+/* Landscape Tablet Specific (768px - 1024px in landscape) */
+@media screen and (max-width: 1024px) and (min-width: 769px) and (orientation: landscape) {
+    .item-card {
+        width: calc(33.333% - 15px) !important;
+        min-width: 220px !important;
+    }
+    
+    .search-bar {
+        min-width: 400px !important;
+    }
+    
+    .main-content {
+        padding-left: 100px !important;
+    }
+}
+
+/* Tablet-specific improvements for forms and modals */
+@media screen and (max-width: 1024px) and (min-width: 769px) {
+    /* Modal improvements */
+    #detailedPostModal > div {
+        width: 85% !important;
+        max-width: 800px !important;
+        height: 85% !important;
+    }
+    
+    /* Form improvements */
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="number"],
+    textarea,
+    select {
+        font-size: 16px !important; /* Prevents zoom on iOS */
+        padding: 10px 12px !important;
+    }
+    
+    /* Button improvements */
+    button {
+        min-height: 44px !important; /* Touch-friendly */
+        font-size: 14px !important;
+    }
+}
+
+/* Post Item Page Tablet Optimizations */
+@media screen and (max-width: 1024px) and (min-width: 769px) {
+    /* Post Item Form Container */
+    .bg-white.shadow-md.rounded.px-8.pt-6.pb-8.mb-4 {
+        max-width: 700px !important;
+        margin: 20px auto !important;
+        padding: 24px !important;
+    }
+    
+    /* Form Labels and Inputs */
+    .block.text-gray-700.text-sm.font-bold.mb-2 {
+        font-size: 14px !important;
+        margin-bottom: 8px !important;
+    }
+    
+    .shadow.appearance-none.border.rounded.w-full.py-2.px-3,
+    .shadow.appearance-none.border.rounded.w-full.py-2.px-3.text-gray-700.leading-tight {
+        padding: 12px 16px !important;
+        font-size: 16px !important;
+        min-height: 44px !important;
+    }
+    
+    /* Textarea */
+    textarea.shadow.appearance-none.border.rounded.w-full.py-2.px-3 {
+        padding: 12px 16px !important;
+        font-size: 16px !important;
+        min-height: 120px !important;
+    }
+    
+    /* File Input */
+    input[type="file"] {
+        padding: 10px !important;
+        font-size: 14px !important;
+    }
+    
+    /* Image Preview */
+    .image-preview {
+        margin-top: 15px !important;
+        gap: 15px !important;
+    }
+    
+    .image-preview img {
+        width: 120px !important;
+        height: 120px !important;
+        object-fit: cover !important;
+    }
+    
+    /* Submit Button */
+    .bg-blue-500.hover\\:bg-blue-700.text-white.font-bold.py-2.px-4.rounded,
+    .bg-green-500.hover\\:bg-green-700.text-white.font-bold.py-2.px-4.rounded {
+        padding: 12px 24px !important;
+        font-size: 16px !important;
+        min-height: 48px !important;
+        border-radius: 8px !important;
+    }
+    
+    /* Navigation Header */
+    .bg-gray-800.text-white.p-4 {
+        padding: 12px 20px !important;
+    }
+    
+    .text-lg.font-semibold {
+        font-size: 18px !important;
+    }
+    
+    /* Back Button */
+    .text-blue-400.hover\\:text-blue-600 {
+        font-size: 16px !important;
+        padding: 8px 12px !important;
+    }
+}
+
+/* Notification Page Tablet Optimizations */
+@media screen and (max-width: 1024px) and (min-width: 769px) {
+    /* Notification Container */
+    body {
+        max-width: 600px !important;
+        margin: 20px auto !important;
+        padding: 0 20px !important;
+    }
+    
+    /* Notification Items */
+    .notification-item {
+        padding: 16px !important;
+        margin-bottom: 12px !important;
+        border-radius: 8px !important;
+        font-size: 15px !important;
+    }
+    
+    /* Notification Header */
+    h1 {
+        font-size: 24px !important;
+        margin-bottom: 24px !important;
+    }
+    
+    /* Notification Actions */
+    .notification-actions button {
+        padding: 10px 16px !important;
+        font-size: 14px !important;
+        min-height: 40px !important;
+        margin: 4px !important;
+    }
+    
+    /* Back Button */
+    .back-button {
+        font-size: 16px !important;
+        padding: 10px 16px !important;
+        margin-bottom: 20px !important;
+    }
+    
+    /* Transaction Buttons */
+    .complete-transaction-btn,
+    .transaction-button {
+        min-width: 120px !important;
+        padding: 10px 16px !important;
+        font-size: 14px !important;
+        margin: 6px !important;
+    }
+}
+
+/* Message Page Tablet Optimizations */
+@media screen and (max-width: 1024px) and (min-width: 769px) {
+    /* Message Container */
+    .message-container {
+        max-width: 700px !important;
+        margin: 0 auto !important;
+        padding: 15px !important;
+    }
+    
+    /* Message Input */
+    .message-input {
+        padding: 12px 16px !important;
+        font-size: 16px !important;
+        min-height: 44px !important;
+    }
+    
+    /* Send Button */
+    .send-button {
+        min-width: 80px !important;
+        padding: 12px 16px !important;
+        font-size: 14px !important;
+    }
+    
+    /* Message Bubbles */
+    .message-bubble {
+        max-width: 70% !important;
+        padding: 12px 16px !important;
+        font-size: 15px !important;
+        margin: 8px 0 !important;
+    }
+}
+
+/* Login/Signup Pages Tablet Optimizations */
+@media screen and (max-width: 1024px) and (min-width: 769px) {
+    /* Login Container */
+    .login-container {
+        max-width: 450px !important;
+        padding: 30px !important;
+        margin: 20px !important;
+    }
+    
+    /* Login Form Elements */
+    .login-container input[type="email"],
+    .login-container input[type="password"],
+    .login-container input[type="text"] {
+        padding: 12px 16px !important;
+        font-size: 16px !important;
+        min-height: 44px !important;
+        margin-bottom: 16px !important;
+    }
+    
+    /* Login Button */
+    .login-container button[type="submit"],
+    .login-container .login-button {
+        padding: 14px 20px !important;
+        font-size: 16px !important;
+        min-height: 48px !important;
+        border-radius: 8px !important;
+    }
+    
+    /* Logo */
+    .login-container img {
+        max-width: 150px !important;
+        margin-bottom: 24px !important;
+    }
+    
+    /* Links */
+    .login-container a {
+        font-size: 14px !important;
+        padding: 8px !important;
+    }
+    
+    /* Signup Container */
+    .signup-container {
+        max-width: 500px !important;
+        padding: 30px !important;
+    }
+    
+    /* Error Messages */
+    .error-message,
+    .success-message {
+        padding: 12px 16px !important;
+        font-size: 14px !important;
+        border-radius: 6px !important;
+    }
+}
+
+/* Admin Panel Tablet Optimizations */
+@media screen and (max-width: 1024px) and (min-width: 769px) {
+    /* Admin Navigation */
+    .admin-nav {
+        padding: 12px 20px !important;
+        gap: 15px !important;
+    }
+    
+    .admin-nav a {
+        padding: 10px 16px !important;
+        font-size: 14px !important;
+    }
+    
+    /* Admin Tables */
+    .admin-table {
+        font-size: 14px !important;
+    }
+    
+    .admin-table th,
+    .admin-table td {
+        padding: 10px 12px !important;
+    }
+    
+    /* Admin Buttons */
+    .admin-button {
+        padding: 8px 12px !important;
+        font-size: 13px !important;
+        margin: 2px !important;
+    }
+    
+    /* Admin Cards */
+    .admin-card {
+        padding: 16px !important;
+        margin: 8px !important;
+        border-radius: 8px !important;
+    }
+}
+
+/* Detailed Post Modal Tablet Optimizations */
+@media screen and (max-width: 1024px) and (min-width: 769px) {
+    /* Modal Container */
+    #detailedPostModal > div {
+        width: 90% !important;
+        max-width: 850px !important;
+        height: 88% !important;
+        border-radius: 12px !important;
+    }
+    
+    /* Close Button */
+    #detailedPostModal #closeDetailedPostModal {
+        padding: 10px 14px !important;
+        font-size: 18px !important;
+        border-radius: 6px !important;
+    }
+    
+    /* Product Images */
+    .product-image {
+        max-height: 300px !important;
+        border-radius: 8px !important;
+    }
+    
+    /* Product Details */
+    .product-details h1 {
+        font-size: 22px !important;
+        margin-bottom: 12px !important;
+    }
+    
+    .product-details .price {
+        font-size: 20px !important;
+        margin-bottom: 16px !important;
+    }
+    
+    .product-details p {
+        font-size: 15px !important;
+        line-height: 1.5 !important;
+        margin-bottom: 10px !important;
+    }
+    
+    /* Action Buttons in Modal */
+    .modal-action-button {
+        padding: 12px 20px !important;
+        font-size: 16px !important;
+        min-height: 48px !important;
+        border-radius: 8px !important;
+        margin: 6px !important;
+    }
+}
+
+/* Conversation/Message List Tablet Optimizations */
+@media screen and (max-width: 1024px) and (min-width: 769px) {
+    /* Conversation Container */
+    .conversation-container {
+        max-width: 700px !important;
+        margin: 0 auto !important;
+        padding: 15px !important;
+    }
+    
+    /* Conversation Item */
+    .conversation-item {
+        padding: 16px !important;
+        margin-bottom: 12px !important;
+        border-radius: 10px !important;
+        font-size: 15px !important;
+    }
+    
+    /* User Avatar */
+    .user-avatar {
+        width: 50px !important;
+        height: 50px !important;
+        border-radius: 25px !important;
+    }
+    
+    /* Message Preview */
+    .message-preview {
+        font-size: 14px !important;
+        line-height: 1.4 !important;
+    }
+    
+    /* Timestamp */
+    .message-timestamp {
+        font-size: 12px !important;
+    }
+    
+    /* Unread Badge */
+    .unread-badge {
+        min-width: 24px !important;
+        height: 24px !important;
+        font-size: 12px !important;
+        border-radius: 12px !important;
+    }
+}
+
+/* Search Filter Sidebar Tablet Enhancements */
+@media screen and (max-width: 1024px) and (min-width: 769px) {
+    /* Filter Groups */
+    .filter-group {
+        margin-bottom: 20px !important;
+    }
+    
+    .filter-group h3 {
+        font-size: 16px !important;
+        margin-bottom: 12px !important;
+        font-weight: 600 !important;
+    }
+    
+    /* Filter Options */
+    .filter-option {
+        margin-bottom: 8px !important;
+    }
+    
+    .filter-option input[type="checkbox"] {
+        width: 16px !important;
+        height: 16px !important;
+        margin-right: 8px !important;
+    }
+    
+    .filter-option label {
+        font-size: 14px !important;
+        cursor: pointer !important;
+    }
+    
+    /* Price Range Inputs */
+    .price-range-inputs {
+        display: flex !important;
+        gap: 10px !important;
+        margin-top: 8px !important;
+    }
+    
+    .price-range-inputs input {
+        flex: 1 !important;
+        padding: 8px 10px !important;
+        font-size: 14px !important;
+        border-radius: 4px !important;
+    }
+    
+    /* Apply Filter Button */
+    .apply-filter-btn {
+        width: 100% !important;
+        padding: 12px !important;
+        font-size: 14px !important;
+        border-radius: 6px !important;
+        margin-top: 15px !important;
+    }
+}
+
+/* Tablet Touch and Interaction Improvements */
+@media screen and (max-width: 1024px) and (min-width: 769px) {
+    /* Ensure all clickable elements are touch-friendly */
+    a, button, input[type="submit"], input[type="button"], .clickable {
+        min-height: 44px !important;
+        min-width: 44px !important;
+    }
+    
+    /* Improve hover states for touch devices */
+    @media (hover: none) {
+        .item-card:hover {
+            transform: none !important;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15) !important;
+        }
+        
+        button:hover {
+            transform: none !important;
+        }
+    }
+    
+    /* Better spacing for touch targets */
+    .item-card {
+        margin-bottom: 20px !important;
+        cursor: pointer !important;
+    }
+    
+    /* Improve text selection on tablets */
+    .item-card h3,
+    .item-card p {
+        -webkit-user-select: none !important;
+        -moz-user-select: none !important;
+        -ms-user-select: none !important;
+        user-select: none !important;
+    }
+    
+    /* Better focus states for keyboard navigation */
+    input:focus,
+    textarea:focus,
+    select:focus,
+    button:focus {
+        outline: 2px solid #084F6A !important;
+        outline-offset: 2px !important;
+    }
+}
+
+/* Landscape vs Portrait specific adjustments */
+@media screen and (max-width: 1024px) and (min-width: 769px) and (orientation: landscape) {
+    /* More items per row in landscape */
+    .item-card {
+        width: calc(33.333% - 15px) !important;
+        min-width: 200px !important;
+    }
+    
+    /* Adjust sidebar for landscape */
+    .search-filter-sidebar {
+        width: 180px !important;
+    }
+    
+    .main-content:not(.navbar .main-content) {
+        max-width: calc(100% - 180px - 15px) !important;
+    }
+    
+    /* Compact navbar for landscape */
+    .navbar {
+        height: 70px !important;
+    }
+    
+    .main-content {
+        gap: 15px !important;
+    }
+}
+
+@media screen and (max-width: 1024px) and (min-width: 769px) and (orientation: portrait) {
+    /* Larger items in portrait */
+    .item-card {
+        width: calc(50% - 15px) !important;
+        min-width: 280px !important;
+    }
+    
+    /* Fuller sidebar in portrait */
+    .search-filter-sidebar {
+        width: 220px !important;
+    }
+    
+    .main-content:not(.navbar .main-content) {
+        max-width: calc(100% - 220px - 15px) !important;
+    }
+    
+    /* Taller navbar for better usability in portrait */
+    .navbar {
+        height: 85px !important;
+    }
+}
+
+/* Performance optimizations for tablets */
+@media screen and (max-width: 1024px) and (min-width: 769px) {
+    /* Reduce animations for better performance */
+    * {
+        transition-duration: 0.2s !important;
+    }
+    
+    /* Optimize image loading */
+    img {
+        image-rendering: optimizeQuality !important;
+    }
+    
+    /* Smooth scrolling */
+    html {
+        scroll-behavior: smooth !important;
+    }
+    
+    /* Prevent text size adjust on orientation change */
+    html {
+        -webkit-text-size-adjust: 100% !important;
+        -ms-text-size-adjust: 100% !important;
+    }
+}

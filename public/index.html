@@ -5,6 +5,7 @@
     <title>CamFlea</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="tablet-responsive.css">
 
     <style>
         body {
@@ -155,6 +156,95 @@
 
             .main-content:not(.navbar .main-content) {
                  max-width: calc(100% - 250px - 15px); /* Adjust max-width */
+            }
+        }
+
+        /* Enhanced Tablet Responsive Design (1024px - 769px) */
+        @media screen and (max-width: 1024px) and (min-width: 769px) {
+            .navbar {
+                padding: 8px 20px;
+                height: 80px;
+            }
+            
+            .main-content {
+                padding-left: 80px;
+                gap: 20px;
+                max-width: 900px;
+            }
+            
+            .search-bar {
+                min-width: 350px;
+                flex-grow: 1;
+            }
+            
+            .search-bar input {
+                padding: 10px 35px 10px 15px;
+                font-size: 14px;
+            }
+            
+            .search-icon {
+                right: 10px;
+                padding: 6px 15px;
+            }
+            
+            .logo {
+                height: 40px;
+            }
+            
+            .ask-ai {
+                font-size: 16px;
+            }
+            
+            .ask-ai-icon {
+                height: 24px;
+                width: 24px;
+            }
+            
+            .search-filter-sidebar {
+                width: 200px;
+                padding: 15px;
+                font-size: 14px;
+            }
+            
+            .main-content:not(.navbar .main-content) {
+                max-width: calc(100% - 200px - 15px);
+                padding-left: 10px;
+            }
+            
+            .item-card {
+                width: calc(50% - 10px);
+                min-width: 280px;
+                margin-bottom: 20px;
+            }
+            
+            .item-card img {
+                height: 180px;
+            }
+            
+            .item-card h3 {
+                font-size: 16px;
+                margin: 8px 0;
+            }
+            
+            .item-card p {
+                font-size: 13px;
+                margin: 4px 0;
+            }
+            
+            .price {
+                font-size: 16px !important;
+                font-weight: bold;
+            }
+            
+            #items-container {
+                gap: 20px;
+                justify-content: flex-start;
+                margin-top: 120px;
+            }
+            
+            .content-container {
+                margin-top: 100px;
+                padding: 15px;
             }
         }
 
