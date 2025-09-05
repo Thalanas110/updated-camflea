@@ -9,7 +9,7 @@ const path = require("path");
 const { createClient } = require("@supabase/supabase-js");
 
 const app = express();
-const port = 5000;
+const port = process.env.PORT || 5001;
 
 // Supabase setup
 const supabaseUrl = process.env.SUPABASE_URL;
@@ -671,6 +671,10 @@ app.post('/complete-transaction', authenticateToken, async (req, res) => {
 });
 
 // Start the server
-app.listen(port, () => {
-    console.log(`Server running on port ${port}`);
-});
+if (process.env.NODE_ENV !== 'production') {
+    app.listen(port, () => {
+        console.log(`Server running on port ${port}`);
+    });
+}
+
+module.exports = app;

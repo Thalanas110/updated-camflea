@@ -2,7 +2,7 @@
   "version": 2,
   "builds": [
     {
-      "src": "server.js",
+      "src": "api/index.js",
       "use": "@vercel/node"
     },
     {
@@ -12,28 +12,37 @@
   ],
   "routes": [
     {
+      "src": "/api/(.*)",
+      "dest": "/api/index.js"
+    },
+    {
       "src": "/notifications(.*)",
-      "dest": "server.js"
+      "dest": "/api/index.js"
     },
     {
       "src": "/item/(.*)",
-      "dest": "server.js"
+      "dest": "/api/index.js"
     },
     {
       "src": "/post-item",
-      "dest": "server.js"
+      "dest": "/api/index.js"
     },
     {
       "src": "/student-info",
-      "dest": "server.js"
+      "dest": "/api/index.js"
     },
     {
       "src": "/complete-transaction",
-      "dest": "server.js"
+      "dest": "/api/index.js"
     },
     {
       "src": "/(.*)",
       "dest": "/public/$1"
     }
-  ]
+  ],
+  "functions": {
+    "api/index.js": {
+      "maxDuration": 30
+    }
+  }
 }
