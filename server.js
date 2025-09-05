@@ -20,7 +20,22 @@ const supabaseClient = createClient(supabaseUrl, supabaseKey, {
     persistSession: true, // Ensures session persistence across page reloads
 });
 
-app.use(cors());
+// Configure CORS for production
+const corsOptions = {
+    origin: [
+        'http://localhost:5001',
+        'http://localhost:3000',
+        'https://camflea.vercel.app',
+        'https://updated-camflea.vercel.app',
+        'https://updated-camflea-thalanas110s-projects.vercel.app',
+        /\.vercel\.app$/
+    ],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+};
+
+app.use(cors(corsOptions));
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -174,6 +189,41 @@ app.post('/notifications/:notif_id/read', authenticateToken, async (req, res) =>
         res.json({ success: true, notification: data });
     } catch (err) {
         console.error('Server error updating notification:', err);
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
+
+// Signup route
+app.post('/signup', async (req, res) => {
+    try {
+        const { fname, lname, email, password, school, phone } = req.body;
+        
+        // Sign up the user with Supabase Auth
+        const { data, error } = await supabaseClient.auth.signUp({
+            email: email,
+            password: password,
+            options: {
+                data: {
+                    first_name: fname,
+                    last_name: lname,
+                    school: school,
+                    phone: phone
+                }
+            }
+        });
+
+        if (error) {
+            console.error('Signup error:', error);
+            return res.status(400).json({ success: false, message: error.message });
+        }
+
+        res.json({ 
+            success: true, 
+            message: 'Account created successfully! Please check your email to verify your account.',
+            user: data.user 
+        });
+    } catch (err) {
+        console.error('Server error during signup:', err);
         res.status(500).json({ success: false, message: err.message });
     }
 });

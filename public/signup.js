@@ -9,7 +9,7 @@ document.getElementById('signupForm').addEventListener('submit', async (event) =
     const phone = document.getElementById('phoneNumber').value;
 
 
-    const response = await fetch('https://camflea.vercel.app//signup', {
+    const response = await fetch('/signup', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

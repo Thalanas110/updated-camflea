@@ -31,6 +31,10 @@
       "dest": "/api/index.js"
     },
     {
+      "src": "/signup",
+      "dest": "/api/index.js"
+    },
+    {
       "src": "/student-info",
       "dest": "/api/index.js"
     },

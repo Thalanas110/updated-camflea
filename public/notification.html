@@ -262,7 +262,7 @@ else {
         }
         const token = session.access_token;
 
-        const response = await fetch('https://camflea.vercel.app//notifications', {
+        const response = await fetch('/notifications', {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${token}`
