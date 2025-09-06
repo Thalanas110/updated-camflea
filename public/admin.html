@@ -227,12 +227,13 @@
         .stat-card {
             background: #ffffff !important;
             border: 2px solid #069210 !important;
-            border-radius: 20px !important;
-            padding: 25px !important;
-            box-shadow: 0 10px 30px rgba(6, 146, 16, 0.1) !important;
-            transition: all 0.3s ease !important;
+            border-radius: 25px !important;
+            padding: 30px !important;
+            box-shadow: 0 15px 35px rgba(6, 146, 16, 0.08), 0 5px 15px rgba(0, 0, 0, 0.05) !important;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
             position: relative;
             overflow: hidden;
+            backdrop-filter: blur(10px);
         }
         
         .stat-card::before {
@@ -241,27 +242,46 @@
             top: 0;
             left: 0;
             right: 0;
-            height: 4px;
-            background: #069210;
+            height: 6px;
+            background: linear-gradient(90deg, #069210, #34eb5b, #069210);
+            border-radius: 25px 25px 0 0;
         }
         
         .stat-card:hover {
-            box-shadow: 0 15px 40px rgba(6, 146, 16, 0.2) !important;
-            transform: translateY(-5px) !important;
+            box-shadow: 0 25px 50px rgba(6, 146, 16, 0.15), 0 10px 25px rgba(0, 0, 0, 0.1) !important;
+            transform: translateY(-8px) scale(1.02) !important;
+            border-color: #34eb5b !important;
         }
         
         .stat-card h3 {
             color: #333 !important;
-            font-size: 1.2rem !important;
-            font-weight: 600 !important;
-            margin-bottom: 20px !important;
-            margin-top: 0 !important;
+            font-size: 1.4rem !important;
+            font-weight: 700 !important;
+            margin-bottom: 25px !important;
+            margin-top: 5px !important;
+            text-align: center;
+            position: relative;
+            padding-bottom: 10px;
+        }
+
+        .stat-card h3::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 3px;
+            background: linear-gradient(90deg, #069210, #34eb5b);
+            border-radius: 2px;
         }
         
         .stat-card canvas {
             max-width: 100% !important;
-            height: 200px !important;
-            margin-bottom: 15px;
+            height: 280px !important;
+            margin-bottom: 20px;
+            border-radius: 15px;
+            filter: drop-shadow(0 5px 15px rgba(6, 146, 16, 0.1));
         }
         
         .stat-list {
@@ -396,7 +416,7 @@
                 <div class="stat-card" id="itemStatsCard">
                     <h3>Items by Type</h3>
                     <canvas id="itemsByTypeChart"></canvas>
-                    <ul class="stat-list" id="soldItemsStatsList">
+                    <ul class="stat-list" id="soldItemsStatsList" style="display:none;">
                         <li>Loading...</li>
                     </ul>
                 </div>
@@ -551,26 +571,61 @@
                         label: 'Users by School',
                         data: data,
                         backgroundColor: [
-                            'rgba(255, 99, 132, 0.7)',
-                            'rgba(54, 162, 235, 0.7)',
-                            'rgba(255, 206, 86, 0.7)',
-                            'rgba(75, 192, 192, 0.7)',
-                            'rgba(153, 102, 255, 0.7)',
-                            'rgba(255, 159, 64, 0.7)',
-                            'rgba(201, 203, 207, 0.7)'
+                            '#069210',
+                            '#34eb5b',
+                            '#ff6b6b',
+                            '#4ecdc4',
+                            '#45b7d1',
+                            '#f9ca24',
+                            '#6c5ce7',
+                            '#a55eea',
+                            '#fd79a8',
+                            '#00b894'
                         ],
-                        borderColor: 'rgba(255, 255, 255, 1)',
-                        borderWidth: 1
+                        borderColor: '#ffffff',
+                        borderWidth: 3,
+                        hoverBorderWidth: 5,
+                        hoverBorderColor: '#ffffff'
                     }]
                 },
                 options: {
                     responsive: true,
+                    maintainAspectRatio: false,
+                    layout: {
+                        padding: 20
+                    },
                     plugins: {
                         legend: {
-                            position: 'right',
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                usePointStyle: true,
+                                pointStyle: 'circle',
+                                font: {
+                                    family: 'Inter',
+                                    size: 12,
+                                    weight: '500'
+                                },
+                                color: '#333'
+                            }
                         },
                         tooltip: {
-                            enabled: false
+                            enabled: true,
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleColor: '#fff',
+                            bodyColor: '#fff',
+                            borderColor: '#069210',
+                            borderWidth: 1,
+                            cornerRadius: 8,
+                            titleFont: {
+                                family: 'Inter',
+                                size: 14,
+                                weight: '600'
+                            },
+                            bodyFont: {
+                                family: 'Inter',
+                                size: 12
+                            }
                         },
                         datalabels: {
                             display: function(context) {
@@ -578,22 +633,34 @@
                                 const total = dataset.data.reduce((sum, dataValue) => sum + dataValue, 0);
                                 const value = dataset.data[context.dataIndex];
                                 const percentage = total ? (value / total) * 100 : 0;
-                                return percentage > 5; // Always display labels
+                                return percentage > 3;
                             },
                             formatter: function(value, context) {
                                 const total = context.chart._metasets[context.datasetIndex].total;
-                                const percentage = total ? ((value / total) * 100).toFixed(2) : 0;
-                                return `${value} (${percentage}%)`;
+                                const percentage = total ? ((value / total) * 100).toFixed(1) : 0;
+                                return `${percentage}%`;
                             },
-                            color: '#000',
+                            color: '#ffffff',
                             font: {
-                                weight: 'bold',
-                                size: 12
+                                family: 'Inter',
+                                weight: '700',
+                                size: 11
                             },
-                            anchor: 'center', // Keep center for now, offset will push out
-                            offset: 25, // Increased offset
-                            clamp: true
+                            anchor: 'center',
+                            align: 'center',
+                            textStrokeColor: 'rgba(0, 0, 0, 0.5)',
+                            textStrokeWidth: 1
                         }
+                    },
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    },
+                    animation: {
+                        animateScale: true,
+                        animateRotate: true,
+                        duration: 1000,
+                        easing: 'easeOutQuart'
                     }
                 }
             });
@@ -619,30 +686,69 @@ function renderItemStats(itemsByType, soldItemsByType) {
             }
 
             window.itemsChart = new Chart(ctx, {
-                type: 'pie',
+                type: 'doughnut',
                 data: {
                     labels: labels,
                     datasets: [{
                         label: 'Items Listed',
                         data: data,
                         backgroundColor: [
-                            'rgba(255, 99, 132, 0.7)',
-                            'rgba(54, 162, 235, 0.7)',
-                            'rgba(255, 206, 86, 0.7)',
-                            'rgba(75, 192, 192, 0.7)',
-                            'rgba(153, 102, 255, 0.7)',
-                            'rgba(255, 159, 64, 0.7)',
-                            'rgba(201, 203, 207, 0.7)'
+                            '#069210',
+                            '#ff6b6b',
+                            '#4ecdc4',
+                            '#45b7d1',
+                            '#f9ca24',
+                            '#6c5ce7',
+                            '#a55eea',
+                            '#fd79a8',
+                            '#00b894',
+                            '#34eb5b'
                         ],
-                        borderColor: 'rgba(255, 255, 255, 1)',
-                        borderWidth: 1
+                        borderColor: '#ffffff',
+                        borderWidth: 3,
+                        hoverBorderWidth: 5,
+                        hoverBorderColor: '#ffffff',
+                        cutout: '50%'
                     }]
                 },
                 options: {
                     responsive: true,
+                    maintainAspectRatio: false,
+                    layout: {
+                        padding: 20
+                    },
                     plugins: {
                         legend: {
-                            position: 'right',
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                usePointStyle: true,
+                                pointStyle: 'circle',
+                                font: {
+                                    family: 'Inter',
+                                    size: 12,
+                                    weight: '500'
+                                },
+                                color: '#333'
+                            }
+                        },
+                        tooltip: {
+                            enabled: true,
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleColor: '#fff',
+                            bodyColor: '#fff',
+                            borderColor: '#069210',
+                            borderWidth: 1,
+                            cornerRadius: 8,
+                            titleFont: {
+                                family: 'Inter',
+                                size: 14,
+                                weight: '600'
+                            },
+                            bodyFont: {
+                                family: 'Inter',
+                                size: 12
+                            }
                         },
                         datalabels: {
                             display: function(context) {
@@ -650,22 +756,34 @@ function renderItemStats(itemsByType, soldItemsByType) {
                                 const total = dataset.data.reduce((sum, dataValue) => sum + dataValue, 0);
                                 const value = dataset.data[context.dataIndex];
                                 const percentage = total ? (value / total) * 100 : 0;
-                                return percentage > 5; // Always display labels
+                                return percentage > 3;
                             },
                             formatter: function(value, context) {
                                 const total = context.chart._metasets[context.datasetIndex].total;
-                                const percentage = total ? ((value / total) * 100).toFixed(2) : 0;
-                                return `${value} (${percentage}%)`;
+                                const percentage = total ? ((value / total) * 100).toFixed(1) : 0;
+                                return `${percentage}%`;
                             },
-                            color: '#000',
+                            color: '#ffffff',
                             font: {
-                                weight: 'bold',
-                                size: 12
+                                family: 'Inter',
+                                weight: '700',
+                                size: 11
                             },
                             anchor: 'center',
-                            offset: 25,
-                            clamp: true
+                            align: 'center',
+                            textStrokeColor: 'rgba(0, 0, 0, 0.5)',
+                            textStrokeWidth: 1
                         }
+                    },
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    },
+                    animation: {
+                        animateScale: true,
+                        animateRotate: true,
+                        duration: 1000,
+                        easing: 'easeOutQuart'
                     }
                 }
             });
@@ -682,30 +800,66 @@ function renderItemStats(itemsByType, soldItemsByType) {
             }
 
             window.transactionPieChart = new Chart(ctx, {
-                type: 'pie',
+                type: 'doughnut',
                 data: {
                     labels: labels,
                     datasets: [{
                         label: 'Transactions by Status',
                         data: data,
                         backgroundColor: [
-                            'rgba(255, 99, 132, 0.7)',
-                            'rgba(54, 162, 235, 0.7)',
-                            'rgba(255, 206, 86, 0.7)',
-                            'rgba(75, 192, 192, 0.7)',
-                            'rgba(153, 102, 255, 0.7)',
-                            'rgba(255, 159, 64, 0.7)',
-                            'rgba(201, 203, 207, 0.7)'
+                            '#ff6b6b',    // pending - red
+                            '#069210',    // completed - green
+                            '#95a5a6',    // cancelled - gray
+                            '#f9ca24',    // reserved - yellow
+                            '#6c5ce7',    // additional colors
+                            '#a55eea',
+                            '#fd79a8'
                         ],
-                        borderColor: 'rgba(255, 255, 255, 1)',
-                        borderWidth: 1
+                        borderColor: '#ffffff',
+                        borderWidth: 3,
+                        hoverBorderWidth: 5,
+                        hoverBorderColor: '#ffffff',
+                        cutout: '60%'
                     }]
                 },
                 options: {
                     responsive: true,
+                    maintainAspectRatio: false,
+                    layout: {
+                        padding: 20
+                    },
                     plugins: {
                         legend: {
-                            position: 'right',
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                usePointStyle: true,
+                                pointStyle: 'circle',
+                                font: {
+                                    family: 'Inter',
+                                    size: 12,
+                                    weight: '500'
+                                },
+                                color: '#333'
+                            }
+                        },
+                        tooltip: {
+                            enabled: true,
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleColor: '#fff',
+                            bodyColor: '#fff',
+                            borderColor: '#069210',
+                            borderWidth: 1,
+                            cornerRadius: 8,
+                            titleFont: {
+                                family: 'Inter',
+                                size: 14,
+                                weight: '600'
+                            },
+                            bodyFont: {
+                                family: 'Inter',
+                                size: 12
+                            }
                         },
                         datalabels: {
                             display: function(context) {
@@ -713,22 +867,34 @@ function renderItemStats(itemsByType, soldItemsByType) {
                                 const total = dataset.data.reduce((sum, dataValue) => sum + dataValue, 0);
                                 const value = dataset.data[context.dataIndex];
                                 const percentage = total ? (value / total) * 100 : 0;
-                                return percentage > 5; // Always display labels
+                                return percentage > 3;
                             },
                             formatter: function(value, context) {
                                 const total = context.chart._metasets[context.datasetIndex].total;
-                                const percentage = total ? ((value / total) * 100).toFixed(2) : 0;
-                                return `${value} (${percentage}%)`;
+                                const percentage = total ? ((value / total) * 100).toFixed(1) : 0;
+                                return `${percentage}%`;
                             },
-                            color: '#000',
+                            color: '#ffffff',
                             font: {
-                                weight: 'bold',
-                                size: 12
+                                family: 'Inter',
+                                weight: '700',
+                                size: 11
                             },
                             anchor: 'center',
-                            offset: 25,
-                            clamp: true
+                            align: 'center',
+                            textStrokeColor: 'rgba(0, 0, 0, 0.5)',
+                            textStrokeWidth: 1
                         }
+                    },
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    },
+                    animation: {
+                        animateScale: true,
+                        animateRotate: true,
+                        duration: 1000,
+                        easing: 'easeOutQuart'
                     }
                 }
             });
@@ -781,33 +947,69 @@ function renderItemStats(itemsByType, soldItemsByType) {
             }
 
             window.reportPieChart = new Chart(ctx, {
-                type: 'pie',
+                type: 'doughnut',
                 data: {
                     labels: labels,
                     datasets: [{
                         label: 'Reports by Violation Type',
                         data: data,
                         backgroundColor: [
-                            'rgba(255, 99, 132, 0.7)',
-                            'rgba(54, 162, 235, 0.7)',
-                            'rgba(255, 206, 86, 0.7)',
-                            'rgba(75, 192, 192, 0.7)',
-                            'rgba(153, 102, 255, 0.7)',
-                            'rgba(255, 159, 64, 0.7)',
-                            'rgba(201, 203, 207, 0.7)'
+                            '#ff6b6b',    // fake listings - red
+                            '#45b7d1',    // price manipulation - blue
+                            '#f9ca24',    // identity theft - yellow
+                            '#6c5ce7',    // misinformation - purple
+                            '#069210',    // non-compliance - green
+                            '#a55eea',    // chargeback abuse - light purple
+                            '#95a5a6',    // other - gray
+                            '#fd79a8',    // additional colors
+                            '#00b894',
+                            '#4ecdc4'
                         ],
-                        borderColor: 'rgba(255, 255, 255, 1)',
-                        borderWidth: 1
+                        borderColor: '#ffffff',
+                        borderWidth: 3,
+                        hoverBorderWidth: 5,
+                        hoverBorderColor: '#ffffff',
+                        cutout: '55%'
                     }]
                 },
                 options: {
                     responsive: true,
+                    maintainAspectRatio: false,
+                    layout: {
+                        padding: 20
+                    },
                     plugins: {
                         legend: {
-                            position: 'right',
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                usePointStyle: true,
+                                pointStyle: 'circle',
+                                font: {
+                                    family: 'Inter',
+                                    size: 12,
+                                    weight: '500'
+                                },
+                                color: '#333'
+                            }
                         },
                         tooltip: {
-                            enabled: false
+                            enabled: true,
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleColor: '#fff',
+                            bodyColor: '#fff',
+                            borderColor: '#069210',
+                            borderWidth: 1,
+                            cornerRadius: 8,
+                            titleFont: {
+                                family: 'Inter',
+                                size: 14,
+                                weight: '600'
+                            },
+                            bodyFont: {
+                                family: 'Inter',
+                                size: 12
+                            }
                         },
                         datalabels: {
                             display: function(context) {
@@ -815,22 +1017,34 @@ function renderItemStats(itemsByType, soldItemsByType) {
                                 const total = dataset.data.reduce((sum, dataValue) => sum + dataValue, 0);
                                 const value = dataset.data[context.dataIndex];
                                 const percentage = total ? (value / total) * 100 : 0;
-                                return percentage > 5; // Only display if percentage is greater than 5%
+                                return percentage > 3;
                             },
                             formatter: function(value, context) {
                                 const total = context.chart._metasets[context.datasetIndex].total;
-                                const percentage = total ? ((value / total) * 100).toFixed(2) : 0;
-                                return `${value} (${percentage}%)`;
+                                const percentage = total ? ((value / total) * 100).toFixed(1) : 0;
+                                return `${percentage}%`;
                             },
-                            color: '#000',
+                            color: '#ffffff',
                             font: {
-                                weight: 'bold',
-                                size: 12
+                                family: 'Inter',
+                                weight: '700',
+                                size: 11
                             },
                             anchor: 'center',
-                            offset: 25,
-                            clamp: true
+                            align: 'center',
+                            textStrokeColor: 'rgba(0, 0, 0, 0.5)',
+                            textStrokeWidth: 1
                         }
+                    },
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    },
+                    animation: {
+                        animateScale: true,
+                        animateRotate: true,
+                        duration: 1000,
+                        easing: 'easeOutQuart'
                     }
                 }
             });
@@ -889,21 +1103,58 @@ function renderItemStats(itemsByType, soldItemsByType) {
                         label: 'Items by Status',
                         data: data,
                         backgroundColor: [
-                            'rgba(0, 123, 255, 0.7)',   // Blue for 'available'
-                            'rgba(255, 99, 132, 0.7)',  // Red/pink for 'sold'
-                            'rgba(201, 203, 207, 0.7)', // Light grey for 'pending'
-                            'rgba(255, 206, 86, 0.7)',  // Yellow for 'cancelled'
-                            'rgba(153, 102, 255, 0.7)'  // Purple for 'reserved'
+                            '#45b7d1',   // Blue for 'available'
+                            '#069210',   // Green for 'sold' 
+                            '#f9ca24',   // Yellow for 'pending'
+                            '#95a5a6',   // Gray for 'cancelled'
+                            '#6c5ce7',   // Purple for 'reserved'
+                            '#ff6b6b',   // Red for additional
+                            '#a55eea'    // Light purple
                         ],
-                        borderColor: 'rgba(255, 255, 255, 1)',
-                        borderWidth: 1
+                        borderColor: '#ffffff',
+                        borderWidth: 3,
+                        hoverBorderWidth: 5,
+                        hoverBorderColor: '#ffffff'
                     }]
                 },
                 options: {
                     responsive: true,
+                    maintainAspectRatio: false,
+                    layout: {
+                        padding: 20
+                    },
                     plugins: {
                         legend: {
-                            position: 'right',
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                usePointStyle: true,
+                                pointStyle: 'circle',
+                                font: {
+                                    family: 'Inter',
+                                    size: 12,
+                                    weight: '500'
+                                },
+                                color: '#333'
+                            }
+                        },
+                        tooltip: {
+                            enabled: true,
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleColor: '#fff',
+                            bodyColor: '#fff',
+                            borderColor: '#069210',
+                            borderWidth: 1,
+                            cornerRadius: 8,
+                            titleFont: {
+                                family: 'Inter',
+                                size: 14,
+                                weight: '600'
+                            },
+                            bodyFont: {
+                                family: 'Inter',
+                                size: 12
+                            }
                         },
                         datalabels: {
                             display: function(context) {
@@ -911,22 +1162,34 @@ function renderItemStats(itemsByType, soldItemsByType) {
                                 const total = dataset.data.reduce((sum, dataValue) => sum + dataValue, 0);
                                 const value = dataset.data[context.dataIndex];
                                 const percentage = total ? (value / total) * 100 : 0;
-                                return percentage > 5; // Only display if percentage is greater than 5%
+                                return percentage > 3;
                             },
                             formatter: function(value, context) {
                                 const total = context.chart._metasets[context.datasetIndex].total;
-                                const percentage = total ? ((value / total) * 100).toFixed(2) : 0;
-                                return `${value} (${percentage}%)`;
+                                const percentage = total ? ((value / total) * 100).toFixed(1) : 0;
+                                return `${percentage}%`;
                             },
-                            color: '#000',
+                            color: '#ffffff',
                             font: {
-                                weight: 'bold',
-                                size: 12
+                                family: 'Inter',
+                                weight: '700',
+                                size: 11
                             },
                             anchor: 'center',
-                            offset: 25,
-                            clamp: true
+                            align: 'center',
+                            textStrokeColor: 'rgba(0, 0, 0, 0.5)',
+                            textStrokeWidth: 1
                         }
+                    },
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    },
+                    animation: {
+                        animateScale: true,
+                        animateRotate: true,
+                        duration: 1000,
+                        easing: 'easeOutQuart'
                     }
                 }
             });
