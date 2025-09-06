@@ -317,12 +317,34 @@ class AdminAuth {
     async logout() {
         try {
             if (this.supabase) {
-                await this.supabase.auth.signOut();
+                // Sign out from Supabase auth
+                const { error } = await this.supabase.auth.signOut();
+                if (error) {
+                    console.error('Supabase logout error:', error);
+                }
             }
+            
+            // Clear all local storage and session storage
+            localStorage.clear();
+            sessionStorage.clear();
+            
+            // Clear any cookies (if any)
+            document.cookie.split(";").forEach(function(c) { 
+                document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+            });
+            
+            // Clear any cached auth data
+            if (window.supabase) {
+                window.supabase = null;
+            }
+            
+            console.log('Complete logout successful');
+            
         } catch (error) {
             console.error('Logout error:', error);
         } finally {
-            window.location.href = 'Login_page.html';
+            // Force redirect to login with cache busting
+            window.location.href = 'Login_page.html?t=' + Date.now();
         }
     }
 }
