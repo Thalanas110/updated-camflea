@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="tablet-responsive.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="admin-auth.js"></script>
     <style>
         * {
             margin: 0;
@@ -1212,7 +1213,8 @@ function renderItemStats(itemsByType, soldItemsByType) {
             renderReportStats(reportStats);
         }
 
-        window.addEventListener('DOMContentLoaded', () => {
+        // Wait for authentication before loading dashboard
+        document.addEventListener('adminAuthComplete', () => {
             loadStatistics();
         });
     </script>
@@ -1272,6 +1274,23 @@ function renderItemStats(itemsByType, soldItemsByType) {
                     window.location.href = button.getAttribute('data-page');
                 });
             });
+        });
+    </script>
+    
+    <script>
+        // Handle logout button
+        document.addEventListener('DOMContentLoaded', () => {
+            const logoutBtn = document.getElementById('logoutBtn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    if (window.adminAuth) {
+                        await window.adminAuth.logout();
+                    } else {
+                        window.location.href = 'Login_page.html';
+                    }
+                });
+            }
         });
     </script>
 </body>
