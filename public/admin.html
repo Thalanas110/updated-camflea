@@ -5,68 +5,282 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Admin Dashboard - CamFlea</title>
     <link rel="stylesheet" href="tablet-responsive.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f2f2f2;
-            margin: 0;
-            padding: 20px;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #ffffff;
+            min-height: 100vh;
+            color: #333;
         }
+        
         header {
-            background-color: #084F6A;
+            background: #34eb5b;
+            box-shadow: 0 4px 20px rgba(52, 235, 91, 0.3);
             color: white;
-            padding: 15px 20px;
+            padding: 25px 30px;
             text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
-        main {
-            margin-top: 20px;
-        }
+        
         h1 {
-            margin: 0;
+            font-size: 2rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
         }
+        
+        h1::before {
+            content: '\f3ed';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            color: #ffffff;
+        }
+        
+        main {
+            margin: 30px;
+            max-width: 1400px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+        
         .content {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            background: #ffffff;
+            border: 2px solid #34eb5b;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(52, 235, 91, 0.1);
+            color: #333;
+            transition: all 0.3s ease;
         }
+        
+        .content:hover {
+            box-shadow: 0 15px 40px rgba(52, 235, 91, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        .content p {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            opacity: 0.8;
+        }
+        
         .admin-nav {
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
-            gap: 10px;
-            margin-bottom: 20px;
-            background-color: #084F6A;
-            padding: 10px;
-            border-radius: 8px;
+            gap: 15px;
+            margin-bottom: 30px;
+            background: #ffffff;
+            border: 2px solid #34eb5b;
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(52, 235, 91, 0.1);
         }
+        
         .nav-button {
-            background-color: #084F6A;
+            background: #34eb5b;
+            border: 2px solid #34eb5b;
             color: white;
-            border: 1px solid #084F6A;
-            padding: 10px 15px;
-            border-radius: 5px;
+            padding: 15px 25px;
+            border-radius: 15px;
             cursor: pointer;
-            font-size: 1rem;
-            transition: background-color 0.3s ease, border-color 0.3s ease;
+            font-size: 0.95rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 160px;
+            justify-content: center;
         }
+        
         .nav-button:hover {
-            background-color: #063a4d;
-            border-color: #063a4d;
+            background: #2dd653;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(52, 235, 91, 0.4);
         }
+        
         .nav-button.active {
-            background-color: #063a4d; /* Darker shade for active state */
-            border-color: #063a4d;
-            box-shadow: inset 0 0 8px rgba(0,0,0,0.3); /* Inner shadow for "clicked" effect */
+            background: #2dd653;
+            box-shadow: 0 10px 25px rgba(52, 235, 91, 0.4);
         }
+        
+        .nav-button::before {
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+        }
+        
+        #userManagementBtn::before { content: '\f007'; }
+        #postItemManagementBtn::before { content: '\f468'; }
+        #transactionMonitoringBtn::before { content: '\f201'; }
+        #reportsViolationsBtn::before { content: '\f024'; }
+        
         .logout-button {
-            background-color: #dc3545;
-            border-color: #dc3545;
+            background: #dc3545 !important;
+            border-color: #dc3545 !important;
+            color: white !important;
         }
+        
         .logout-button:hover {
-            background-color: #c82333;
-            border-color: #bd2130;
+            background: #c82333 !important;
+            border-color: #c82333 !important;
+            color: white !important;
         }
+        
+        .logout-button::before {
+            content: '\f2f5' !important;
+        }
+        
+        .stats-section {
+            margin-top: 30px !important;
+        }
+        
+        .stats-section h2 {
+            color: #333;
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+        
+        .stats-section > div {
+            display: grid !important;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)) !important;
+            gap: 25px !important;
+        }
+        
+        .stat-card {
+            background: #ffffff !important;
+            border: 2px solid #34eb5b !important;
+            border-radius: 20px !important;
+            padding: 25px !important;
+            box-shadow: 0 10px 30px rgba(52, 235, 91, 0.1) !important;
+            transition: all 0.3s ease !important;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: #34eb5b;
+        }
+        
+        .stat-card:hover {
+            box-shadow: 0 15px 40px rgba(52, 235, 91, 0.2) !important;
+            transform: translateY(-5px) !important;
+        }
+        
+        .stat-card h3 {
+            color: #333 !important;
+            font-size: 1.2rem !important;
+            font-weight: 600 !important;
+            margin-bottom: 20px !important;
+            margin-top: 0 !important;
+        }
+        
+        .stat-card canvas {
+            max-width: 100% !important;
+            height: 200px !important;
+            margin-bottom: 15px;
+        }
+        
+        .stat-list {
+            list-style: none !important;
+            padding-left: 0 !important;
+            margin: 0 !important;
+        }
+        
+        .stat-list li {
+            color: #666;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+            font-size: 0.9rem;
+        }
+        
+        .stat-list li:last-child {
+            border-bottom: none;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            main {
+                margin: 15px;
+                padding: 0 10px;
+            }
+            
+            .admin-nav {
+                padding: 20px;
+                gap: 10px;
+            }
+            
+            .nav-button {
+                min-width: 140px;
+                padding: 12px 20px;
+                font-size: 0.9rem;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 1.6rem;
+            }
+            
+            header {
+                padding: 20px 15px;
+            }
+            
+            .stats-section > div {
+                grid-template-columns: 1fr !important;
+                gap: 20px !important;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .admin-nav {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .nav-button {
+                width: 100%;
+                max-width: 250px;
+            }
+        }
+        
+        /* Loading animation */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .stat-card {
+            animation: fadeIn 0.6s ease-out;
+        }
+        
+        .stat-card:nth-child(1) { animation-delay: 0.1s; }
+        .stat-card:nth-child(2) { animation-delay: 0.2s; }
+        .stat-card:nth-child(3) { animation-delay: 0.3s; }
+        .stat-card:nth-child(4) { animation-delay: 0.4s; }
+        .stat-card:nth-child(5) { animation-delay: 0.5s; }
     </style>
 </head>
 <body>
@@ -74,63 +288,67 @@
         <h1>Admin Dashboard</h1>
     </header>
     <main>
+        <div class="content">
+            <p>Welcome to the CamFlea Admin Dashboard. Use the navigation buttons below to manage different aspects of the platform.</p>
+        </div>
+
         <nav class="admin-nav">
             <button id="userManagementBtn" class="nav-button" data-page="user_management.html">
                 User Management
             </button>
             <button id="postItemManagementBtn" class="nav-button" data-page="admin_post_item_management.html">
-                Post & Item Management
+                Item Management
             </button>
             <button id="transactionMonitoringBtn" class="nav-button" data-page="transaction_monitoring.html">
                 Transaction Monitoring
             </button>
             <button id="reportsViolationsBtn" class="nav-button" data-page="reports_violations.html">
-                Reports & Violations Center
+                Reports & Violations
             </button>
             <button id="logoutBtn" class="nav-button logout-button" data-page="Login_page.html">
-                Log Out
+                Logout
             </button>
         </nav>
-        <div class="content">
-            <p>Welcome to the admin dashboard. Here you can manage the application.</p>
-        </div>
 
-        <section class="content stats-section" style="margin-top: 20px;">
-            <h2>Statistics Summary</h2>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
-                <div class="stat-card" id="userStatsCard" style="background: #fff; border-radius: 8px; padding: 15px; box-shadow: 0 0 8px rgba(0,0,0,0.1);">
-                    <h3 style="margin-top: 0; color: #084F6A; font-size: 1.2rem; margin-bottom: 10px;">Total Users by School</h3>
-                    <canvas id="userStatsPieChart" style="max-width: 100%; height: 200px;"></canvas>
-                    <ul class="stat-list" id="userStatsList" style="list-style: none; padding-left: 0; margin: 0; display:none;">
+        <section class="stats-section">
+            <h2>Dashboard Statistics</h2>
+            <div>
+                <div class="stat-card" id="userStatsCard">
+                    <h3>User Distribution by School</h3>
+                    <canvas id="userStatsPieChart"></canvas>
+                    <ul class="stat-list" id="userStatsList" style="display:none;">
                         <li>Loading...</li>
                     </ul>
                 </div>
-                <div class="stat-card" id="itemStatsCard" style="background: #fff; border-radius: 8px; padding: 15px; box-shadow: 0 0 8px rgba(0,0,0,0.1);">
-                    <h3 style="margin-top: 0; color: #084F6A; font-size: 1.2rem; margin-bottom: 10px;">Items Listed by Type</h3>
-                    <canvas id="itemsByTypeChart" style="max-width: 100%; height: 200px;"></canvas>
-                    <ul class="stat-list" id="soldItemsStatsList" style="list-style: none; padding-left: 0; margin: 0;">
+                
+                <div class="stat-card" id="itemStatsCard">
+                    <h3>Items by Type</h3>
+                    <canvas id="itemsByTypeChart"></canvas>
+                    <ul class="stat-list" id="soldItemsStatsList">
                         <li>Loading...</li>
                     </ul>
                 </div>
-                <div class="stat-card" id="transactionStatsCard" style="background: #fff; border-radius: 8px; padding: 15px; box-shadow: 0 0 8px rgba(0,0,0,0.1);">
-                    <h3 style="margin-top: 0; color: #084F6A; font-size: 1.2rem; margin-bottom: 10px;">Ongoing Transactions by Status</h3>
-                    <canvas id="transactionStatusPieChart" style="max-width: 100%; height: 200px;"></canvas>
-                    <ul class="stat-list" id="transactionStatsList" style="list-style: none; padding-left: 0; margin: 0; display:none;">
-                        <li>Loading...</li>
-                    </ul>
-                    <!-- Removed total sold items count display as per user request -->
-                </div>
-                <div class="stat-card" id="itemStatusCard" style="background: #fff; border-radius: 8px; padding: 15px; box-shadow: 0 0 8px rgba(0,0,0,0.1);">
-                    <h3 style="margin-top: 0; color: #084F6A; font-size: 1.2rem; margin-bottom: 10px;">Items Listed by Status</h3>
-                    <canvas id="itemStatusPieChart" style="max-width: 100%; height: 200px;"></canvas>
-                    <ul class="stat-list" id="itemStatusList" style="list-style: none; padding-left: 0; margin: 0; display:none;">
+                
+                <div class="stat-card" id="transactionStatsCard">
+                    <h3>Transaction Status</h3>
+                    <canvas id="transactionStatusPieChart"></canvas>
+                    <ul class="stat-list" id="transactionStatsList" style="display:none;">
                         <li>Loading...</li>
                     </ul>
                 </div>
-                <div class="stat-card" id="reportStatsCard" style="background: #fff; border-radius: 8px; padding: 15px; box-shadow: 0 0 8px rgba(0,0,0,0.1);">
-                    <h3 style="margin-top: 0; color: #084F6A; font-size: 1.2rem; margin-bottom: 10px;">Reports by Violation Type</h3>
-                    <canvas id="reportTypePieChart" style="max-width: 100%; height: 200px;"></canvas>
-                    <ul class="stat-list" id="reportStatsList" style="list-style: none; padding-left: 0; margin: 0; display:none;">
+                
+                <div class="stat-card" id="itemStatusCard">
+                    <h3>Item Status Distribution</h3>
+                    <canvas id="itemStatusPieChart"></canvas>
+                    <ul class="stat-list" id="itemStatusList" style="display:none;">
+                        <li>Loading...</li>
+                    </ul>
+                </div>
+                
+                <div class="stat-card" id="reportStatsCard">
+                    <h3>Reports by Violation Type</h3>
+                    <canvas id="reportTypePieChart"></canvas>
+                    <ul class="stat-list" id="reportStatsList" style="display:none;">
                         <li>Loading...</li>
                     </ul>
                 </div>
