@@ -23,6 +23,7 @@
             color: #333;
         }
         
+        /* Hamburger Navigation Styles */
         .navbar {
             background: #34eb5b;
             padding: 15px 40px;
@@ -30,8 +31,7 @@
             color: white;
             display: flex;
             align-items: center;
-            justify-content: center;
-            gap: 40px;
+            justify-content: space-between;
             position: fixed;
             width: 100%;
             top: 0;
@@ -40,39 +40,113 @@
             box-shadow: 0 4px 20px rgba(52, 235, 91, 0.3);
         }
         
-        .navbar a {
+        .navbar h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
             color: white;
-            text-decoration: none;
+            margin: 0;
+        }
+        
+        .hamburger {
+            display: flex;
+            flex-direction: column;
+            cursor: pointer;
+            gap: 4px;
+            padding: 10px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .hamburger:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .hamburger span {
+            width: 25px;
+            height: 3px;
+            background: white;
+            border-radius: 2px;
+            transition: all 0.3s ease;
+        }
+        
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: -350px;
+            width: 350px;
+            height: 100vh;
+            background: white;
+            z-index: 10000;
+            transition: left 0.3s ease;
+            box-shadow: 2px 0 20px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .sidebar.active {
+            left: 0;
+        }
+        
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 9999;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .sidebar-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .sidebar-nav {
+            padding: 100px 30px 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .nav-button {
+            background: #f8f9fa;
+            border: 2px solid #34eb5b;
+            color: #333;
+            padding: 15px 20px;
+            border-radius: 12px;
+            cursor: pointer;
             font-size: 1.1rem;
             font-weight: 600;
-            white-space: nowrap;
-            padding: 10px 20px;
-            border-radius: 10px;
             transition: all 0.3s ease;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 12px;
+            text-align: left;
+            width: 100%;
         }
         
-        .navbar a:hover {
-            background: rgba(255, 255, 255, 0.2);
+        .nav-button:hover {
+            background: #34eb5b;
+            color: white;
             transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 235, 91, 0.3);
         }
         
-        .navbar a.active-nav-link {
-            background: rgba(255, 255, 255, 0.2);
-            box-shadow: 0 4px 15px rgba(255, 255, 255, 0.3);
+        .nav-button.active {
+            background: #34eb5b;
+            color: white;
+            box-shadow: 0 5px 15px rgba(52, 235, 91, 0.3);
         }
         
-        .navbar a::before {
-            font-family: 'Font Awesome 6 Free';
-            font-weight: 900;
+        .nav-button i {
+            font-size: 1.2rem;
+            width: 20px;
+            text-align: center;
         }
-        
-        .navbar a[href*="user"]::before { content: '\f007'; }
-        .navbar a[href*="item"]::before { content: '\f468'; }
-        .navbar a[href*="transaction"]::before { content: '\f201'; }
-        .navbar a[href*="reports"]::before { content: '\f024'; }
         
         .back-to-admin-btn {
             background: #34eb5b;
@@ -84,7 +158,6 @@
             font-size: 1rem;
             font-weight: 600;
             transition: all 0.3s ease;
-            margin-right: auto;
             display: flex;
             align-items: center;
             gap: 8px;
@@ -101,34 +174,6 @@
             border-color: #2dd653;
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(52, 235, 91, 0.4);
-        }
-        
-        #logoutBtn {
-            margin-left: auto;
-            padding: 12px 25px;
-            background: #dc3545;
-            color: white;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 1rem;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        #logoutBtn::before {
-            content: '\f2f5';
-            font-family: 'Font Awesome 6 Free';
-            font-weight: 900;
-        }
-        
-        #logoutBtn:hover {
-            background: #c82333;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(220, 53, 69, 0.4);
         }
         
         .content {
@@ -176,21 +221,62 @@
         tr:last-child td {
             border-bottom: none;
         }
+        
         #noResults {
             text-align: center;
             color: #555;
             margin-top: 20px;
         }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 300px;
+                left: -300px;
+            }
+            
+            .navbar {
+                padding: 15px 20px;
+            }
+            
+            .navbar h1 {
+                font-size: 1.5rem;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="navbar">
+        <div class="hamburger" onclick="toggleSidebar()">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+        <h1>Reports & Violations Center</h1>
         <button id="backToAdminBtn" class="back-to-admin-btn">Back to Admin</button>
-        <a href="user_management.html">User Management</a>
-        <a href="admin_post_item_management.html">Post & Item Management</a>
-        <a href="transaction_monitoring.html">Transaction Monitoring</a>
-        <a href="reports_violations.html">Reports & Violations Center</a>
-        <button id="logoutBtn">Log Out</button>
+    </div>
+    
+    <div class="sidebar-overlay" onclick="closeSidebar()"></div>
+    <div class="sidebar">
+        <nav class="sidebar-nav">
+            <button class="nav-button" onclick="window.location.href='user_management.html'">
+                <i class="fas fa-user"></i> User Management
+            </button>
+            <button class="nav-button" onclick="window.location.href='admin_post_item_management.html'">
+                <i class="fas fa-box"></i> Item Management
+            </button>
+            <button class="nav-button" onclick="window.location.href='transaction_monitoring.html'">
+                <i class="fas fa-chart-line"></i> Transaction Monitoring
+            </button>
+            <button class="nav-button active" onclick="window.location.href='reports_violations.html'">
+                <i class="fas fa-flag"></i> Reports & Violations
+            </button>
+            <button class="nav-button" onclick="window.location.href='admin.html'">
+                <i class="fas fa-home"></i> Back to Dashboard
+            </button>
+            <button class="nav-button" style="background: #dc3545; border-color: #dc3545;" onclick="window.location.href='Login_page.html'">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
+        </nav>
     </div>
     <div class="content">
         <table id="reportsTable">
@@ -243,13 +329,8 @@
 
         const reportsTableBody = document.querySelector('#reportsTable tbody');
         const resolvedReportsTableBody = document.querySelector('#resolvedReportsTable tbody');
-        const logoutBtn = document.getElementById('logoutBtn');
-
-        logoutBtn.addEventListener('click', () => {
-            // Implement logout functionality here
-            // For now, redirect to login page
-            window.location.href = 'Login_page.html';
-        });
+        
+        // Remove old logout button reference since it's now in the sidebar
 
         function setActiveNavLink() {
             const currentPath = window.location.pathname.split('/').pop();
@@ -531,6 +612,21 @@ function showPhoto(index) {
                 setResolvedReports(resolvedReports);
                 fetchReports(); // Re-fetch and display to update tables
             }
+        }
+
+        // Hamburger menu functionality
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            const overlay = document.querySelector('.sidebar-overlay');
+            sidebar.classList.toggle('active');
+            overlay.classList.toggle('active');
+        }
+
+        function closeSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            const overlay = document.querySelector('.sidebar-overlay');
+            sidebar.classList.remove('active');
+            overlay.classList.remove('active');
         }
 
         // Initial fetch
