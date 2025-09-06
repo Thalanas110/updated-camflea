@@ -19,7 +19,7 @@
             margin-right: auto;
         }
         h1 {
-            color: #084F6A;
+            color: #069210;
             text-align: center;
             margin-bottom: 10px;
         }
@@ -35,7 +35,7 @@
         }
         section h2 {
             margin-top: 0;
-            color: #084F6A;
+            color: #069210;
             font-size: 18px;
             border-bottom: 1px solid #ccc;
             padding-bottom: 5px;
@@ -112,7 +112,7 @@
     <!-- Modal for Detailed Post -->
     <div id="detailedPostModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background-color: rgba(0,0,0,0.7); z-index: 2000; justify-content: center; align-items: center;">
       <div style="position: relative; width: 90%; max-width: 900px; height: 90%; background: white; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); display: flex; flex-direction: column;">
-        <button id="closeDetailedPostModal" style="position: absolute; top: 10px; right: 10px; background: #084F6A; color: white; border: none; border-radius: 5px; padding: 8px 12px; font-size: 16px; cursor: pointer; z-index: 2100;">Close</button>
+        <button id="closeDetailedPostModal" style="position: absolute; top: 10px; right: 10px; background: #069210; color: white; border: none; border-radius: 5px; padding: 8px 12px; font-size: 16px; cursor: pointer; z-index: 2100;">Close</button>
         <iframe id="detailedPostIframe" src="" style="flex-grow: 1; border: none; border-radius: 0 0 10px 10px;"></iframe>
       </div>
     </div>
@@ -738,7 +738,7 @@ window.markAsReceived = async function markAsReceived(transac_id) {
     yesButton.textContent = 'Yes';
     yesButton.style.marginRight = '10px';
     yesButton.style.padding = '10px 20px';
-    yesButton.style.backgroundColor = '#084F6A';
+    yesButton.style.backgroundColor = '#069210';
     yesButton.style.color = 'white';
     yesButton.style.border = 'none';
     yesButton.style.borderRadius = '5px';
@@ -1173,7 +1173,7 @@ window.markAsReceived = async function markAsReceived(transac_id) {
                     feedbackBtn.disabled = true;
                 } else {
                     feedbackBtn.textContent = 'Feedback';
-                    feedbackBtn.style.backgroundColor = '#084F6A';
+                    feedbackBtn.style.backgroundColor = '#069210';
                     feedbackBtn.style.marginLeft = '10px';
                     feedbackBtn.onclick = (e) => {
                         e.stopPropagation();

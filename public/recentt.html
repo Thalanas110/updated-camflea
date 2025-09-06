@@ -12,7 +12,7 @@
             background-color: #F2F2F2; /* Changed background color */
         }
         .navbar {
-            background-color: #084F6A;
+            background-color: #069210;
             padding: 10px 40px;
             height: 100px;
             position: relative;
@@ -55,7 +55,7 @@
             height: 18px;
             width: 18px;
             padding: 8px 12px; /* Increased padding for wider background */
-            background-color: #084F6A;
+            background-color: #069210;
             border-radius: 2px;
             cursor: pointer;
             box-sizing: content-box; /* Ensures padding doesn't affect icon size */
@@ -148,7 +148,7 @@
         }
         .sidebar button {
             width: 100%;
-            background-color: #084F6A; /* Changed to the specified color */
+            background-color: #069210; /* Changed to the specified color */
             color: #ffffff;
             padding: 0.5rem;
             border-radius: 0.375rem;
@@ -276,7 +276,7 @@ height: 100%;
 flex-grow: 1;
 }
 #closeConversationPanel {
-background: #084F6A;
+background: #069210;
 color: white;
 border: none;
 border-radius: 0 0 0 8px;
@@ -304,7 +304,7 @@ display: none;
       <div class="profile-section" style="display: flex; align-items: center; gap: 12px;">
         <img src="Homepage_images/circle-user.png" alt="Profile" class="profile-icon">
         <span><a href="ViewProfile.html" class="link">Visit your profile</a></span>
-        <span><a href="post_item.html" id="postItemLink" class="link" style="background-color: #084F6A; padding: 6px 12px; border-radius: 4px; color: white; font-weight: 600; text-decoration: none; cursor: pointer;">Post Item</a></span>
+        <span><a href="post_item.html" id="postItemLink" class="link" style="background-color: #069210; padding: 6px 12px; border-radius: 4px; color: white; font-weight: 600; text-decoration: none; cursor: pointer;">Post Item</a></span>
       </div>
   
       <div class="notifications-container">
@@ -825,7 +825,7 @@ searchInput.addEventListener("input", function () {
             const prevButton = document.createElement('button');
             prevButton.textContent = '← Previous';
             prevButton.style.padding = '8px 12px';
-            prevButton.style.backgroundColor = '#084F6A';
+            prevButton.style.backgroundColor = '#069210';
             prevButton.style.color = 'white';
             prevButton.style.border = 'none';
             prevButton.style.borderRadius = '5px';
@@ -849,7 +849,7 @@ searchInput.addEventListener("input", function () {
             const nextButton = document.createElement('button');
             nextButton.textContent = 'Next →';
             nextButton.style.padding = '8px 12px';
-            nextButton.style.backgroundColor = '#084F6A';
+            nextButton.style.backgroundColor = '#069210';
             nextButton.style.color = 'white';
             nextButton.style.border = 'none';
             nextButton.style.borderRadius = '5px';
@@ -880,7 +880,7 @@ searchInput.addEventListener("input", function () {
         right: 20px;
         bottom: 50%;
         transform: translateY(50%);
-        background-color: #084F6A;
+        background-color: #069210;
         color: white;
         border: none;
         border-radius: 50%;
@@ -900,7 +900,7 @@ searchInput.addEventListener("input", function () {
         right: 20px;
         bottom: 60%;
         transform: translateY(50%);
-        background-color: #084F6A;
+        background-color: #069210;
         color: white;
         border: none;
         border-radius: 50%;
@@ -920,7 +920,7 @@ searchInput.addEventListener("input", function () {
         right: 20px;
         bottom: 70%;
         transform: translateY(50%);
-        background-color: #084F6A;
+        background-color: #069210;
         color: white;
         border: none;
         border-radius: 50%;
@@ -1540,7 +1540,7 @@ document.addEventListener('DOMContentLoaded', () => {
   <!-- Modal for Detailed Post -->
   <div id="detailedPostModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background-color: rgba(0,0,0,0.7); z-index: 2000; justify-content: center; align-items: center;">
     <div style="position: relative; width: 90%; max-width: 900px; height: 90%; background: white; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); display: flex; flex-direction: column;">
-      <button id="closeDetailedPostModal" style="position: absolute; top: 10px; right: 10px; background: #084F6A; color: white; border: none; border-radius: 5px; padding: 8px 12px; font-size: 16px; cursor: pointer; z-index: 2100;">Close</button>
+      <button id="closeDetailedPostModal" style="position: absolute; top: 10px; right: 10px; background: #069210; color: white; border: none; border-radius: 5px; padding: 8px 12px; font-size: 16px; cursor: pointer; z-index: 2100;">Close</button>
       <iframe id="detailedPostIframe" src="" style="flex-grow: 1; border: none; border-radius: 0 0 10px 10px;"></iframe>
     </div>
   </div>
@@ -1548,7 +1548,7 @@ document.addEventListener('DOMContentLoaded', () => {
   <!-- Modal for Post Item -->
   <div id="postItemModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background-color: rgba(0,0,0,0.7); z-index: 2100; justify-content: center; align-items: center;">
     <div style="position: relative; width: 90%; max-width: 900px; height: 90%; background: white; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); display: flex; flex-direction: column;">
-      <button id="closePostItemModal" style="position: absolute; top: 10px; right: 10px; background: #084F6A; color: white; border: none; border-radius: 5px; padding: 8px 12px; font-size: 16px; cursor: pointer; z-index: 2200;">Close</button>
+      <button id="closePostItemModal" style="position: absolute; top: 10px; right: 10px; background: #069210; color: white; border: none; border-radius: 5px; padding: 8px 12px; font-size: 16px; cursor: pointer; z-index: 2200;">Close</button>
       <iframe id="postItemIframe" src="" style="flex-grow: 1; border: none; border-radius: 0 0 10px 10px;"></iframe>
     </div>
   </div>

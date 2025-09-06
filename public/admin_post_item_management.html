@@ -325,7 +325,7 @@
         .price {
             font-size: 1.1rem;
             font-weight: bold;
-            color: #084F6A;
+            color: #069210;
         }
         .time-ago {
             font-size: 0.7rem;
@@ -366,7 +366,7 @@
         }
         .school-location i {
             margin-right: 4px;
-            color: #084F6A;
+            color: #069210;
         }
         #pagination-controls {
             margin-top: 10px;
@@ -376,7 +376,7 @@
         }
         #pagination-controls button {
             padding: 8px 12px;
-            background-color: #084F6A;
+            background-color: #069210;
             color: white;
             border: none;
             border-radius: 5px;
@@ -422,7 +422,7 @@
             position: absolute;
             top: 10px;
             right: 10px;
-            background: #084F6A;
+            background: #069210;
             color: white;
             border: none;
             border-radius: 5px;
@@ -498,11 +498,11 @@
                 <option value="sold">Sold</option>
                 <option value="cancelled">Cancelled</option>
             </select>
-            <button id="clear-filters-btn" style="width: 100%; padding: 10px; background-color: #084F6A; color: white; border: none; border-radius: 5px; cursor: pointer;">Clear Filters</button>
+            <button id="clear-filters-btn" style="width: 100%; padding: 10px; background-color: #069210; color: white; border: none; border-radius: 5px; cursor: pointer;">Clear Filters</button>
         </aside>
         <main>
             <div id="pinned-items-container" style="margin-bottom: 20px;">
-                <h2 style="color: #084F6A; text-align: center;">Pinned Items</h2>
+                <h2 style="color: #069210; text-align: center;">Pinned Items</h2>
                 <div id="pinned-items" style="display: flex; flex-wrap: wrap; gap: 20px; justify-content: center;"></div>
             </div>
             <div id="items-container"></div>
@@ -510,8 +510,8 @@
         </main>
     </div>
 
-    <div id="verified-items-section" style="margin-top: 40px; padding: 20px; background-color: #e6ffe6; border-top: 2px solid #084F6A; display: none;">
-        <h2 style="color: #084F6A; text-align: center;">Verified Items</h2>
+    <div id="verified-items-section" style="margin-top: 40px; padding: 20px; background-color: #e6ffe6; border-top: 2px solid #069210; display: none;">
+        <h2 style="color: #069210; text-align: center;">Verified Items</h2>
         <div id="verified-items-container" style="display: flex; flex-wrap: wrap; gap: 20px; justify-content: center;"></div>
     </div>
 
@@ -755,7 +755,7 @@
                 const pinButton = document.createElement('button');
                 pinButton.className = 'pin-btn';
                 pinButton.setAttribute('data-item-id', item.item_id);
-                pinButton.style.cssText = "background-color: transparent; border: none; cursor: pointer; font-size: 1rem; color: #084F6A; display: flex; align-items: center; gap: 5px; margin-right: 10px;"; // Added margin-right
+                pinButton.style.cssText = "background-color: transparent; border: none; cursor: pointer; font-size: 1rem; color: #069210; display: flex; align-items: center; gap: 5px; margin-right: 10px;"; // Added margin-right
                 pinButton.title = isPinned ? 'Unpin' : 'Pin';
                 pinButton.innerHTML = `
                     <i class="${isPinned ? 'fa-solid fa-thumbtack' : 'fa-regular fa-thumbtack'}"></i>
@@ -1085,7 +1085,7 @@
     <!-- Modal for Detailed Post -->
     <div id="detailedPostModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background-color: rgba(0,0,0,0.7); z-index: 2000; justify-content: center; align-items: center;">
         <div style="position: relative; width: 90%; max-width: 900px; height: 90%; background: white; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); display: flex; flex-direction: column;">
-            <button id="closeDetailedPostModal" style="position: absolute; top: 10px; right: 10px; background: #084F6A; color: white; border: none; border-radius: 5px; padding: 8px 12px; font-size: 16px; cursor: pointer; z-index: 2100;">Close</button>
+            <button id="closeDetailedPostModal" style="position: absolute; top: 10px; right: 10px; background: #069210; color: white; border: none; border-radius: 5px; padding: 8px 12px; font-size: 16px; cursor: pointer; z-index: 2100;">Close</button>
             <iframe id="detailedPostIframe" src="" style="flex-grow: 1; border: none; border-radius: 0 0 10px 10px;"></iframe>
         </div>
     </div>

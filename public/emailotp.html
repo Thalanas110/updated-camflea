@@ -73,7 +73,7 @@
 
   <!-- Step 1: Enter Email -->
   <div id="step1" class="step1 bg-white p-6 rounded-lg w-96 text-center fade-in">
-    <h2 class="text-2xl font-semibold text-[#084F6A] mb-2">OTP Verification</h2>
+    <h2 class="text-2xl font-semibold text-[#069210] mb-2">OTP Verification</h2>
     <p class="text-gray-600">You will receive an email with a one-time password</p>
 
     <div class="mt-4 text-left">
@@ -81,14 +81,14 @@
       <input type="email" id="emailAddress" class="w-full px-4 py-2 border rounded mb-4" placeholder="Enter your email" onkeyup="validateEmail(this.value)" />
     </div>
 
-    <button id="nextToOTP" class="bg-[#084F6A] text-white w-full py-2 rounded disabled:opacity-50 disable" disabled>Next →</button>
+    <button id="nextToOTP" class="bg-[#069210] text-white w-full py-2 rounded disabled:opacity-50 disable" disabled>Next →</button>
   </div>
 
   <!-- Step 2: Enter OTP -->
   <div id="step2" class="step2 hidden bg-white p-6 rounded-lg w-96 text-center fade-in">
-    <h2 class="text-2xl font-semibold text-[#084F6A] mb-2">Enter OTP</h2>
+    <h2 class="text-2xl font-semibold text-[#069210] mb-2">Enter OTP</h2>
     <p class="text-gray-600 mb-2">A one-time password has been sent to:</p>
-    <p id="verifyEmail" class="font-semibold text-[#084F6A] mb-4"></p>
+    <p id="verifyEmail" class="font-semibold text-[#069210] mb-4"></p>
 
     <div class="otp-group flex justify-center gap-2 mb-4">
       <input type="number" maxlength="1" />
@@ -101,10 +101,10 @@
 
     <p class="text-sm text-gray-500 mb-2">
       Didn't receive the code?
-      <a href="javascript:void(0)" class="text-[#084F6A] underline" onclick="changeEmail()">Try Again</a>
+      <a href="javascript:void(0)" class="text-[#069210] underline" onclick="changeEmail()">Try Again</a>
     </p>
 
-    <button id="verifyOTP" class="bg-[#084F6A] text-white w-full py-2 rounded mb-2 disable">Verify OTP →</button>
+    <button id="verifyOTP" class="bg-[#069210] text-white w-full py-2 rounded mb-2 disable">Verify OTP →</button>
   </div>
 
   <!-- Step 3: Success -->
