@@ -221,8 +221,35 @@
         
         .stats-section > div {
             display: grid !important;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)) !important;
+            grid-template-columns: repeat(12, 1fr) !important;
+            grid-auto-rows: minmax(400px, auto) !important;
             gap: 25px !important;
+        }
+        
+        /* Chart size classes for flexible grid layout */
+        .stat-card.small {
+            grid-column: span 4;
+        }
+        
+        .stat-card.medium {
+            grid-column: span 6;
+        }
+        
+        .stat-card.large {
+            grid-column: span 8;
+        }
+        
+        .stat-card.full-width {
+            grid-column: span 12;
+        }
+        
+        /* Chart height classes */
+        .stat-card.tall {
+            grid-row: span 2;
+        }
+        
+        .stat-card.extra-tall {
+            grid-row: span 3;
         }
         
         .stat-card {
@@ -285,6 +312,67 @@
             filter: drop-shadow(0 5px 15px rgba(6, 146, 16, 0.1));
         }
         
+        /* Specific canvas heights for different chart types */
+        .stat-card.tall canvas {
+            height: 400px !important;
+        }
+        
+        .stat-card.extra-tall canvas {
+            height: 500px !important;
+        }
+        
+        /* Top Seller Card Styling */
+        .top-seller-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 20px;
+            padding: 20px;
+            background: linear-gradient(135deg, #f8fffe 0%, #e8f5e8 100%);
+            border-radius: 15px;
+            border: 1px solid #e0f2e0;
+        }
+        
+        .seller-avatar {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #069210 0%, #34eb5b 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 2rem;
+            box-shadow: 0 8px 25px rgba(6, 146, 16, 0.3);
+        }
+        
+        .seller-details {
+            flex: 1;
+        }
+        
+        .seller-name {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #069210;
+            margin: 0 0 8px 0;
+        }
+        
+        .seller-stats {
+            font-size: 1rem;
+            color: #666;
+            margin: 0;
+        }
+        
+        /* Chart container adjustments for different types */
+        .stat-card.large .stat-card canvas,
+        .stat-card.full-width .stat-card canvas {
+            height: 350px !important;
+        }
+        
+        #topSellerChart {
+            height: 200px !important;
+        }
+        
         .stat-list {
             list-style: none !important;
             padding-left: 0 !important;
@@ -303,6 +391,24 @@
         }
         
         /* Responsive Design */
+        @media (max-width: 1200px) {
+            .stats-section > div {
+                grid-template-columns: repeat(8, 1fr) !important;
+            }
+            
+            .stat-card.small {
+                grid-column: span 4;
+            }
+            
+            .stat-card.medium {
+                grid-column: span 8;
+            }
+            
+            .stat-card.large {
+                grid-column: span 8;
+            }
+        }
+        
         @media (max-width: 768px) {
             main {
                 margin: 15px;
@@ -335,6 +441,13 @@
             .stats-section > div {
                 grid-template-columns: 1fr !important;
                 gap: 20px !important;
+            }
+            
+            .stat-card.small,
+            .stat-card.medium,
+            .stat-card.large,
+            .stat-card.full-width {
+                grid-column: span 1 !important;
             }
         }
         
@@ -406,7 +519,8 @@
         <section class="stats-section">
             <h2>Dashboard Statistics</h2>
             <div>
-                <div class="stat-card" id="userStatsCard">
+                <!-- Row 1: Existing Pie Charts -->
+                <div class="stat-card small" id="userStatsCard">
                     <h3>User Distribution by School</h3>
                     <canvas id="userStatsPieChart"></canvas>
                     <ul class="stat-list" id="userStatsList" style="display:none;">
@@ -414,7 +528,7 @@
                     </ul>
                 </div>
                 
-                <div class="stat-card" id="itemStatsCard">
+                <div class="stat-card small" id="itemStatsCard">
                     <h3>Items by Type</h3>
                     <canvas id="itemsByTypeChart"></canvas>
                     <ul class="stat-list" id="soldItemsStatsList" style="display:none;">
@@ -422,7 +536,7 @@
                     </ul>
                 </div>
                 
-                <div class="stat-card" id="transactionStatsCard">
+                <div class="stat-card small" id="transactionStatsCard">
                     <h3>Transaction Status</h3>
                     <canvas id="transactionStatusPieChart"></canvas>
                     <ul class="stat-list" id="transactionStatsList" style="display:none;">
@@ -430,7 +544,8 @@
                     </ul>
                 </div>
                 
-                <div class="stat-card" id="itemStatusCard">
+                <!-- Row 2: Status Charts -->
+                <div class="stat-card medium" id="itemStatusCard">
                     <h3>Item Status Distribution</h3>
                     <canvas id="itemStatusPieChart"></canvas>
                     <ul class="stat-list" id="itemStatusList" style="display:none;">
@@ -438,10 +553,42 @@
                     </ul>
                 </div>
                 
-                <div class="stat-card" id="reportStatsCard">
+                <div class="stat-card medium" id="reportStatsCard">
                     <h3>Reports by Violation Type</h3>
                     <canvas id="reportTypePieChart"></canvas>
                     <ul class="stat-list" id="reportStatsList" style="display:none;">
+                        <li>Loading...</li>
+                    </ul>
+                </div>
+                
+                <!-- Row 3: New Analytics Charts -->
+                <div class="stat-card large tall" id="dailyTransactionsCard">
+                    <h3>Daily Transaction Counts</h3>
+                    <canvas id="dailyTransactionsBarChart"></canvas>
+                    <ul class="stat-list" id="dailyTransactionsList" style="display:none;">
+                        <li>Loading...</li>
+                    </ul>
+                </div>
+                
+                <div class="stat-card small" id="topSellerCard">
+                    <h3>Top Seller</h3>
+                    <div class="top-seller-info">
+                        <div class="seller-avatar">
+                            <i class="fas fa-user-crown"></i>
+                        </div>
+                        <div class="seller-details" id="topSellerDetails">
+                            <p class="seller-name">Loading...</p>
+                            <p class="seller-stats">Loading...</p>
+                        </div>
+                    </div>
+                    <canvas id="topSellerChart" style="height: 200px;"></canvas>
+                </div>
+                
+                <!-- Row 4: Line Chart for Item Visits -->
+                <div class="stat-card full-width tall" id="itemVisitsCard">
+                    <h3>Daily Item Visits Trend</h3>
+                    <canvas id="itemVisitsLineChart"></canvas>
+                    <ul class="stat-list" id="itemVisitsList" style="display:none;">
                         <li>Loading...</li>
                     </ul>
                 </div>
