@@ -169,9 +169,9 @@
     // Determine price display based on price type
     let priceDisplay = '';
     if (item.item_price_type === 'single') {
-        priceDisplay = `₱${item.item_price}`;
+        priceDisplay = `₱${formatPrice(item.item_price)}`;
     } else if (item.item_price_type === 'range') {
-        priceDisplay = `₱${item.item_price_min} - ₱${item.item_price_max}`;
+        priceDisplay = `₱${formatPrice(item.item_price_min)} - ₱${formatPrice(item.item_price_max)}`;
     } else if (item.item_price_type === 'hidden') {
         priceDisplay = 'Price hidden';
     } else {
@@ -296,7 +296,7 @@ if (buyButton) {
                 // Construct message text based on price type
                 let messageText = '';
                 if (item.item_price_type === 'single') {
-                    messageText = `I am interested on buying ${item.item_name} at ₱${item.item_price}`;
+                    messageText = `I am interested on buying ${item.item_name} at ₱${formatPrice(item.item_price)}`;
                 } else if (item.item_price_type === 'range' || item.item_price_type === 'hidden') {
                     messageText = `I am interested on buying ${item.item_name}`;
                 } else {

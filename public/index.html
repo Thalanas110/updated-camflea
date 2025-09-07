@@ -2065,9 +2065,9 @@ async function displayItems(items, container, withHighlight = false, page = 1) {
 
     let priceDisplay = '';
     if (item.item_price_type === 'single') {
-      priceDisplay = `PHP${item.item_price}`;
+      priceDisplay = `PHP${formatPrice(item.item_price)}`;
     } else if (item.item_price_type === 'range') {
-      priceDisplay = `PHP${item.item_price_min} - PHP${item.item_price_max}`;
+      priceDisplay = `PHP${formatPrice(item.item_price_min)} - PHP${formatPrice(item.item_price_max)}`;
     } else if (item.item_price_type === 'hidden') {
       priceDisplay = 'Price hidden';
     } else {

@@ -362,3 +362,31 @@ window.alert = function(message) {
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = ModalSystem;
 }
+
+/**
+ * Utility function to format numbers with commas
+ * @param {number|string} number - The number to format
+ * @returns {string} - Formatted number with commas
+ */
+function formatPrice(number) {
+    if (number === null || number === undefined || number === '') {
+        return '0';
+    }
+    
+    // Convert to number if it's a string
+    const num = typeof number === 'string' ? parseFloat(number) : number;
+    
+    // Check if it's a valid number
+    if (isNaN(num)) {
+        return '0';
+    }
+    
+    // Format with commas and remove unnecessary decimals
+    return num.toLocaleString('en-US', {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 2
+    });
+}
+
+// Make formatPrice globally available
+window.formatPrice = formatPrice;

@@ -269,9 +269,9 @@
                 // Determine price display
                 let priceDisplay = '';
                 if (item.item.item_price_type === 'single') {
-                    priceDisplay = `₱${item.item.item_price}`;
+                    priceDisplay = `₱${formatPrice(item.item.item_price)}`;
                 } else if (item.item.item_price_type === 'range') {
-                    priceDisplay = `₱${item.item.item_price_min} - ₱${item.item.item_price_max}`;
+                    priceDisplay = `₱${formatPrice(item.item.item_price_min)} - ₱${formatPrice(item.item.item_price_max)}`;
                 } else if (item.item.item_price_type === 'hidden') {
                     priceDisplay = 'Price hidden';
                 } else {
@@ -437,9 +437,9 @@ async function renderCurrentlyBuying() {
         // Determine price display
         let priceDisplay = '';
         if (item.item && item.item.item_price_type === 'single') {
-            priceDisplay = `₱${item.item.item_price}`;
+            priceDisplay = `₱${formatPrice(item.item.item_price)}`;
         } else if (item.item && item.item.item_price_type === 'range') {
-            priceDisplay = `₱${item.item.item_price_min} - ₱${item.item.item_price_max}`;
+            priceDisplay = `₱${formatPrice(item.item.item_price_min)} - ₱${formatPrice(item.item.item_price_max)}`;
         } else if (item.item && item.item.item_price_type === 'hidden') {
             priceDisplay = 'Price hidden';
         } else {
@@ -1151,9 +1151,9 @@ window.markAsReceived = async function markAsReceived(transac_id) {
                 // Determine price display
                 let priceDisplay = '';
                 if (item.item && item.item.item_price_type === 'single') {
-                    priceDisplay = `₱${item.item.item_price}`;
+                    priceDisplay = `₱${formatPrice(item.item.item_price)}`;
                 } else if (item.item && item.item.item_price_type === 'range') {
-                    priceDisplay = `₱${item.item.item_price_min} - ₱${item.item.item_price_max}`;
+                    priceDisplay = `₱${formatPrice(item.item.item_price_min)} - ₱${formatPrice(item.item.item_price_max)}`;
                 } else if (item.item && item.item.item_price_type === 'hidden') {
                     priceDisplay = 'Price hidden';
                 } else {

@@ -783,9 +783,9 @@ searchInput.addEventListener("input", function () {
 
               let priceDisplay = '';
               if (item.item_price_type === 'single') {
-                priceDisplay = `₱${item.item_price}`;
+                priceDisplay = `₱${formatPrice(item.item_price)}`;
               } else if (item.item_price_type === 'range') {
-                priceDisplay = `₱${item.item_price_min} - ₱${item.item_price_max}`;
+                priceDisplay = `₱${formatPrice(item.item_price_min)} - ₱${formatPrice(item.item_price_max)}`;
               } else if (item.item_price_type === 'hidden') {
                 priceDisplay = 'Price hidden';
               } else {
