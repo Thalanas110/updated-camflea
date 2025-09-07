@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modal System Test</title>
+    <script src="modal-system.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 50px;
+            background-color: #f5f5f5;
+        }
+        .test-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-btn {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            margin: 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .test-btn:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>Modal System Test</h1>
+        <p>This page tests the modal system that replaces alert() calls.</p>
+        
+        <h2>Test Different Alert Types:</h2>
+        <button class="test-btn" onclick="alert('This is a basic info message')">Info Alert</button>
+        <button class="test-btn" onclick="alert('Error: Something went wrong!')">Error Alert</button>
+        <button class="test-btn" onclick="alert('Success: Operation completed successfully!')">Success Alert</button>
+        <button class="test-btn" onclick="alert('Warning: You must be logged in to continue')">Warning Alert</button>
+        
+        <h2>Test Modal System Directly:</h2>
+        <button class="test-btn" onclick="ModalSystem.info('This is an info modal')">Direct Info</button>
+        <button class="test-btn" onclick="ModalSystem.success('This is a success modal')">Direct Success</button>
+        <button class="test-btn" onclick="ModalSystem.warning('This is a warning modal')">Direct Warning</button>
+        <button class="test-btn" onclick="ModalSystem.error('This is an error modal')">Direct Error</button>
+        <button class="test-btn" onclick="ModalSystem.confirm('Are you sure?', {onConfirm: () => ModalSystem.success('Confirmed!'), onCancel: () => ModalSystem.info('Cancelled')})">Confirm Dialog</button>
+        
+        <h2>Test Original Alert (Fallback):</h2>
+        <button class="test-btn" onclick="window.originalAlert('This is the original alert fallback')">Original Alert</button>
+    </div>
+</body>
+</html>
