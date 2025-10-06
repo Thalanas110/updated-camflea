@@ -151,7 +151,6 @@
             background-color: var(--primary-color);
             z-index: 1000;
             box-shadow: var(--shadow-md);
-            overflow: hidden;
         }
 
         .navbar-content {
@@ -161,141 +160,6 @@
             align-items: center;
             gap: var(--spacing-lg);
             padding: 0 var(--spacing-lg);
-            max-width: 100%;
-            overflow: hidden;
-        }
-
-        /* Mobile Menu Button */
-        .mobile-menu-btn {
-            display: none;
-            background: none;
-            border: none;
-            color: var(--white);
-            font-size: 1.5rem;
-            cursor: pointer;
-            padding: var(--spacing-sm);
-        }
-
-        /* Mobile Sidebar */
-        .mobile-sidebar {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: -100%;
-            width: 280px;
-            height: 100vh;
-            background-color: var(--primary-color);
-            z-index: 1001;
-            transition: left 0.3s ease;
-            padding: var(--spacing-xl);
-            box-shadow: 2px 0 8px rgba(0, 0, 0, 0.4);
-            overflow-y: auto;
-        }
-
-        .mobile-sidebar.open {
-            left: 0;
-        }
-
-        .mobile-sidebar-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: var(--spacing-xl);
-            padding-bottom: var(--spacing-lg);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .mobile-sidebar-close {
-            background: none;
-            border: none;
-            color: var(--white);
-            font-size: 1.5rem;
-            cursor: pointer;
-            padding: var(--spacing-sm);
-        }
-
-        .mobile-sidebar-content {
-            display: flex;
-            flex-direction: column;
-            gap: var(--spacing-lg);
-        }
-
-        .mobile-nav-section {
-            display: flex;
-            flex-direction: column;
-            gap: var(--spacing-md);
-        }
-
-        .mobile-nav-section h3 {
-            color: var(--white);
-            font-size: 0.875rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin: 0 0 var(--spacing-sm) 0;
-            opacity: 0.8;
-        }
-
-        .mobile-nav-link {
-            display: flex;
-            align-items: center;
-            gap: var(--spacing-sm);
-            padding: var(--spacing-md);
-            background: rgba(255, 255, 255, 0.1);
-            color: var(--white);
-            text-decoration: none;
-            border-radius: var(--border-radius);
-            font-weight: 500;
-            transition: background-color 0.2s ease;
-        }
-
-        .mobile-nav-link:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        .mobile-nav-link i,
-        .mobile-nav-link img {
-            width: 20px;
-            height: 20px;
-            opacity: 0.9;
-        }
-
-        .mobile-action-buttons {
-            display: flex;
-            flex-wrap: wrap;
-            gap: var(--spacing-md);
-        }
-
-        .mobile-action-btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex: 1;
-            min-width: 60px;
-            height: 50px;
-            background-color: #4FC3F7;
-            color: var(--white);
-            border: none;
-            border-radius: var(--border-radius);
-            cursor: pointer;
-            font-size: 1rem;
-            transition: all 0.2s ease;
-            position: relative;
-        }
-
-        .mobile-action-btn:hover {
-            background-color: #29B6F6;
-        }
-
-        /* Mobile Overlay */
-        .mobile-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            z-index: 1000;
         }
 
         .navbar-start {
@@ -478,28 +342,23 @@
         /* Main Content Layout */
         .main-layout {
             display: flex;
-            gap: var(--spacing-lg);
-            padding: var(--spacing-lg);
+            gap: var(--spacing-xl);
+            padding: var(--spacing-xl);
             margin-top: var(--navbar-height);
             min-height: calc(100vh - var(--navbar-height));
-            max-width: 1400px;
-            margin-left: auto;
-            margin-right: auto;
         }
 
         /* Sidebar */
         .sidebar {
-            width: 100%;
-            max-width: var(--sidebar-width);
+            width: var(--sidebar-width);
             flex-shrink: 0;
             background: var(--white);
-            padding: var(--spacing-lg);
+            padding: var(--spacing-xl);
             border-radius: var(--border-radius);
             box-shadow: var(--shadow-md);
             height: fit-content;
             position: sticky;
             top: calc(var(--navbar-height) + var(--spacing-xl));
-            overflow: hidden;
         }
 
         .sidebar-title {
@@ -511,7 +370,7 @@
         }
 
         .filter-group {
-            margin-bottom: var(--spacing-lg);
+            margin-bottom: var(--spacing-xl);
         }
 
         .filter-label {
@@ -535,7 +394,6 @@
             border-radius: var(--border-radius);
             text-align: center;
             font-size: 0.875rem;
-            min-width: 0; /* Allow flex items to shrink */
         }
 
         .filter-btn {
@@ -733,28 +591,6 @@
             color: var(--primary-color);
         }
 
-        /* Loading and Error States */
-        .loading-message,
-        .no-items-message,
-        .error-message {
-            text-align: center;
-            padding: var(--spacing-xl);
-            color: var(--gray-600);
-            font-size: 1.1rem;
-            grid-column: 1 / -1;
-        }
-
-        .error-message {
-            color: #ef4444;
-            background-color: #fef2f2;
-            border: 1px solid #fecaca;
-            border-radius: var(--border-radius);
-        }
-
-        .loading-message {
-            color: var(--primary-color);
-        }
-
         /* Pagination */
         .pagination-controls {
             position: fixed;
@@ -886,18 +722,13 @@
             .main-layout {
                 flex-direction: column;
                 gap: var(--spacing-lg);
-                padding: var(--spacing-md);
             }
 
             .sidebar {
                 width: 100%;
-                max-width: 100%;
+                max-width: 600px;
+                margin: 0 auto;
                 position: static;
-                order: 1;
-            }
-
-            .content-area {
-                order: 2;
             }
 
             .items-grid {
@@ -908,64 +739,39 @@
 
         @media (max-width: 768px) {
             :root {
-                --navbar-height: 70px; /* Restore normal height since we're using sidebar */
-            }
-
-            .mobile-menu-btn {
-                display: block;
-            }
-
-            .mobile-sidebar {
-                display: block;
-            }
-
-            .mobile-overlay {
-                display: block;
-                opacity: 0;
-                visibility: hidden;
-                transition: opacity 0.3s ease, visibility 0.3s ease;
-            }
-
-            .mobile-overlay.active {
-                opacity: 1;
-                visibility: visible;
+                --navbar-height: 120px;
+                --sidebar-width: 100%;
             }
 
             .navbar-content {
-                grid-template-columns: auto 1fr auto;
-                grid-template-rows: none;
-                gap: var(--spacing-md);
-                padding: 0 var(--spacing-md);
-                height: var(--navbar-height);
+                grid-template-columns: 1fr;
+                grid-template-rows: auto auto auto;
+                gap: var(--spacing-sm);
+                padding: var(--spacing-sm);
             }
 
-            .navbar-start {
-                display: none; /* Hide in mobile, move to sidebar */
-            }
-
-            .navbar-center {
-                order: 0;
-                flex-direction: row;
-                gap: var(--spacing-md);
+            .navbar-start,
+            .navbar-center,
+            .navbar-end {
                 justify-content: center;
             }
 
-            .navbar-end {
-                display: none; /* Hide in mobile, move to sidebar */
+            .navbar-center {
+                order: -1;
             }
 
             .logo {
-                height: 35px;
+                height: 30px;
             }
 
             .search-container {
-                max-width: 300px;
-                width: 100%;
+                max-width: 100%;
             }
 
-            .search-input {
-                padding: var(--spacing-sm) 40px var(--spacing-sm) var(--spacing-sm);
-                font-size: 0.875rem;
+            .action-btn {
+                width: 40px;
+                height: 40px;
+                font-size: 1rem;
             }
 
             .main-layout {
@@ -994,32 +800,16 @@
                 width: 100%;
                 right: -100%;
             }
+
+            .nav-link {
+                font-size: 0.875rem;
+                padding: var(--spacing-xs) var(--spacing-sm);
+            }
         }
 
         @media (max-width: 480px) {
-            .search-container {
-                max-width: 200px;
-            }
-
-            .search-input {
-                font-size: 0.8rem;
-                padding: 6px 35px 6px 8px;
-            }
-
-            .logo {
-                height: 30px;
-            }
-
             .main-layout {
                 padding: var(--spacing-sm);
-            }
-
-            .sidebar {
-                padding: var(--spacing-md);
-            }
-
-            .filter-group {
-                margin-bottom: var(--spacing-md);
             }
 
             .items-grid {
@@ -1036,12 +826,10 @@
                 right: var(--spacing-sm);
                 transform: none;
                 width: auto;
-                padding: var(--spacing-sm);
             }
 
-            .mobile-sidebar {
-                width: 100%;
-                left: -100%;
+            .filter-group {
+                margin-bottom: var(--spacing-md);
             }
         }
     </style>
@@ -1069,11 +857,6 @@
 
             <!-- Center Section -->
             <div class="navbar-center">
-                <!-- Mobile Menu Button -->
-                <button class="mobile-menu-btn" id="mobileMenuBtn">
-                    <i class="fas fa-bars"></i>
-                </button>
-                
                 <img src="Homepage_images/LOGO_WHITE.png" alt="CamFlea Logo" class="logo">
                 <div class="search-container">
                     <input type="text" class="search-input" placeholder="Search" autocomplete="off" aria-label="Search items">
@@ -1106,59 +889,6 @@
             </div>
         </div>
     </nav>
-
-    <!-- Mobile Overlay -->
-    <div class="mobile-overlay" id="mobileOverlay"></div>
-
-    <!-- Mobile Sidebar -->
-    <div class="mobile-sidebar" id="mobileSidebar">
-        <div class="mobile-sidebar-header">
-            <img src="Homepage_images/LOGO_WHITE.png" alt="CamFlea Logo" class="logo">
-            <button class="mobile-sidebar-close" id="mobileSidebarClose">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-        
-        <div class="mobile-sidebar-content">
-            <!-- Profile Section -->
-            <div class="mobile-nav-section">
-                <h3>Profile</h3>
-                <a href="ViewProfile.html" class="mobile-nav-link">
-                    <img src="Homepage_images/circle-user.png" alt="Profile">
-                    <span>Visit your profile</span>
-                </a>
-                <a href="post_item.html" class="mobile-nav-link">
-                    <i class="fas fa-plus"></i>
-                    <span>Post Item</span>
-                </a>
-            </div>
-
-            <!-- Actions Section -->
-            <div class="mobile-nav-section">
-                <h3>Quick Actions</h3>
-                <div class="mobile-action-buttons">
-                    <button id="mobileTransactionBtn" class="mobile-action-btn" title="Transactions">
-                        <i class="fa-solid fa-credit-card"></i>
-                    </button>
-                    <button id="mobileNotificationsBtn" class="mobile-action-btn" title="Notifications">
-                        <i class="fa-solid fa-bell"></i>
-                        <span id="mobileNotificationBadge" class="notification-badge"></span>
-                    </button>
-                    <button id="mobileConversationsBtn" class="mobile-action-btn" title="Conversations">
-                        <i class="fa-solid fa-comments"></i>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Logout Section -->
-            <div class="mobile-nav-section">
-                <a href="#" class="mobile-nav-link" onclick="logoutUser()">
-                    <i class="fas fa-sign-out-alt"></i>
-                    <span>Logout</span>
-                </a>
-            </div>
-        </div>
-    </div>
 
     <!-- Main Layout -->
     <main class="main-layout">
