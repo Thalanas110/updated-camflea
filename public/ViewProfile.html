@@ -411,6 +411,12 @@ window.addEventListener('load', async function () {
     return `${diffInMonths} month${diffInMonths === 1 ? '' : 's'} ago`;
 }
 
+// Function to format numbers with commas
+function formatNumberWithCommas(number) {
+    if (number == null || number === '') return number;
+    return parseFloat(number).toLocaleString();
+}
+
 // Function to start countdown for the cancel button
 function startCountdownForCancelButton(itemCard, itemId) {
     const timestampKey = `cancelTimer_seller_${itemId}`;
@@ -778,9 +784,9 @@ async function fetchUserPostedItems() {
 
             let priceDisplay = '';
             if (item.item_price_type === 'single') {
-                priceDisplay = `PHP${item.item_price}`;
+                priceDisplay = `PHP${formatNumberWithCommas(item.item_price)}`;
             } else if (item.item_price_type === 'range') {
-                priceDisplay = `PHP${item.item_price_min} - PHP${item.item_price_max}`;
+                priceDisplay = `PHP${formatNumberWithCommas(item.item_price_min)} - PHP${formatNumberWithCommas(item.item_price_max)}`;
             } else if (item.item_price_type === 'hidden') {
                 priceDisplay = 'Price hidden';
             } else {
@@ -875,9 +881,9 @@ async function fetchUserPostedItems() {
 
             let priceDisplay = '';
             if (item.item_price_type === 'single') {
-                priceDisplay = `PHP${item.item_price}`;
+                priceDisplay = `PHP${formatNumberWithCommas(item.item_price)}`;
             } else if (item.item_price_type === 'range') {
-                priceDisplay = `PHP${item.item_price_min} - PHP${item.item_price_max}`;
+                priceDisplay = `PHP${formatNumberWithCommas(item.item_price_min)} - PHP${formatNumberWithCommas(item.item_price_max)}`;
             } else if (item.item_price_type === 'hidden') {
                 priceDisplay = 'Price hidden';
             } else {
