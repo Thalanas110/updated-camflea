@@ -202,9 +202,9 @@
 </head>
 <body>
     <div class="container">
-        <button class="back-btn" onclick="location.href='Login_page.html'">Back</button>
+        <button class="back-btn" onclick="location.href='/login/signin/Login_page.html'">Back</button>
         <div class="signup-box">
-            <img src="Login_images/LOGO.png" alt="CamFlea Logo" class="logo" />
+            <img src="/Login_images/LOGO.png" alt="CamFlea Logo" class="logo" />
             <h2>Create Your Account</h2>
             <form id="signupForm" onsubmit="handleSignup(event)">
                 <label>Name</label>
@@ -434,7 +434,7 @@
 
             showMessage('Signup successful! Redirecting...', 'success');
             setTimeout(() => {
-                window.location.href = 'Login_page.html';
+                window.location.href = '/login/signin/Login_page.html';
             }, 2000);
         }
 

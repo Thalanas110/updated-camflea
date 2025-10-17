@@ -43,6 +43,46 @@
       "dest": "/api/index.js"
     },
     {
+      "src": "/",
+      "dest": "/public/login/signin/Login_page.html"
+    },
+    {
+      "src": "/Login_page.html",
+      "dest": "/public/login/signin/Login_page.html"
+    },
+    {
+      "src": "/SignUp_page.html",
+      "dest": "/public/login/signup/new.html"
+    },
+    {
+      "src": "/admin.html",
+      "dest": "/public/admin/admin.html"
+    },
+    {
+      "src": "/user_management.html",
+      "dest": "/public/admin/user_management.html"
+    },
+    {
+      "src": "/transaction_monitoring.html",
+      "dest": "/public/admin/transaction_monitoring.html"
+    },
+    {
+      "src": "/admin_post_item_management.html",
+      "dest": "/public/admin/admin_post_item_management.html"
+    },
+    {
+      "src": "/loading-screen/(.*)",
+      "dest": "/public/loading-screen/$1"
+    },
+    {
+      "src": "/login/(.*)",
+      "dest": "/public/login/$1"
+    },
+    {
+      "src": "/admin/(.*)",
+      "dest": "/public/admin/$1"
+    },
+    {
       "src": "/(.*)",
       "dest": "/public/$1"
     }

@@ -6,8 +6,8 @@
     <title>User Management - CamFlea Admin</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-        <script src="modal-system.js"></script>
-    <script src="admin-auth.js"></script>
+        <script src="/modal-system.js"></script>
+    <script src="/admin/admin-auth.js"></script>
     <style>
         * {
             margin: 0;
@@ -433,7 +433,7 @@
             <button class="nav-button" onclick="window.location.href='admin.html'">
                 <i class="fas fa-home"></i> Back to Dashboard
             </button>
-            <button id="sidebarLogoutBtn" class="nav-button" style="background: #dc3545; border-color: #dc3545;" onclick="window.location.href='Login_page.html'">
+            <button id="sidebarLogoutBtn" class="nav-button" style="background: #dc3545; border-color: #dc3545;" onclick="window.location.href='/login/signin/Login_page.html'">
                 <i class="fas fa-sign-out-alt"></i> Logout
             </button>
         </nav>
@@ -762,7 +762,7 @@ backToAdminBtn.addEventListener('click', () => {
 const logoutBtn = document.getElementById('logoutBtn');
 if (logoutBtn) {
     logoutBtn.addEventListener('click', () => {
-        window.location.href = 'Login_page.html';
+        window.location.href = '/login/signin/Login_page.html';
     });
 }
 

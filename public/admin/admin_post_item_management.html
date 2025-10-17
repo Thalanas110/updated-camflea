@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Admin Post & Item Management - CamFlea</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-    <script src="modal-system.js"></script>
-    <script src="admin-auth.js"></script>
+    <script src="/modal-system.js"></script>
+    <script src="/admin/admin-auth.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -470,7 +470,7 @@
             <button class="nav-button" onclick="window.location.href='admin.html'">
                 <i class="fas fa-home"></i> Back to Dashboard
             </button>
-            <button class="nav-button" style="background: #dc3545; border-color: #dc3545;" onclick="window.location.href='Login_page.html'">
+            <button class="nav-button" style="background: #dc3545; border-color: #dc3545;" onclick="window.location.href='/login/signin/Login_page.html'">
                 <i class="fas fa-sign-out-alt"></i> Logout
             </button>
         </nav>
@@ -1015,7 +1015,7 @@
             if (sessionError || !sessionData.session) {
                 console.error('No active session found for admin:', sessionError);
                 // Redirect to login or handle unauthorized access
-                window.location.href = 'Login_page.html';
+                window.location.href = '/login/signin/Login_page.html';
                 return null;
             }
             loggedInAdminUUID = sessionData.session.user.id;

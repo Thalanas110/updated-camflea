@@ -720,6 +720,36 @@ app.post('/complete-transaction', authenticateToken, async (req, res) => {
     }
 });
 
+// Route aliases for organized folder structure
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'login', 'signin', 'Login_page.html'));
+});
+
+app.get('/Login_page.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'login', 'signin', 'Login_page.html'));
+});
+
+app.get('/SignUp_page.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'login', 'signup', 'new.html'));
+});
+
+// Admin route aliases
+app.get('/admin.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'admin', 'admin.html'));
+});
+
+app.get('/user_management.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'admin', 'user_management.html'));
+});
+
+app.get('/transaction_monitoring.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'admin', 'transaction_monitoring.html'));
+});
+
+app.get('/admin_post_item_management.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'admin', 'admin_post_item_management.html'));
+});
+
 // Start the server
 if (process.env.NODE_ENV !== 'production') {
     app.listen(port, () => {

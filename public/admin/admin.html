@@ -4,10 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Admin Dashboard - CamFlea</title>
-    <link rel="stylesheet" href="tablet-responsive.css">
+    <link rel="stylesheet" href="/tablet-responsive.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script src="admin-auth.js"></script>
+    <script src="/admin/admin-auth.js"></script>
     <style>
         * {
             margin: 0;
@@ -506,7 +506,7 @@
             <button id="reportsViolationsBtn" class="nav-button" data-page="reports_violations.html">
                 Reports & Violations
             </button>
-            <button id="logoutBtn" class="nav-button logout-button" data-page="Login_page.html">
+            <button id="logoutBtn" class="nav-button logout-button" data-page="/login/signin/Login_page.html">
                 Logout
             </button>
         </nav>
@@ -1434,7 +1434,7 @@ function renderItemStats(itemsByType, soldItemsByType) {
                     if (window.adminAuth) {
                         await window.adminAuth.logout();
                     } else {
-                        window.location.href = 'Login_page.html';
+                        window.location.href = '/login/signin/Login_page.html';
                     }
                 });
             }

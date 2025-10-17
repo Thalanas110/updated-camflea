@@ -176,7 +176,7 @@ class AdminAuth {
     redirectToLogin() {
         // Add a small delay to show any error messages
         setTimeout(() => {
-            window.location.href = 'Login_page.html';
+            window.location.href = '/login/signin/Login_page.html';
         }, 1000);
     }
 
@@ -344,7 +344,7 @@ class AdminAuth {
             console.error('Logout error:', error);
         } finally {
             // Force redirect to login with cache busting
-            window.location.href = 'Login_page.html?t=' + Date.now();
+            window.location.href = '/login/signin/Login_page.html?t=' + Date.now();
         }
     }
 }
