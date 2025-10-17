@@ -1,6 +1,6 @@
 // Admin Authentication Module
 // This script must be loaded before any admin functionality
-
+// new comment to test pull request
 // CRITICAL SECURITY: Immediately hide page content to prevent flash
 (function() {
     const style = document.createElement('style');
