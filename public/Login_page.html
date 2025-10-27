@@ -232,44 +232,16 @@
         return;
     }
 
-    // Use Supabase Auth to sign in
-    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-        email,
-        password
-    });
-
-    if (authError) {
-        // Check if error is due to invalid credentials
-        if (authError.status === 400 || authError.status === 401) {
-            errorMessage.innerHTML = "Email or password is incorrect.";
-        } else {
-            errorMessage.innerHTML = "An error occurred during authentication.";
-        }
-        errorMessage.style.display = "block";
-        return;
-    }
-
-    if (!authData.user) {
-        errorMessage.innerHTML = "Email or password is incorrect.";
-        errorMessage.style.display = "block";
-        return;
-    }
-
-    // After successful login with Supabase Auth, fetch the additional user details from your `student` table
+    // Fetch user from student table based on email and password
     const { data: user, error: userError } = await supabase
         .from('student')
         .select('*')
-        .eq('user_id', authData.user.id)  // Here we use authData.user.id to link to the student table
+        .eq('stud_email', email)
+        .eq('stud_password', password)
         .single();
 
-    if (userError) {
-        errorMessage.innerHTML = "An error occurred while fetching user data.";
-        errorMessage.style.display = "block";
-        return;
-    }
-
-    if (!user) {
-        errorMessage.innerHTML = "User not found in the student table.";
+    if (userError || !user) {
+        errorMessage.innerHTML = "Email or password is incorrect.";
         errorMessage.style.display = "block";
         return;
     }
@@ -295,7 +267,7 @@
             const { error: updateError } = await supabase
                 .from('student')
                 .update({ is_role: 0, restriction_start_date: null }) // Revert to normal role (assuming 0 is normal)
-                .eq('user_id', authData.user.id);
+                .eq('stud_email', email);
 
             if (updateError) {
                 console.error('Error lifting restriction:', updateError);
@@ -316,27 +288,19 @@
         sessionStorage.setItem("stud_id", user.stud_id); // Optional session data
     }
 
-    localStorage.setItem("senderUid", authData.user.id); // Use Supabase Auth's user ID for senderUid
+    localStorage.setItem("senderUid", user.user_id); // Use user_id from student table
     localStorage.setItem("stud_fname", user.stud_fname);
     localStorage.setItem("stud_lname", user.stud_lname);
     localStorage.setItem("stud_email", user.stud_email);
     localStorage.setItem("userSchool", user.stud_school);
     localStorage.setItem("isLoggedIn", "true");
 
-    // Store access token in localStorage for authenticated requests
-    if (authData.session && authData.session.access_token) {
-        localStorage.setItem("access_token", authData.session.access_token);
-        console.log("Stored access_token in localStorage");
-    } else {
-        console.warn("No access_token found in authData.session");
-    }
-
     // Show success message
     errorMessage.classList.add("success");
     errorMessage.innerHTML = "Login successful! Redirecting to homepage...";
     errorMessage.style.display = "block";
 
-    console.log("Stored senderUid:", authData.user.id);
+    console.log("Stored senderUid:", user.user_id);
     console.log("Current stud_id in localStorage:", localStorage.getItem("stud_id"));
 
     // Redirect based on is_role after short delay
