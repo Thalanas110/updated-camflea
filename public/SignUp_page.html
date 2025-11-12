@@ -244,12 +244,7 @@
                     as it cannot be changed after registration.</small
                 >
 
-                <label>Select Your School/Campus</label>
-                <select id="school" required style="appearance: none; -webkit-appearance: none; -moz-appearance: none; background: url('data:image/svg+xml;utf8,<svg fill=\'none\' stroke=\'%23000\' stroke-width=\'3\' viewBox=\'0 0 24 24\' xmlns=\'http://www.w3.org/2000/svg\'><path stroke-linecap=\'round\' stroke-linejoin=\'round\' d=\'M19 9l-7 7-7-7\'></path></svg>') no-repeat right 12px center/20px 20px, #fff; padding-right: 38px; border: 1px solid #ccc; border-radius: 5px;">
-                    <option value="" disabled selected>Select Your School</option>
-                    <option value="Gordon College">Gordon College</option>
-                    <option value="Columban College">Columban College</option>
-                </select>
+
 
                 <div class="email-password-container">
                     <div style="flex: 1.8;">
@@ -349,7 +344,7 @@
         }
 
         function isValidEmail(email) {
-            const pattern = /^\d{9}@(gordoncollege|columbancollege)\.edu\.ph$/;
+            const pattern = /^\d{9}@gordoncollege\.edu\.ph$/;
             return pattern.test(email);
         }
 
@@ -359,14 +354,13 @@
         }
 
         async function handleSignup(event) {
-            event.preventDefault(); 
+            event.preventDefault();
 
             const firstName = document.getElementById('firstName').value;
             const lastName = document.getElementById('lastName').value;
             const studentID = document.getElementById('studentID').value.trim();
             const password = document.getElementById('password').value;
             let phoneNumber = document.getElementById('phoneNumber').value;
-            const school = document.getElementById('school').value;
 
             if (!isValidPhoneNumber(phoneNumber)) {
                 showMessage('Phone number must be exactly 10 digits.', 'error');
@@ -374,17 +368,8 @@
             }
             phoneNumber = '+63' + phoneNumber;
 
-            let domain = '';
-            if (school === 'Gordon College') {
-                domain = 'gordoncollege.edu.ph';
-            } else if (school === 'Columban College') {
-                domain = 'columbancollege.edu.ph';
-            } else {
-                showMessage('Please select a valid school.', 'error');
-                return;
-            }
-
-            const email = `${studentID}@${domain}`; // This email will be passed
+            const domain = 'gordoncollege.edu.ph';
+            const email = `${studentID}@${domain}`;
 
             if (!isValidEmail(email)) {
                 showMessage(
@@ -439,30 +424,20 @@
                 return;
             }
 
-            const { data: student, error: studentError } = await supabaseClient
-                .from('student')
-                .insert({
-                    user_id: user.id,
-                    stud_fname: firstName,
-                    stud_lname: lastName,
-                    stud_email: email,
-                    stud_password: password, // Storing plain text password is a bad practice. Remove this.
-                    stud_phone: phoneNumber,
-                    stud_school: school,
-                    is_role: 0,
-                });
-
-            if (studentError) {
-                console.error('Error inserting student details:', studentError);
-                showMessage('Registration failed during profile creation. Please try again.', 'error');
-                // Potentially attempt to delete the auth user if profile creation fails
-                // await supabaseClient.auth.api.deleteUser(user.id); // Requires admin privileges
-                return;
-            }
+            // Store signup data in localStorage for later insertion after verification
+            const signupData = {
+                userId: user.id,
+                firstName,
+                lastName,
+                email,
+                phoneNumber,
+                school: 'Gordon College'
+            };
+            localStorage.setItem('signupData', JSON.stringify(signupData));
 
             showMessage('Signup successful! Redirecting to email verification...', 'success');
             setTimeout(() => {
-                // Redirect to index.html (the verification page) with the email
+                // Redirect to auth.html (the verification page) with the email
                 window.location.href = `auth.html?email=${encodeURIComponent(email)}`;
             }, 2000);
         }
